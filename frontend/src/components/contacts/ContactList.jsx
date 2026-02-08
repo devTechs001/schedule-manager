@@ -4,10 +4,13 @@ import ContactCard from './ContactCard';
 import Button from '@components/ui/Button';
 import Input from '@components/ui/Input';
 
-const ContactList = ({ contacts, onEdit, onDelete, onAdd }) => {
+const ContactList = ({ contacts = [], loading = false, onEdit, onDelete, onAdd }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredContacts = contacts.filter(contact =>
+  // Ensure contacts is an array before filtering
+  const contactsArray = Array.isArray(contacts) ? contacts : [];
+
+  const filteredContacts = contactsArray.filter(contact =>
     contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     contact.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     contact.company?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -48,9 +51,15 @@ const ContactList = ({ contacts, onEdit, onDelete, onAdd }) => {
         ))}
       </div>
 
-      {filteredContacts.length === 0 && (
+      {filteredContacts.length === 0 && !loading && (
         <div className="text-center py-12">
           <p className="text-gray-400">No contacts found</p>
+        </div>
+      )}
+
+      {loading && (
+        <div className="text-center py-12">
+          <p className="text-gray-400">Loading contacts...</p>
         </div>
       )}
     </div>

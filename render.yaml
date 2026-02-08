@@ -1,0 +1,63 @@
+services:
+  - type: web
+    name: schedule-manager-frontend
+    env: static
+    buildCommand: cd frontend && pnpm install && pnpm build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        value: /api
+      - key: VITE_ENABLE_AI_FEATURES
+        value: false
+      - key: VITE_ENABLE_NOTIFICATIONS
+        value: false
+      - key: VITE_ENABLE_COLLABORATION
+        value: false
+      - key: VITE_ENABLE_REALTIME
+        value: false
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
+      - key: VITE_GITHUB_CLIENT_ID
+        sync: false
+      - key: VITE_ANALYTICS_ID
+        sync: false
+      - key: VITE_MAX_TASKS_PER_DAY
+        value: 50
+      - key: VITE_MAX_TEAM_MEMBERS
+        value: 10
+      - key: VITE_IMAGE_UPLOAD_LIMIT
+        value: 5242880
+      - key: VITE_DEBUG_MODE
+        value: false
+      - key: VITE_MOCK_DATA
+        value: false
+      - key: VITE_ASSET_BASE_URL
+        value: ''
+      - key: VITE_SOCKET_URL
+        value: http://localhost:5000
+      - key: VITE_SOCKET_TIMEOUT
+        value: 30000
+
+  - type: web
+    name: schedule-manager-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: PORT
+        value: 10000
+    healthCheckPath: /health

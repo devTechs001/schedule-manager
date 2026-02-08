@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaChevronLeft, FaChevronRight, FaTimes, FaCalendarAlt, FaTasks, FaBrain, FaUsers, FaBell, FaRocket } from 'react-icons/fa';
+import { useAIContext } from '@contexts/AIContext';
 
 const Tour = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { aiEnabled, setAiEnabled } = useAIContext();
 
   const slides = [
     {
@@ -24,9 +26,10 @@ const Tour = () => {
     {
       icon: FaBrain,
       title: 'AI Assistant',
-      description: 'Get intelligent suggestions for task prioritization, optimal scheduling, and productivity improvements.',
+      description: 'Get intelligent suggestions for task prioritization, optimal scheduling, and productivity improvements. Toggle AI features here:',
       image: '/tour/ai.png',
       color: 'purple',
+      hasToggle: true,
     },
     {
       icon: FaUsers,
@@ -74,6 +77,10 @@ const Tour = () => {
     navigate('/login'); // Go to login if tour is skipped
   };
 
+  const toggleAI = () => {
+    setAiEnabled(!aiEnabled);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="max-w-4xl w-full">
@@ -97,7 +104,25 @@ const Tour = () => {
                   <slide.icon className="text-5xl text-white" />
                 </div>
                 <div className="w-64 h-48 bg-white/10 rounded-xl mx-auto flex items-center justify-center">
-                  <span className="text-white/50">Preview Image</span>
+                  {slide.hasToggle ? (
+                    <div className="flex flex-col items-center">
+                      <span className="text-white/50 mb-4">AI Assistant</span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={aiEnabled}
+                          onChange={toggleAI}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        <span className="ml-3 text-sm font-medium text-white">
+                          {aiEnabled ? 'ON' : 'OFF'}
+                        </span>
+                      </label>
+                    </div>
+                  ) : (
+                    <span className="text-white/50">Preview Image</span>
+                  )}
                 </div>
               </div>
             </div>

@@ -55,12 +55,29 @@ registerRoute(
   })
 );
 
+// Cache fonts
+registerRoute(
+  ({ request }) => request.destination === 'font',
+  new CacheFirst({
+    cacheName: 'fonts-cache',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+      new ExpirationPlugin({
+        maxEntries: 30,
+        maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
+      }),
+    ],
+  })
+);
+
 // Handle offline fallback
 self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => {
-        return caches.match('/offline.html');
+        return caches.match('/index.html');
       })
     );
   }
@@ -69,7 +86,7 @@ self.addEventListener('fetch', (event) => {
 // Handle push notifications
 self.addEventListener('push', (event) => {
   const data = event.data.json();
-  
+
   const options = {
     body: data.body,
     icon: '/icons/icon-192x192.png',
@@ -105,4 +122,53 @@ self.addEventListener('notificationclick', (event) => {
       clients.openWindow('/')
     );
   }
+});
+
+// Background sync for offline tasks
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-tasks') {
+    event.waitUntil(syncTasks());
+  }
+});
+
+async function syncTasks() {
+  // Retrieve offline tasks from IndexedDB
+  // Sync them with the server when online
+  console.log('Syncing offline tasks...');
+}
+
+// Install event - triggers when service worker is installed
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open('static-cache-v1').then((cache) => {
+      return cache.addAll([
+        '/',
+        '/index.html',
+        '/offline.html',
+        '/icons/icon-72x72.png',
+        '/icons/icon-96x96.png',
+        '/icons/icon-128x128.png',
+        '/icons/icon-144x144.png',
+        '/icons/icon-152x152.png',
+        '/icons/icon-192x192.png',
+        '/icons/icon-384x384.png',
+        '/icons/icon-512x512.png',
+      ]);
+    })
+  );
+});
+
+// Activate event - cleanup old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== 'static-cache-v1' && cacheName !== 'api-cache' && cacheName !== 'images-cache' && cacheName !== 'static-resources' && cacheName !== 'fonts-cache') {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
 });

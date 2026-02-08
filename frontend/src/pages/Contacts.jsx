@@ -69,6 +69,7 @@ const Contacts = () => {
         <div className="lg:col-span-3">
           <ContactList
             contacts={contacts}
+            loading={loading}
             onAdd={handleAddContact}
             onEdit={handleEditContact}
             onDelete={handleDelete}

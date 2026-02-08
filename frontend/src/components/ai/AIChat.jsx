@@ -5,10 +5,12 @@ import LoadingSpinner from '@components/ui/LoadingSpinner';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useAIContext } from '@contexts/AIContext';
 
-const AIChat = ({ onSendMessage, messages, loading }) => {
+const AIChat = () => {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
+  const { chatMessages, isLoading, sendMessage } = useAIContext();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -16,13 +18,13 @@ const AIChat = ({ onSendMessage, messages, loading }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [chatMessages]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    if (!input.trim() || isLoading) return;
 
-    await onSendMessage(input);
+    await sendMessage(input);
     setInput('');
   };
 
@@ -41,7 +43,7 @@ const AIChat = ({ onSendMessage, messages, loading }) => {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 ? (
+        {chatMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <FaRobot size={48} className="text-gray-300 dark:text-gray-600 mb-4" />
             <p className="text-gray-500 dark:text-gray-400">
@@ -52,7 +54,7 @@ const AIChat = ({ onSendMessage, messages, loading }) => {
             </p>
           </div>
         ) : (
-          messages.map((message, index) => (
+          chatMessages.map((message, index) => (
             <div
               key={index}
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -119,7 +121,7 @@ const AIChat = ({ onSendMessage, messages, loading }) => {
             </div>
           ))
         )}
-        {loading && (
+        {isLoading && (
           <div className="flex justify-start">
             <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
               <LoadingSpinner size="sm" />
@@ -137,14 +139,14 @@ const AIChat = ({ onSendMessage, messages, loading }) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
-            disabled={loading}
+            disabled={isLoading}
             className="flex-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50"
           />
           <Button
             type="submit"
             variant="primary"
             icon={<FaPaperPlane />}
-            disabled={!input.trim() || loading}
+            disabled={!input.trim() || isLoading}
           >
             Send
           </Button>

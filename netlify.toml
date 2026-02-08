@@ -1,0 +1,29 @@
+[build]
+  command = "cd frontend && pnpm install && pnpm build"
+  publish = "frontend/dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--version" # prevent npm from running in CI mode
+  VITE_API_URL = "/api"
+  VITE_ENABLE_AI_FEATURES = "false"
+  VITE_ENABLE_NOTIFICATIONS = "false"
+  VITE_ENABLE_COLLABORATION = "false"
+  VITE_ENABLE_REALTIME = "false"
+  VITE_GOOGLE_CLIENT_ID = ""
+  VITE_GITHUB_CLIENT_ID = ""
+  VITE_ANALYTICS_ID = ""
+  VITE_MAX_TASKS_PER_DAY = "50"
+  VITE_MAX_TEAM_MEMBERS = "10"
+  VITE_IMAGE_UPLOAD_LIMIT = "5242880"
+  VITE_DEBUG_MODE = "false"
+  VITE_MOCK_DATA = "false"
+  VITE_ASSET_BASE_URL = ""
+  VITE_SOCKET_URL = "http://localhost:5000"
+  VITE_SOCKET_TIMEOUT = "30000"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

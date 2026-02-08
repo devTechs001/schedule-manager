@@ -1,0 +1,57 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        
+    - name: Install pnpm
+      run: npm install -g pnpm
+      
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        pnpm install
+        
+    - name: Build frontend
+      run: |
+        cd frontend
+        pnpm build
+      env:
+        VITE_API_URL: ${{ secrets.VITE_API_URL || '/api' }}
+        VITE_ENABLE_AI_FEATURES: ${{ secrets.VITE_ENABLE_AI_FEATURES || 'false' }}
+        VITE_ENABLE_NOTIFICATIONS: ${{ secrets.VITE_ENABLE_NOTIFICATIONS || 'false' }}
+        VITE_ENABLE_COLLABORATION: ${{ secrets.VITE_ENABLE_COLLABORATION || 'false' }}
+        VITE_ENABLE_REALTIME: ${{ secrets.VITE_ENABLE_REALTIME || 'false' }}
+        VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+        VITE_GITHUB_CLIENT_ID: ${{ secrets.VITE_GITHUB_CLIENT_ID }}
+        VITE_ANALYTICS_ID: ${{ secrets.VITE_ANALYTICS_ID }}
+        VITE_MAX_TASKS_PER_DAY: ${{ secrets.VITE_MAX_TASKS_PER_DAY || '50' }}
+        VITE_MAX_TEAM_MEMBERS: ${{ secrets.VITE_MAX_TEAM_MEMBERS || '10' }}
+        VITE_IMAGE_UPLOAD_LIMIT: ${{ secrets.VITE_IMAGE_UPLOAD_LIMIT || '5242880' }}
+        VITE_DEBUG_MODE: ${{ secrets.VITE_DEBUG_MODE || 'false' }}
+        VITE_MOCK_DATA: ${{ secrets.VITE_MOCK_DATA || 'false' }}
+        VITE_ASSET_BASE_URL: ${{ secrets.VITE_ASSET_BASE_URL || '' }}
+        VITE_SOCKET_URL: ${{ secrets.VITE_SOCKET_URL || 'http://localhost:5000' }}
+        VITE_SOCKET_TIMEOUT: ${{ secrets.VITE_SOCKET_TIMEOUT || '30000' }}
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./frontend/dist
+        enable_jekyll: false

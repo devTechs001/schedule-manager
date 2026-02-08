@@ -25,7 +25,14 @@ client.interceptors.request.use(
 
 // Response interceptor
 client.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    // Extract the actual data from the response
+    // Backend returns { success: boolean, data: actualData, ... }
+    if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+      return response.data.data;
+    }
+    return response.data;
+  },
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
