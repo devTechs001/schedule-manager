@@ -45,7 +45,35 @@ const Register = () => {
       toast.success('Account created successfully!');
       navigate('/');
     } catch (error) {
-      toast.error(error.message || 'Registration failed. Please try again.');
+      console.error('Registration error details:', error); // Log for debugging
+
+      let errorMessage = error.message || 'Registration failed. Please try again.';
+      let solution = '';
+
+      // Provide specific solutions based on error message
+      if (error.message.toLowerCase().includes('already exists')) {
+        errorMessage = 'An account with this email already exists.';
+        solution = 'Please use a different email address or try logging in instead.';
+      } else if (error.message.toLowerCase().includes('validation failed')) {
+        errorMessage = 'Please check your input. Some fields may be invalid.';
+        solution = 'Make sure your email is valid and your password meets the requirements.';
+      } else if (error.message.toLowerCase().includes('network') || error.message.toLowerCase().includes('no response from server')) {
+        errorMessage = 'Cannot connect to the server. Please check if the backend is running.';
+        solution = 'Make sure the backend server is running on port 5000.';
+      } else if (error.message.toLowerCase().includes('404')) {
+        errorMessage = 'Registration service not found.';
+        solution = 'Please contact the administrator. The registration service may be temporarily unavailable.';
+      }
+
+      // Show error with solution
+      toast.error(
+        <div className="text-left">
+          <div className="font-semibold">Registration Failed</div>
+          <div>{errorMessage}</div>
+          {solution && <div className="mt-1 text-sm opacity-80">{solution}</div>}
+        </div>,
+        { duration: 8000 } // Show for 8 seconds to allow reading
+      );
     } finally {
       setLoading(false);
     }

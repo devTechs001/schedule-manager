@@ -1,0 +1,211 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for AI Schedule Manager */
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #f9fafb;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: #f9fafb; /* light gray background */
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Mobile first responsive adjustments */
+* {
+  box-sizing: border-box;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c5c5c5;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid #2563eb; /* primary-600 */
+  outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Task card styles - Mobile first */
+.task-card {
+  @apply p-3 mb-2 rounded-lg shadow-sm border border-gray-200 bg-white hover:shadow-md transition-shadow w-full;
+}
+
+.task-card.completed {
+  @apply bg-green-50 border-green-200;
+}
+
+.task-card.high-priority {
+  @apply border-l-4 border-red-500;
+}
+
+.task-card.medium-priority {
+  @apply border-l-4 border-yellow-500;
+}
+
+.task-card.low-priority {
+  @apply border-l-4 border-green-500;
+}
+
+/* Calendar event styles */
+.calendar-event {
+  @apply rounded-md p-2 text-white text-xs truncate;
+}
+
+.event-meeting {
+  @apply bg-blue-500;
+}
+
+.event-task {
+  @apply bg-purple-500;
+}
+
+.event-deadline {
+  @apply bg-red-500;
+}
+
+.event-reminder {
+  @apply bg-indigo-500;
+}
+
+/* Notification styles */
+.notification {
+  @apply p-3 mb-2 rounded-lg shadow-md border-l-4 w-full;
+}
+
+.notification-success {
+  @apply border-green-500 bg-green-50 text-green-700;
+}
+
+.notification-error {
+  @apply border-red-500 bg-red-50 text-red-700;
+}
+
+.notification-warning {
+  @apply border-yellow-500 bg-yellow-50 text-yellow-700;
+}
+
+.notification-info {
+  @apply border-blue-500 bg-blue-50 text-blue-700;
+}
+
+/* Button styles */
+.btn {
+  @apply px-3 py-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 w-full text-center sm:w-auto;
+}
+
+.btn-primary {
+  @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500;
+}
+
+.btn-outline {
+  @apply bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500;
+}
+
+.btn-danger {
+  @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+}
+
+/* Form styles */
+.form-group {
+  @apply mb-3 w-full;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.form-input {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500;
+}
+
+.form-input.error {
+  @apply border-red-500 focus:ring-red-500 focus:border-red-500;
+}
+
+.form-error {
+  @apply mt-1 text-xs text-red-600 sm:text-sm;
+}
+
+/* Loading spinner */
+.spinner {
+  @apply animate-spin rounded-full h-5 w-5 border-b-2 border-white;
+}
+
+/* Container */
+.container {
+  @apply w-full px-3;
+}
+
+/* Layout adjustments */
+.main-layout {
+  @apply flex flex-col min-h-screen;
+}
+
+.sidebar {
+  @apply w-64 h-screen fixed top-0 left-0 bottom-auto static z-0 border-r border-gray-200;
+}
+
+.content-area {
+  @apply w-full pb-16 pt-4;
+}
+
+/* Typography */
+h1 {
+  @apply text-xl font-bold text-gray-900 sm:text-2xl;
+}
+
+h2 {
+  @apply text-lg font-semibold text-gray-800 sm:text-xl;
+}
+
+h3 {
+  @apply text-base font-medium text-gray-700 sm:text-lg;
+}
+
+/* Media queries removed for simplicity to fix the CSS processing issue */

@@ -40,7 +40,10 @@ const Emails = () => {
     }
   };
 
-  const filteredEmails = emails.filter(email => {
+  // Ensure emails is an array before filtering
+  const emailsArray = Array.isArray(emails) ? emails : [];
+
+  const filteredEmails = emailsArray.filter(email => {
     switch (activeFilter) {
       case 'starred':
         return email.starred;
@@ -54,10 +57,10 @@ const Emails = () => {
   });
 
   const filterCounts = {
-    inbox: emails.filter(e => !e.trash).length,
-    starred: emails.filter(e => e.starred).length,
-    sent: emails.filter(e => e.type === 'sent').length,
-    trash: emails.filter(e => e.trash).length,
+    inbox: emailsArray.filter(e => !e.trash).length,
+    starred: emailsArray.filter(e => e.starred).length,
+    sent: emailsArray.filter(e => e.type === 'sent').length,
+    trash: emailsArray.filter(e => e.trash).length,
   };
 
   return (

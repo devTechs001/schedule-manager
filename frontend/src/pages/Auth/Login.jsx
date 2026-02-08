@@ -24,7 +24,35 @@ const Login = () => {
       toast.success('Login successful!');
       navigate('/');
     } catch (error) {
-      toast.error(error.message || 'Login failed. Please check your credentials.');
+      console.error('Login error details:', error); // Log for debugging
+
+      let errorMessage = error.message || 'Login failed. Please check your credentials.';
+      let solution = '';
+
+      // Provide specific solutions based on error message
+      if (error.message.toLowerCase().includes('invalid credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials.';
+        solution = 'Make sure you\'re using the correct email and password. Default admin credentials: devtechs842@gmail.com / AdminPass123!';
+      } else if (error.message.toLowerCase().includes('user not found') || error.message.toLowerCase().includes('no user')) {
+        errorMessage = 'User not found. Please check your email address.';
+        solution = 'If you don\'t have an account, please register first.';
+      } else if (error.message.toLowerCase().includes('network') || error.message.toLowerCase().includes('no response from server')) {
+        errorMessage = 'Cannot connect to the server. Please check if the backend is running.';
+        solution = 'Make sure the backend server is running on port 5000.';
+      } else if (error.message.toLowerCase().includes('404')) {
+        errorMessage = 'Authentication service not found.';
+        solution = 'Please contact the administrator. The login service may be temporarily unavailable.';
+      }
+
+      // Show error with solution
+      toast.error(
+        <div className="text-left">
+          <div className="font-semibold">Login Failed</div>
+          <div>{errorMessage}</div>
+          {solution && <div className="mt-1 text-sm opacity-80">{solution}</div>}
+        </div>,
+        { duration: 8000 } // Show for 8 seconds to allow reading
+      );
     } finally {
       setLoading(false);
     }

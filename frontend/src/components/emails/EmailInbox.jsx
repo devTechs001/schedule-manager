@@ -7,7 +7,10 @@ import { formatDistanceToNow } from 'date-fns';
 const EmailInbox = ({ emails, onSelectEmail, selectedEmail }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredEmails = emails.filter(email =>
+  // Ensure emails is an array before filtering
+  const emailsArray = Array.isArray(emails) ? emails : [];
+
+  const filteredEmails = emailsArray.filter(email =>
     email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
     email.from.toLowerCase().includes(searchQuery.toLowerCase())
   );

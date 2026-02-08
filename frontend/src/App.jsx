@@ -7,12 +7,16 @@ import { AppProvider } from '@contexts/AppContext';
 import { AuthProvider, useAuth } from '@contexts/AuthContext';
 import { ThemeProvider } from '@contexts/ThemeContext';
 import { AIProvider } from '@contexts/AIContext';
+import { CollaborationProvider } from '@context/CollaborationContext';
+import { NotificationProvider } from '@context/NotificationContext';
+import { OfflineProvider } from '@context/OfflineContext';
+import { PerformanceProvider } from '@context/PerformanceContext';
 
 // Layout
 import Layout from '@components/layout/Layout';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
 
-// Lazy load pages
+// Lazy load pages - Main
 const Dashboard = lazy(() => import('@pages/Dashboard'));
 const Tasks = lazy(() => import('@pages/Tasks'));
 const Emails = lazy(() => import('@pages/Emails'));
@@ -20,8 +24,50 @@ const Contacts = lazy(() => import('@pages/Contacts'));
 const Schedule = lazy(() => import('@pages/Schedule'));
 const Analytics = lazy(() => import('@pages/Analytics'));
 const Settings = lazy(() => import('@pages/Settings'));
+
+// Lazy load pages - AI Tools
+const AIInsights = lazy(() => import('@pages/AI/AIInsights'));
+const AIChat = lazy(() => import('@pages/AI/AIChat'));
+const PredictiveScheduler = lazy(() => import('@pages/AI/PredictiveScheduler'));
+const MeetingAssistant = lazy(() => import('@pages/AI/MeetingAssistant'));
+
+// Lazy load pages - Gamification
+const Leaderboard = lazy(() => import('@pages/Gamification/Leaderboard'));
+const Achievements = lazy(() => import('@pages/Gamification/Achievements'));
+const Challenges = lazy(() => import('@pages/Gamification/Challenges'));
+const Rewards = lazy(() => import('@pages/Gamification/Rewards'));
+
+// Lazy load pages - Analytics
+const PerformanceAnalytics = lazy(() => import('@pages/Analytics/Performance'));
+const TimeTracking = lazy(() => import('@pages/Analytics/TimeTracking'));
+const ProductivityAnalytics = lazy(() => import('@pages/Analytics/Productivity'));
+
+// Lazy load pages - Auth
 const Login = lazy(() => import('@pages/Auth/Login'));
 const Register = lazy(() => import('@pages/Auth/Register'));
+const BiometricSetup = lazy(() => import('@pages/Auth/BiometricSetup'));
+
+// Lazy load pages - Settings
+const SettingsIntegrations = lazy(() => import('@pages/Settings/Integrations'));
+const SettingsNotifications = lazy(() => import('@pages/Settings/Notifications'));
+const SettingsSecurity = lazy(() => import('@pages/Settings/Security'));
+const SettingsAccessibility = lazy(() => import('@pages/Settings/Accessibility'));
+
+// Lazy load pages - Collaboration
+const TeamWorkspace = lazy(() => import('@pages/Collaboration/TeamWorkspace'));
+const Projects = lazy(() => import('@pages/Collaboration/Projects'));
+const Meetings = lazy(() => import('@pages/Collaboration/Meetings'));
+
+// Lazy load pages - Onboarding
+const SplashScreen = lazy(() => import('@pages/Onboarding/SplashScreen'));
+const Welcome = lazy(() => import('@pages/Onboarding/Welcome'));
+const SetupWizard = lazy(() => import('@pages/Onboarding/SetupWizard'));
+const Tour = lazy(() => import('@pages/Onboarding/Tour'));
+
+// Lazy load pages - Error
+const NotFound = lazy(() => import('@pages/Error/404'));
+const ServerError = lazy(() => import('@pages/Error/500'));
+const Offline = lazy(() => import('@pages/Error/Offline'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -86,10 +132,52 @@ const NetworkStatus = () => {
 
 // Main App Component
 function AppContent() {
+  const { user, loading } = useAuth();
+
+  // Check if user has completed onboarding
+  const hasCompletedOnboarding = localStorage.getItem('onboardingComplete') === 'true';
+  const hasSeenSplash = localStorage.getItem('seenSplash') === 'true';
+
+  // Determine the initial route based on user state
+  let initialRoute = null;
+  if (loading) {
+    initialRoute = <PageLoader />;
+  } else if (!user) {
+    // User is not logged in
+    if (!hasSeenSplash) {
+      // Show splash screen first
+      initialRoute = <SplashScreen />;
+    } else if (!hasCompletedOnboarding) {
+      // Show welcome screen if not completed onboarding
+      initialRoute = <Welcome />;
+    } else {
+      // Show login if onboarding is complete but not logged in
+      initialRoute = <Login />;
+    }
+  } else {
+    // User is logged in
+    if (!hasCompletedOnboarding) {
+      // If user is logged in but hasn't completed onboarding, redirect to onboarding
+      initialRoute = <Tour />;
+    } else {
+      // Show dashboard if user is logged in and onboarding is complete
+      initialRoute = (
+        <ProtectedRoute>
+          <Layout />
+        </ProtectedRoute>
+      );
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <Suspense fallback={<PageLoader />}>
         <Routes>
+          {/* Onboarding Routes - Always available */}
+          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/setup" element={<SetupWizard />} />
+          <Route path="/tour" element={<Tour />} />
+
           {/* Public Routes */}
           <Route
             path="/login"
@@ -108,47 +196,45 @@ function AppContent() {
             }
           />
 
-          {/* Protected Routes */}
+          {/* Auth Routes */}
           <Route
-            path="/"
+            path="/biometric-setup"
             element={
               <ProtectedRoute>
-                <Layout />
+                <BiometricSetup />
               </ProtectedRoute>
             }
-          >
+          />
+
+          {/* Protected Routes */}
+          <Route path="/" element={initialRoute}>
             <Route index element={<Dashboard />} />
             <Route path="tasks" element={<Tasks />} />
             <Route path="emails" element={<Emails />} />
             <Route path="contacts" element={<Contacts />} />
             <Route path="schedule" element={<Schedule />} />
             <Route path="analytics" element={<Analytics />} />
+
+            {/* Settings Routes */}
             <Route path="settings" element={<Settings />} />
+            <Route path="settings/integrations" element={<SettingsIntegrations />} />
+            <Route path="settings/notifications" element={<SettingsNotifications />} />
+            <Route path="settings/security" element={<SettingsSecurity />} />
+            <Route path="settings/accessibility" element={<SettingsAccessibility />} />
+
+            {/* Collaboration Routes */}
+            <Route path="collaboration" element={<TeamWorkspace />} />
+            <Route path="collaboration/workspace" element={<TeamWorkspace />} />
+            <Route path="collaboration/projects" element={<Projects />} />
+            <Route path="collaboration/meetings" element={<Meetings />} />
           </Route>
 
+          {/* Error Routes */}
+          <Route path="/offline" element={<Offline />} />
+          <Route path="/error" element={<ServerError />} />
+
           {/* 404 Route */}
-          <Route
-            path="*"
-            element={
-              <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-                <div className="text-center">
-                  <h1 className="text-9xl font-bold text-primary-600">404</h1>
-                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-4">
-                    Page Not Found
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2 mb-8">
-                    The page you're looking for doesn't exist.
-                  </p>
-                  <a
-                    href="/"
-                    className="inline-block bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
-                  >
-                    Go Home
-                  </a>
-                </div>
-              </div>
-            }
-          />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
 
@@ -203,7 +289,15 @@ function App() {
         <AuthProvider>
           <AppProvider>
             <AIProvider>
-              <AppContent />
+              <CollaborationProvider>
+                <NotificationProvider>
+                  <OfflineProvider>
+                    <PerformanceProvider>
+                      <AppContent />
+                    </PerformanceProvider>
+                  </OfflineProvider>
+                </NotificationProvider>
+              </CollaborationProvider>
             </AIProvider>
           </AppProvider>
         </AuthProvider>

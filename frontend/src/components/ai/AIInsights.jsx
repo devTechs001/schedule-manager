@@ -1,10 +1,10 @@
 import React from 'react';
-import { FaLightbulb, FaTrendingUp, FaClock, FaExclamationTriangle } from 'react-icons/fa';
+import { FaLightbulb, FaChartLine, FaClock, FaExclamationTriangle } from 'react-icons/fa';
 import Card from '@components/ui/Card';
 
 const AIInsights = ({ insights }) => {
   const iconMap = {
-    productivity: FaTrendingUp,
+    productivity: FaChartLine,
     time: FaClock,
     warning: FaExclamationTriangle,
     suggestion: FaLightbulb,

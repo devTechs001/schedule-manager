@@ -13,7 +13,10 @@ const TaskList = ({ tasks, loading, onEdit, onDelete, onToggle, onAdd }) => {
     search: '',
   });
 
-  const filteredTasks = tasks.filter((task) => {
+  // Ensure tasks is an array before filtering
+  const tasksArray = Array.isArray(tasks) ? tasks : [];
+
+  const filteredTasks = tasksArray.filter((task) => {
     const matchesStatus = filters.status === 'all' || task.status === filters.status;
     const matchesPriority = filters.priority === 'all' || task.priority === filters.priority;
     const matchesSearch = task.title.toLowerCase().includes(filters.search.toLowerCase()) ||

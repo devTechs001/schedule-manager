@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@contexts/AuthContext';
 import { useTheme } from '@contexts/ThemeContext';
 import Card from '@components/ui/Card';
 import Input from '@components/ui/Input';
 import Button from '@components/ui/Button';
-import { FaUser, FaBell, FaPalette, FaShieldAlt, FaSave } from 'react-icons/fa';
+import { FaUser, FaBell, FaPalette, FaShieldAlt, FaSave, FaPlug, FaUniversalAccess, FaChevronRight } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 const Settings = () => {
+  const navigate = useNavigate();
   const { user, updateProfile } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('profile');
@@ -34,6 +36,14 @@ const Settings = () => {
     { id: 'notifications', label: 'Notifications', icon: FaBell },
     { id: 'appearance', label: 'Appearance', icon: FaPalette },
     { id: 'privacy', label: 'Privacy', icon: FaShieldAlt },
+  ];
+
+  // Quick links to detailed settings pages
+  const settingsLinks = [
+    { path: '/settings/integrations', label: 'Integrations', icon: FaPlug, description: 'Connect third-party apps' },
+    { path: '/settings/notifications', label: 'Advanced Notifications', icon: FaBell, description: 'Detailed notification settings' },
+    { path: '/settings/security', label: 'Security', icon: FaShieldAlt, description: 'Password, 2FA, and sessions' },
+    { path: '/settings/accessibility', label: 'Accessibility', icon: FaUniversalAccess, description: 'Customize your experience' },
   ];
 
   const handleProfileUpdate = async (e) => {
@@ -284,6 +294,31 @@ const Settings = () => {
               </div>
             </Card>
           )}
+        </div>
+      </div>
+
+      {/* Quick Links to Detailed Settings */}
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">More Settings</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {settingsLinks.map((link) => (
+            <button
+              key={link.path}
+              onClick={() => navigate(link.path)}
+              className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 hover:shadow-md transition-all group"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
+                  <link.icon className="text-primary-600 dark:text-primary-400" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-gray-900 dark:text-white">{link.label}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{link.description}</p>
+                </div>
+              </div>
+              <FaChevronRight className="text-gray-400 group-hover:text-primary-500 transition-colors" />
+            </button>
+          ))}
         </div>
       </div>
     </div>

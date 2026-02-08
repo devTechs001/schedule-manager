@@ -7,16 +7,13 @@ import compression from 'compression';
 import mongoSanitize from 'express-mongo-sanitize';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import config from './config/app.js';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Load environment variables
-dotenv.config();
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -42,7 +39,7 @@ const httpServer = createServer(app);
 // Initialize Socket.IO
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: config.client.url || 'http://localhost:5173',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   },
@@ -72,7 +69,7 @@ app.use(helmet({
 app.use(cors({
   origin: (origin, callback) => {
     const allowedOrigins = [
-      process.env.CLIENT_URL,
+      config.client.url,
       'http://localhost:5173',
       'http://localhost:3000',
     ].filter(Boolean);
@@ -212,10 +209,9 @@ const gracefulShutdown = () => {
   httpServer.close(() => {
     logger.info('HTTP server closed');
     
-    mongoose.connection.close(false, () => {
-      logger.info('MongoDB connection closed');
-      process.exit(0);
-    });
+    mongoose.connection.close(false);
+    logger.info('MongoDB connection closed');
+    process.exit(0);
   });
 
   // Force close after 10 seconds
@@ -242,14 +238,14 @@ process.on('uncaughtException', (err) => {
 });
 
 // Start Server
-const PORT = process.env.PORT || 5000;
+const PORT = config.server.port;
 httpServer.listen(PORT, () => {
   logger.info(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
 ║   🤖 AI Schedule Manager API Server                      ║
 ║                                                           ║
-║   Environment: ${process.env.NODE_ENV?.toUpperCase().padEnd(10)}                                 ║
+║   Environment: ${config.server.env.toUpperCase().padEnd(10)}                                 ║
 ║   Port:        ${PORT.toString().padEnd(10)}                                 ║
 ║   URL:         http://localhost:${PORT}                       ║
 ║                                                           ║

@@ -1,8 +1,9 @@
 import axios from 'axios';
+import config from '../../config/app';
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  timeout: 10000,
+  baseURL: config.apiUrl,
+  timeout: config.apiTimeout,
   headers: {
     'Content-Type': 'application/json',
   },

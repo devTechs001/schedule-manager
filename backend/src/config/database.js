@@ -1,7 +1,6 @@
+import config from './app.js';
+
 export default {
-    uri: process.env.MONGODB_URI,
-    options: {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    },
+    uri: config.database.mongoUri,
+    options: config.database.options,
   };

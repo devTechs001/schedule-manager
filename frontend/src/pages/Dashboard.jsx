@@ -23,7 +23,7 @@ const Dashboard = () => {
   const { emails } = useEmails();
   const { events } = useSchedule();
   const { getInsights } = useAI();
-  const [insights, setInsights] = useState([]);
+  const [rawInsights, setRawInsights] = useState([]);
 
   useEffect(() => {
     fetchInsights();
@@ -32,24 +32,30 @@ const Dashboard = () => {
   const fetchInsights = async () => {
     try {
       const data = await getInsights();
-      setInsights(data);
+      setRawInsights(data);
     } catch (error) {
       console.error('Failed to fetch insights:', error);
+      setRawInsights([]); // Ensure it's always an array
     }
   };
 
+  // Ensure tasks is an array before using array methods
+  const tasksArray = Array.isArray(tasks) ? tasks : [];
+  const emailsArray = Array.isArray(emails) ? emails : [];
+  const eventsArray = Array.isArray(events) ? events : [];
+
   const stats = {
-    totalTasks: tasks.length,
-    completedTasks: tasks.filter(t => t.status === 'completed').length,
-    unreadEmails: emails.filter(e => !e.read).length,
-    todayEvents: events.filter(e => isToday(new Date(e.start))).length,
+    totalTasks: tasksArray.length,
+    completedTasks: tasksArray.filter(t => t.status === 'completed').length,
+    unreadEmails: emailsArray.filter(e => !e.read).length,
+    todayEvents: eventsArray.filter(e => isToday(new Date(e.start))).length,
   };
 
-  const todayTasks = tasks.filter(t => 
+  const todayTasks = tasksArray.filter(t =>
     t.dueDate && isToday(new Date(t.dueDate)) && t.status !== 'completed'
   );
 
-  const upcomingEvents = events
+  const upcomingEvents = eventsArray
     .filter(e => isToday(new Date(e.start)) || isTomorrow(new Date(e.start)))
     .slice(0, 5);
 
@@ -198,7 +204,7 @@ const Dashboard = () => {
           </Card>
 
           {/* AI Insights */}
-          <AIInsights insights={insights} />
+          <AIInsights insights={Array.isArray(rawInsights) ? rawInsights : []} />
         </div>
       </div>
     </div>

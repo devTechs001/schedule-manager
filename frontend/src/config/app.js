@@ -1,7 +1,7 @@
 // Configuration file to manage environment variables and app settings
 const config = {
   // API Configuration
-  apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:5001',
+  apiUrl: import.meta.env.VITE_API_URL || '/api',
   apiTimeout: parseInt(import.meta.env.VITE_API_TIMEOUT) || 10000,
   
   // Feature Flags
@@ -36,7 +36,7 @@ const config = {
   assetBaseUrl: import.meta.env.VITE_ASSET_BASE_URL || '',
   
   // Real-time Settings
-  socketUrl: import.meta.env.VITE_SOCKET_URL || 'http://localhost:5001',
+  socketUrl: import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000',
   socketTimeout: parseInt(import.meta.env.VITE_SOCKET_TIMEOUT) || 30000,
 };
 
