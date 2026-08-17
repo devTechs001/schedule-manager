@@ -132,43 +132,6 @@ const NetworkStatus = () => {
 
 // Main App Component
 function AppContent() {
-  const { user, loading } = useAuth();
-
-  // Check if user has completed onboarding
-  const hasCompletedOnboarding = localStorage.getItem('onboardingComplete') === 'true';
-  const hasSeenSplash = localStorage.getItem('seenSplash') === 'true';
-
-  // Determine the initial route based on user state
-  let initialRoute = null;
-  if (loading) {
-    initialRoute = <PageLoader />;
-  } else if (!user) {
-    // User is not logged in
-    if (!hasSeenSplash) {
-      // Show splash screen first
-      initialRoute = <SplashScreen />;
-    } else if (!hasCompletedOnboarding) {
-      // Show welcome screen if not completed onboarding
-      initialRoute = <Welcome />;
-    } else {
-      // Show login if onboarding is complete but not logged in
-      initialRoute = <Login />;
-    }
-  } else {
-    // User is logged in
-    if (!hasCompletedOnboarding) {
-      // If user is logged in but hasn't completed onboarding, redirect to onboarding
-      initialRoute = <Tour />;
-    } else {
-      // Show dashboard if user is logged in and onboarding is complete
-      initialRoute = (
-        <ProtectedRoute>
-          <Layout />
-        </ProtectedRoute>
-      );
-    }
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <Suspense fallback={<PageLoader />}>
@@ -206,14 +169,23 @@ function AppContent() {
             }
           />
 
-          {/* Protected Routes */}
-          <Route path="/" element={initialRoute}>
+          {/* Protected Routes - Layout with Outlet */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }>
             <Route index element={<Dashboard />} />
             <Route path="tasks" element={<Tasks />} />
             <Route path="emails" element={<Emails />} />
             <Route path="contacts" element={<Contacts />} />
             <Route path="schedule" element={<Schedule />} />
             <Route path="analytics" element={<Analytics />} />
+
+            {/* Analytics Sub-routes */}
+            <Route path="analytics/performance" element={<PerformanceAnalytics />} />
+            <Route path="analytics/time-tracking" element={<TimeTracking />} />
+            <Route path="analytics/productivity" element={<ProductivityAnalytics />} />
 
             {/* Settings Routes */}
             <Route path="settings" element={<Settings />} />
@@ -227,6 +199,30 @@ function AppContent() {
             <Route path="collaboration/workspace" element={<TeamWorkspace />} />
             <Route path="collaboration/projects" element={<Projects />} />
             <Route path="collaboration/meetings" element={<Meetings />} />
+
+            {/* AI Routes */}
+            <Route path="ai/insights" element={<AIInsights />} />
+            <Route path="ai/chat" element={<AIChat />} />
+            <Route path="ai/scheduler" element={<PredictiveScheduler />} />
+            <Route path="ai/meeting-assistant" element={<MeetingAssistant />} />
+
+            {/* AI Routes - Hyphenated versions for sidebar compatibility */}
+            <Route path="ai-insights" element={<AIInsights />} />
+            <Route path="ai-chat" element={<AIChat />} />
+            <Route path="predictive-scheduler" element={<PredictiveScheduler />} />
+            <Route path="meeting-assistant" element={<MeetingAssistant />} />
+
+            {/* Gamification Routes */}
+            <Route path="gamification/leaderboard" element={<Leaderboard />} />
+            <Route path="gamification/achievements" element={<Achievements />} />
+            <Route path="gamification/challenges" element={<Challenges />} />
+            <Route path="gamification/rewards" element={<Rewards />} />
+
+            {/* Gamification Routes - Hyphenated versions for sidebar compatibility */}
+            <Route path="leaderboard" element={<Leaderboard />} />
+            <Route path="achievements" element={<Achievements />} />
+            <Route path="challenges" element={<Challenges />} />
+            <Route path="rewards" element={<Rewards />} />
           </Route>
 
           {/* Error Routes */}

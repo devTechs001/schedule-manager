@@ -23,7 +23,7 @@ export const AIProvider = ({ children }) => {
     if (aiEnabled) {
       fetchInsights();
     }
-  }, [aiEnabled]);
+  }, []); // Empty dependency array to run only once
 
   const fetchInsights = async () => {
     try {

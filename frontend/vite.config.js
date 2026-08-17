@@ -93,4 +93,6 @@ export default defineConfig({
       },
     },
   },
+  // GitHub Pages base path configuration
+  base: process.env.VITE_BASE_PATH || '/',
 })

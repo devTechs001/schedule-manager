@@ -112,8 +112,68 @@ pnpm run dev
 
 - **[Implementation Plan](docs/IMPLEMENTATION_PLAN.md)** - Detailed technical specifications (1240+ lines)
 - **[Enhancements Guide](docs/ENHANCEMENTS.md)** - Feature documentation and examples
-- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment instructions
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment instructions for GitHub Pages, Render, and Netlify
 - **[Enhancement Summary](docs/ENHANCEMENT_SUMMARY.md)** - Overview of all enhancements
+
+---
+
+## 🌐 Deployment Options
+
+### GitHub Pages (Frontend Only)
+
+```bash
+# Push to main branch to auto-deploy
+git push origin main
+
+# Or manually trigger via Actions tab
+```
+
+**Live Demo:** `https://your-username.github.io/scheduler/`
+
+### Render (Full Stack)
+
+1. Click "Deploy to Render" button or connect repository
+2. Configure environment variables
+3. Deploy automatically on push to main
+
+**Frontend:** `https://schedule-manager-frontend.onrender.com`
+**Backend:** `https://schedule-manager-backend.onrender.com`
+
+### Netlify (Frontend Only)
+
+```bash
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Deploy
+netlify deploy --prod
+```
+
+**Live Demo:** `https://schedule-manager.netlify.app`
+
+---
+
+## 🔧 Environment Variables
+
+See [frontend/.env.example](frontend/.env.example) for all available configuration options.
+
+### Required for Production:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VITE_API_URL` | Backend API URL | `https://api.yourdomain.com` |
+| `VITE_SOCKET_URL` | WebSocket server URL | `wss://api.yourdomain.com` |
+| `VITE_BASE_PATH` | GitHub Pages base path | `/repository-name/` |
+
+### Optional Features:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `VITE_ENABLE_AI_FEATURES` | Enable AI features | `false` |
+| `VITE_ENABLE_NOTIFICATIONS` | Enable push notifications | `false` |
+| `VITE_ENABLE_COLLABORATION` | Enable team features | `false` |
+| `VITE_GOOGLE_CLIENT_ID` | OAuth Google Client ID | - |
+| `VITE_GITHUB_CLIENT_ID` | OAuth GitHub Client ID | - |
 
 ---
 

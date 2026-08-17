@@ -3,55 +3,69 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        
+
     - name: Install pnpm
       run: npm install -g pnpm
-      
+
     - name: Install frontend dependencies
-      run: |
-        cd frontend
-        pnpm install
-        
+      working-directory: ./frontend
+      run: pnpm install
+
     - name: Build frontend
-      run: |
-        cd frontend
-        pnpm build
+      working-directory: ./frontend
+      run: pnpm build
       env:
-        VITE_API_URL: ${{ secrets.VITE_API_URL || '/api' }}
-        VITE_ENABLE_AI_FEATURES: ${{ secrets.VITE_ENABLE_AI_FEATURES || 'false' }}
-        VITE_ENABLE_NOTIFICATIONS: ${{ secrets.VITE_ENABLE_NOTIFICATIONS || 'false' }}
-        VITE_ENABLE_COLLABORATION: ${{ secrets.VITE_ENABLE_COLLABORATION || 'false' }}
-        VITE_ENABLE_REALTIME: ${{ secrets.VITE_ENABLE_REALTIME || 'false' }}
+        VITE_API_URL: ${{ vars.VITE_API_URL || '/api' }}
+        VITE_ENABLE_AI_FEATURES: ${{ vars.VITE_ENABLE_AI_FEATURES || 'false' }}
+        VITE_ENABLE_NOTIFICATIONS: ${{ vars.VITE_ENABLE_NOTIFICATIONS || 'false' }}
+        VITE_ENABLE_COLLABORATION: ${{ vars.VITE_ENABLE_COLLABORATION || 'false' }}
+        VITE_ENABLE_REALTIME: ${{ vars.VITE_ENABLE_REALTIME || 'false' }}
         VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
         VITE_GITHUB_CLIENT_ID: ${{ secrets.VITE_GITHUB_CLIENT_ID }}
         VITE_ANALYTICS_ID: ${{ secrets.VITE_ANALYTICS_ID }}
-        VITE_MAX_TASKS_PER_DAY: ${{ secrets.VITE_MAX_TASKS_PER_DAY || '50' }}
-        VITE_MAX_TEAM_MEMBERS: ${{ secrets.VITE_MAX_TEAM_MEMBERS || '10' }}
-        VITE_IMAGE_UPLOAD_LIMIT: ${{ secrets.VITE_IMAGE_UPLOAD_LIMIT || '5242880' }}
-        VITE_DEBUG_MODE: ${{ secrets.VITE_DEBUG_MODE || 'false' }}
-        VITE_MOCK_DATA: ${{ secrets.VITE_MOCK_DATA || 'false' }}
-        VITE_ASSET_BASE_URL: ${{ secrets.VITE_ASSET_BASE_URL || '' }}
-        VITE_SOCKET_URL: ${{ secrets.VITE_SOCKET_URL || 'http://localhost:5000' }}
-        VITE_SOCKET_TIMEOUT: ${{ secrets.VITE_SOCKET_TIMEOUT || '30000' }}
-        
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
+        VITE_MAX_TASKS_PER_DAY: ${{ vars.VITE_MAX_TASKS_PER_DAY || '50' }}
+        VITE_MAX_TEAM_MEMBERS: ${{ vars.VITE_MAX_TEAM_MEMBERS || '10' }}
+        VITE_IMAGE_UPLOAD_LIMIT: ${{ vars.VITE_IMAGE_UPLOAD_LIMIT || '5242880' }}
+        VITE_DEBUG_MODE: ${{ vars.VITE_DEBUG_MODE || 'false' }}
+        VITE_MOCK_DATA: ${{ vars.VITE_MOCK_DATA || 'false' }}
+        VITE_ASSET_BASE_URL: ${{ vars.VITE_ASSET_BASE_URL || '' }}
+        VITE_SOCKET_URL: ${{ vars.VITE_SOCKET_URL || 'http://localhost:5000' }}
+        VITE_SOCKET_TIMEOUT: ${{ vars.VITE_SOCKET_TIMEOUT || '30000' }}
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./frontend/dist
-        enable_jekyll: false
+        path: './frontend/dist'
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

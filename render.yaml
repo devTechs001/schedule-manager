@@ -1,10 +1,25 @@
 services:
+  # Frontend - Static Site
   - type: web
     name: schedule-manager-frontend
     env: static
+    region: oregon
+    plan: free
     buildCommand: cd frontend && pnpm install && pnpm build
     staticPublishPath: ./frontend/dist
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-XSS-Protection
+        value: 1; mode=block
     envVars:
+      - key: NODE_VERSION
+        value: 20
       - key: VITE_API_URL
         value: /api
       - key: VITE_ENABLE_AI_FEATURES
@@ -34,30 +49,69 @@ services:
       - key: VITE_ASSET_BASE_URL
         value: ''
       - key: VITE_SOCKET_URL
-        value: http://localhost:5000
+        value: https://schedule-manager-backend.onrender.com
       - key: VITE_SOCKET_TIMEOUT
         value: 30000
 
+  # Backend - Docker Service
   - type: web
     name: schedule-manager-backend
     env: docker
+    region: oregon
+    plan: free
     dockerfilePath: ./backend/Dockerfile
     autoDeploy: true
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: JWT_EXPIRE
+        value: 7d
       - key: OPENAI_API_KEY
         sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4
+      - key: OPENAI_MAX_TOKENS
+        value: 1000
+      - key: OPENAI_TEMPERATURE
+        value: 0.7
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_SECURE
+        value: false
       - key: EMAIL_USER
         sync: false
       - key: EMAIL_PASS
         sync: false
+      - key: EMAIL_FROM_NAME
+        value: AI Schedule Manager
       - key: CLIENT_URL
         sync: false
-      - key: PORT
-        value: 10000
-    healthCheckPath: /health
+      - key: REDIS_URL
+        sync: false
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
+      - key: SESSION_SECRET
+        sync: false
+      - key: LOG_LEVEL
+        value: info
+      - key: MAX_FILE_SIZE
+        value: 5242880
+      - key: UPLOAD_PATH
+        value: ./uploads
+
+databases:
+  - name: schedule-manager-db
+    databaseName: ai-schedule-manager
+    plan: free
+    region: oregon

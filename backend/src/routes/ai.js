@@ -9,8 +9,11 @@ import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.use(protect);
+// Public endpoint for testing (without authentication)
+router.get('/insights/public', getInsights);
 
+// Protected endpoints
+router.use(protect);
 router.post('/chat', chat);
 router.post('/suggestions', getSuggestions);
 router.post('/priority', calculatePriority);

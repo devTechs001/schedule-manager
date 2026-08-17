@@ -21,6 +21,8 @@ import taskRoutes from './routes/tasks.js';
 import emailRoutes from './routes/emails.js';
 import contactRoutes from './routes/contacts.js';
 import scheduleRoutes from './routes/schedule.js';
+import calendarRoutes from './routes/calendar.js';
+import workspaceRoutes from './routes/workspace.js';
 import aiRoutes from './routes/ai.js';
 import feedbackRoutes from './routes/feedback.js';
 
@@ -153,6 +155,8 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/emails', emailRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/schedule', scheduleRoutes);
+app.use('/api/calendar', calendarRoutes);
+app.use('/api/workspace', workspaceRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/feedback', feedbackRoutes);
 

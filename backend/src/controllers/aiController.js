@@ -80,7 +80,37 @@ export const calculatePriority = asyncHandler(async (req, res) => {
 // @route   GET /api/ai/insights
 // @access  Private
 export const getInsights = asyncHandler(async (req, res) => {
-  const tasks = await Task.find({ user: req.user.id });
+  const userId = req.user?.id;
+  
+  // For public endpoint, return sample insights
+  if (!userId) {
+    const sampleInsights = [
+      {
+        type: 'productivity',
+        title: 'Daily Progress',
+        description: 'Great job! You\'re making good progress on your tasks today.',
+      },
+      {
+        type: 'suggestion',
+        title: 'Focus Time',
+        description: 'Consider scheduling 2-hour focus blocks for deep work.',
+        action: 'Optimize Schedule',
+      },
+      {
+        type: 'warning',
+        title: 'Meeting Load',
+        description: 'You have several meetings scheduled. Ensure you have breaks between them.',
+        action: 'Review Calendar',
+      },
+    ];
+
+    return res.json({
+      success: true,
+      data: sampleInsights,
+    });
+  }
+
+  const tasks = await Task.find({ user: userId });
 
   const insights = [];
 
