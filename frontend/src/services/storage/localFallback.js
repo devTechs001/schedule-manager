@@ -7,6 +7,8 @@
  * automatically switch back to the server.
  */
 
+import { DEMO_ENABLED } from '@utils/features';
+
 const PREFIX = 'schedai:';
 const SEEDED_KEY = `${PREFIX}seeded:v1`;
 
@@ -271,7 +273,6 @@ const SEEDS = {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 export const readCollection = (name) => {
-  const seed = SEEDS[name] || [];
   try {
     const raw = localStorage.getItem(`${PREFIX}${name}`);
     if (raw) {
@@ -279,9 +280,20 @@ export const readCollection = (name) => {
       if (Array.isArray(parsed)) return parsed;
     }
   } catch {
-    /* corrupt storage — fall through to the seed */
+    /* corrupt storage — fall through */
   }
-  const initial = clone(seed);
+
+  /*
+   * In production, an empty collection is genuinely empty.
+   *
+   * Seeding fake tasks and events into a real user's workspace is a lie they
+   * cannot distinguish from a bug ("who created these?"). The sample dataset
+   * exists only so a development build has something to render while the API
+   * is unreachable.
+   */
+  if (!DEMO_ENABLED) return writeCollection(name, []);
+
+  const initial = clone(SEEDS[name] || []);
   writeCollection(name, initial);
   return initial;
 };

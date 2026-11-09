@@ -16,6 +16,17 @@ client.interceptors.request.use(
     if (token) {
       requestConfig.headers.Authorization = `Bearer ${token}`;
     }
+
+    /*
+     * Let the browser set Content-Type for FormData (avatar uploads).
+     * A hardcoded 'application/json' here makes axios skip the multipart
+     * boundary, and multer then rejects the request with "Boundary not found".
+     * Deleting the header is what lets axios/XHR generate it correctly.
+     */
+    if (typeof FormData !== 'undefined' && requestConfig.data instanceof FormData) {
+      delete requestConfig.headers['Content-Type'];
+    }
+
     return requestConfig;
   },
   (error) => Promise.reject(error)

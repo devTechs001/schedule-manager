@@ -25,6 +25,7 @@ import calendarRoutes from './routes/calendar.js';
 import workspaceRoutes from './routes/workspace.js';
 import aiRoutes from './routes/ai.js';
 import feedbackRoutes from './routes/feedback.js';
+import avatarRoutes from './routes/avatars.js';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler.js';
@@ -183,6 +184,7 @@ app.use('/api/auth/register', authLimiter);
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/avatars', avatarRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/emails', emailRoutes);
 app.use('/api/contacts', contactRoutes);

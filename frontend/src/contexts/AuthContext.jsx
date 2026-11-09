@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import client from '../services/api/client';
 import { appUrl } from '@utils/basePath';
+import { DEMO_ENABLED } from '@utils/features';
 
 const AuthContext = createContext(null);
 
@@ -24,6 +25,7 @@ const readToken = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
+    if (!DEMO_ENABLED) return null; // a production build never adopts a cached sandbox user
     try {
       const cached = localStorage.getItem('demoUser');
       return cached ? JSON.parse(cached) : null;
@@ -34,6 +36,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(readToken);
   const [isDemo, setIsDemo] = useState(() => {
+    if (!DEMO_ENABLED) return false; // never a demo session in production
     try {
       return localStorage.getItem('demoSession') === 'true';
     } catch {
@@ -70,10 +73,12 @@ export const AuthProvider = ({ children }) => {
       // is a local demo sandbox, which must stay usable without a backend.
       if (error.status === 401 || error.status === 403) {
         let inDemo = false;
-        try {
-          inDemo = localStorage.getItem('demoSession') === 'true';
-        } catch {
-          inDemo = false;
+        if (DEMO_ENABLED) {
+          try {
+            inDemo = localStorage.getItem('demoSession') === 'true';
+          } catch {
+            inDemo = false;
+          }
         }
         if (!inDemo) logout();
         else setIsDemo(true);
@@ -87,14 +92,16 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (!token) {
       let demoUser = null;
-      try {
-        const raw = localStorage.getItem('demoUser');
-        demoUser = raw ? JSON.parse(raw) : null;
-      } catch {
-        demoUser = null;
+      if (DEMO_ENABLED) {
+        try {
+          const raw = localStorage.getItem('demoUser');
+          demoUser = raw ? JSON.parse(raw) : null;
+        } catch {
+          demoUser = null;
+        }
       }
 
-      if (!demoUser && (typeof window !== 'undefined' && localStorage.getItem('demoSession') === 'true')) {
+      if (!demoUser && DEMO_ENABLED && typeof window !== 'undefined' && localStorage.getItem('demoSession') === 'true') {
         demoUser = {
           name: 'Demo User',
           email: 'demo@schedai.local',
@@ -180,6 +187,42 @@ export const AuthProvider = ({ children }) => {
 
   const checkUserExists = async () => false;
 
+  /**
+   * Upload a new avatar. Returns the public URL.
+   *
+   * The bytes go to POST /api/avatars (GridFS); the returned URL is stored on
+   * the user document server-side, so we only need to merge it into state.
+   */
+  const uploadAvatar = async (file) => {
+    if (!file) throw new Error('Choose an image first');
+
+    const MAX_BYTES = 4 * 1024 * 1024;
+    if (file.size > MAX_BYTES) {
+      throw new Error('That image is larger than 4 MB. Pick a smaller one.');
+    }
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) {
+      throw new Error('Use a JPEG, PNG, WebP or GIF image.');
+    }
+
+    const form = new FormData();
+    form.append('avatar', file);
+
+    const data = await client.post('/avatars', form);
+    const nextUser = data?.user || data;
+    const avatar = data?.avatar ?? nextUser?.avatar ?? null;
+
+    setUser((prev) => ({ ...prev, ...(nextUser || {}), avatar }));
+    return avatar;
+  };
+
+  /** Remove the avatar and fall back to initials. */
+  const removeAvatar = async () => {
+    const data = await client.delete('/avatars');
+    const nextUser = data?.user || data;
+    setUser((prev) => ({ ...prev, ...(nextUser || {}), avatar: null }));
+    return null;
+  };
+
   const value = {
     user,
     loading,
@@ -190,6 +233,8 @@ export const AuthProvider = ({ children }) => {
     updateProfile,
     changePassword,
     checkUserExists,
+    uploadAvatar,
+    removeAvatar,
     isDemo,
     isAuthenticated: Boolean(user),
   };

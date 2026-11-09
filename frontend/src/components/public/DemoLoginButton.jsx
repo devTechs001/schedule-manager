@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { FaBolt, FaArrowRight } from 'react-icons/fa';
 import client from '@services/api/client';
 import { appUrl } from '@utils/basePath';
+import { DEMO_ENABLED } from '@utils/features';
 
 /**
  * One-click demo session. If the backend has no database (or demo mode is
@@ -15,6 +16,12 @@ export const useDemoLogin = () => {
   const [loading, setLoading] = useState(false);
 
   const startDemo = async () => {
+    // Hard stop in production builds: even if a link or stale bundle reaches
+    // this code path, no sandbox session is ever created.
+    if (!DEMO_ENABLED) {
+      toast.error('Demo mode is only available in development.');
+      return false;
+    }
     setLoading(true);
     try {
       const data = await client.post('/auth/demo', {});
@@ -61,8 +68,14 @@ export const useDemoLogin = () => {
   return { startDemo, loading };
 };
 
-const DemoLoginButton = ({ variant = 'outline', size = 'md', label = 'Try the live demo', className = '' }) => {
+const DEFAULT_LABEL = 'Try the live demo';
+
+const DemoLoginButton = ({ variant = 'outline', size = 'md', label, className = '' }) => {
   const { startDemo, loading } = useDemoLogin();
+
+  // Nothing renders in a production build. Returning before touching props keeps
+  // the demo label strings out of the bundle entirely.
+  if (!DEMO_ENABLED) return null;
 
   return (
     <button
@@ -75,7 +88,7 @@ const DemoLoginButton = ({ variant = 'outline', size = 'md', label = 'Try the li
         'Preparing demo…'
       ) : (
         <>
-          <FaBolt size={11} /> {label} <FaArrowRight size={10} />
+          <FaBolt size={11} /> {label || DEFAULT_LABEL} <FaArrowRight size={10} />
         </>
       )}
     </button>

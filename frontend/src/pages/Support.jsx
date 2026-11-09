@@ -11,19 +11,28 @@ import {
 } from 'react-icons/fa';
 import Brand from '@components/public/Brand';
 import { useTheme } from '@contexts/ThemeContext';
+import { DEMO_ENABLED } from '@utils/features';
 
+/*
+ * The demo FAQ only exists where the demo does. Promoting a sandbox in a
+ * production build would point people at a button that isn't there.
+ */
 const FAQS = [
-  {
-    q: 'Is there a demo I can try without signing up?',
-    a: 'Yes. Any “Try the live demo” button starts a sandbox session with sample tasks, events and email. If the server has no database available, the app falls back to a local sandbox stored in your browser.',
-  },
+  ...(DEMO_ENABLED
+    ? [
+        {
+          q: 'Is there a demo I can try without signing up?',
+          a: 'Yes. Any “Try the live demo” button starts a sandbox session with sample tasks, events and email. If the server has no database available, the app falls back to a local sandbox stored in your browser.',
+        },
+      ]
+    : []),
   {
     q: 'Where is my data stored?',
     a: 'Your account data lives in the application database. Changes are also cached in your browser so the app keeps working offline and syncs back when you reconnect.',
   },
   {
     q: 'How do I get my emails into the inbox?',
-    a: 'Open Settings → Integrations to connect a provider. Until then the inbox runs against local sample data so you can explore every feature.',
+    a: 'Open Settings → Integrations to connect a provider. Until a provider is connected the inbox stays empty — nothing is invented on your behalf.',
   },
   {
     q: 'Can I change how the app looks?',

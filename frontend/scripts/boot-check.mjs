@@ -8,7 +8,7 @@
  *
  * Run: node scripts/boot-check.mjs [distDir]
  */
-import { readFileSync, existsSync, rmSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { JSDOM, VirtualConsole } from 'jsdom';
 
@@ -231,6 +231,59 @@ if (!hasDarkClass || (bootAttr !== 'dark' && !/^(midnight|nord)$/.test(bootAttr 
 
 if (!/var DEFAULT_THEME = 'dark'/.test(htmlShell)) {
   problems.push('inline theme bootstrap no longer defaults to dark');
+}
+
+/*
+ * Demo sandbox must not ship in a production build.
+ *
+ * The demo is a development aid. If any of these strings survive into dist/, a
+ * user could be offered a sandbox account (or told their empty inbox is "sample
+ * data") on a real deployment. Fail the build rather than let that happen.
+ */
+const DEMO_MARKERS = [
+  'Explore instantly with a demo',
+  'you are exploring a sandbox',
+  'demo@schedai.local',
+  'Try the live demo',
+];
+
+const assetDir = resolve(distDir, 'assets');
+const assetFiles = existsSync(assetDir)
+  ? readdirSync(assetDir).filter((f) => f.endsWith('.js'))
+  : [];
+const leaked = [];
+for (const marker of DEMO_MARKERS) {
+  for (const file of assetFiles) {
+    if (readFileSync(resolve(assetDir, file), 'utf8').includes(marker)) {
+      leaked.push(`${marker} (${file})`);
+      break;
+    }
+  }
+}
+
+if (leaked.length) {
+  problems.push(`demo UI leaked into the production bundle: ${leaked.join(', ')}`);
+} else {
+  report.push('demo stripped from prod:✓');
+}
+
+/*
+ * The local fallback must not invent data for a real user. Verify the guard is
+ * still in the shipped code — a seeded "Review Q4 product roadmap" task in
+ * someone's empty workspace is indistinguishable from a bug.
+ */
+const fallbackSourceFiles = assetFiles.filter((f) => {
+  try {
+    return readFileSync(resolve(assetDir, f), 'utf8').includes('schedai:seeded');
+  } catch {
+    return false;
+  }
+});
+if (!fallbackSourceFiles.length) {
+  // The fallback module may be inlined; absence is not a failure on its own.
+  report.push('local fallback:not-bundled');
+} else {
+  report.push('local fallback:present');
 }
 
 if (!/cleanupOutdatedCaches/.test(swSource)) {

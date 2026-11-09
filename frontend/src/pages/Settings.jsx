@@ -19,6 +19,7 @@ import {
 import { useAuth } from '@contexts/AuthContext';
 import { useTheme } from '@contexts/ThemeContext';
 import Input from '@components/ui/Input';
+import ProfileCard from '@components/profile/ProfileCard';
 import Toggle from '@components/ui/Toggle';
 
 const TABS = [
@@ -191,28 +192,17 @@ const Settings = () => {
         <div className="space-y-5">
           {activeTab === 'profile' && (
             <>
+              {/* Rich identity card — photo, inline-editable details, organisations */}
+              <ProfileCard />
+
               <div className="card">
                 <div className="border-b border-line px-5 py-4">
-                  <h2 className="text-base font-semibold text-content">Profile</h2>
-                  <p className="text-sm text-content-muted">This is how you appear across the app.</p>
+                  <h2 className="text-base font-semibold text-content">Account details</h2>
+                  <p className="text-sm text-content-muted">
+                    Your sign-in email and contact number.
+                  </p>
                 </div>
                 <form onSubmit={handleProfile} className="space-y-4 p-5">
-                  <div className="flex items-center gap-4">
-                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-gradient text-base font-bold text-white">
-                      {(form.name || 'You')
-                        .split(' ')
-                        .map((part) => part[0])
-                        .slice(0, 2)
-                        .join('')
-                        .toUpperCase()}
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-content">{form.name || 'Your name'}</p>
-                      <p className="text-xs text-content-subtle">{form.email || 'you@example.com'}</p>
-                      {user?.role && <span className="badge badge-accent mt-1.5 capitalize">{user.role}</span>}
-                    </div>
-                  </div>
-
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Input label="Full name" name="name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
                     <Input label="Email" type="email" name="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required />

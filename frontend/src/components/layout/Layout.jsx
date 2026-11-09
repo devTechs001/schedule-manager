@@ -8,6 +8,7 @@ import ShortcutSheet from './ShortcutSheet';
 import { useTheme } from '@contexts/ThemeContext';
 import { FaPlus, FaTimes } from 'react-icons/fa';
 import { QUICK_ACTIONS } from './navConfig';
+import { DEMO_ENABLED } from '@utils/features';
 import { useAuth } from '@contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { FaBolt } from 'react-icons/fa';
@@ -62,7 +63,7 @@ const QuickActionFab = () => {
 
 const DemoBanner = () => {
   const { isDemo } = useAuth();
-  if (!isDemo) return null;
+  if (!DEMO_ENABLED || !isDemo) return null;
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-primary-200/60 bg-primary-50 px-4 py-2 text-xs text-primary-800 dark:border-primary-500/25 dark:bg-primary-500/10 dark:text-primary-200 sm:px-6 lg:px-8">
@@ -160,9 +161,15 @@ const Layout = () => {
         onToggleCollapse={toggle}
       />
 
+      {/*
+        NOTE: no inline `style` here. An inline marginLeft:0 used to override the
+        `#app-content { margin-left: var(--sidebar-w) }` rule in index.css, so on
+        desktop the content sat UNDERNEATH the fixed sidebar and its left edge was
+        unreachable — buttons and table columns hidden behind the panel. The CSS
+        rule owns the offset now, keyed off [data-collapsed].
+      */}
       <div
-        className="min-h-screen pb-24 transition-[margin] duration-300 ease-spring lg:pb-0"
-        style={{ marginLeft: 0 }}
+        className="min-h-screen transition-[margin] duration-300 ease-spring"
         data-collapsed={collapsed ? 'true' : 'false'}
         id="app-content"
       >

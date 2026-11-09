@@ -107,18 +107,79 @@ export const getMe = asyncHandler(async (req, res) => {
 // @route   PUT /api/auth/profile
 // @access  Private
 export const updateProfile = asyncHandler(async (req, res) => {
-  const fieldsToUpdate = {
-    name: req.body.name,
-    email: req.body.email,
-    phone: req.body.phone,
-    preferences: req.body.preferences,
-  };
+  /*
+   * Explicit whitelist. Never spread req.body into the update: that would let a
+   * caller set `role: 'admin'`, replace `password`, or write arbitrary schema
+   * paths (which is how privilege-escalation bugs get in).
+   */
+  const EDITABLE = [
+    'name',
+    'email',
+    'phone',
+    'avatar',
+    'headline',
+    'bio',
+    'jobTitle',
+    'company',
+    'location',
+    'website',
+    'pronouns',
+    'timezone',
+    'preferences',
+    'socials',
+  ];
 
-  const user = await User.findByIdAndUpdate(
-    req.user.id,
-    fieldsToUpdate,
-    { new: true, runValidators: true }
-  );
+  const fieldsToUpdate = {};
+  for (const key of EDITABLE) {
+    if (req.body[key] !== undefined) fieldsToUpdate[key] = req.body[key];
+  }
+
+  // Avatar bytes go through POST /api/avatars; this field only ever accepts a
+  // URL that already points at our own GridFS route (or is cleared).
+  if (fieldsToUpdate.avatar !== undefined) {
+    const value = fieldsToUpdate.avatar;
+    const isOwnAvatar = typeof value === 'string' && /^\/api\/avatars\/[a-f0-9]{24}$/i.test(value);
+    if (value !== null && value !== '' && !isOwnAvatar) {
+      return res.status(400).json({
+        success: false,
+        message: 'Upload the image through the avatar endpoint.',
+      });
+    }
+    fieldsToUpdate.avatar = value || null;
+  }
+
+  // Organisation entries are structured data, not free-form JSON.
+  if (Array.isArray(req.body.organisations)) {
+    fieldsToUpdate.organisations = req.body.organisations
+      .filter((org) => org && typeof org.name === 'string' && org.name.trim())
+      .slice(0, 20)
+      .map((org) => ({
+        name: String(org.name).trim().slice(0, 120),
+        role: org.role ? String(org.role).trim().slice(0, 60) : 'Member',
+        website: org.website ? String(org.website).trim().slice(0, 200) : undefined,
+      }));
+  }
+
+  if (req.body.socials && typeof req.body.socials === 'object') {
+    fieldsToUpdate.socials = {
+      linkedin: req.body.socials.linkedin?.slice?.(0, 200) || undefined,
+      x: req.body.socials.x?.slice?.(0, 200) || undefined,
+      github: req.body.socials.github?.slice?.(0, 200) || undefined,
+    };
+  }
+
+  if (!Object.keys(fieldsToUpdate).length) {
+    return res.status(400).json({ success: false, message: 'Nothing to update' });
+  }
+
+  const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
 
   res.json({
     success: true,

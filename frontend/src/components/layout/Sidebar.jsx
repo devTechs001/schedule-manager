@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { FaChevronDown, FaSignOutAlt, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { NAV_SECTIONS, SETTINGS_ITEM } from './navConfig';
+import { NAV_SECTIONS, SETTINGS_ITEM, FOOTER_LINKS } from './navConfig';
 import Brand from '@components/public/Brand';
 import { useAuth } from '@contexts/AuthContext';
 
@@ -119,6 +119,30 @@ const Sidebar = ({ isOpen, onClose, collapsed = false, onToggleCollapse }) => {
 
         {/* Footer */}
         <div className="border-t border-line p-3">
+          {/* Direct links to pages that are otherwise only reachable from
+              Settings, so nothing is buried behind a URL you must remember. */}
+          {!collapsed && (
+            <div className="mb-2 space-y-0.5">
+              {FOOTER_LINKS.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  onClick={handleNavigate}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[0.7rem] font-medium transition-colors ${
+                      isActive
+                        ? 'bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-200'
+                        : 'text-content-subtle hover:bg-gray-100 hover:text-content dark:hover:bg-white/5'
+                    }`
+                  }
+                >
+                  <link.icon size={10} className="shrink-0" />
+                  <span className="truncate">{link.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+
           <NavLink
             to={SETTINGS_ITEM.to}
             onClick={handleNavigate}
@@ -133,8 +157,12 @@ const Sidebar = ({ isOpen, onClose, collapsed = false, onToggleCollapse }) => {
 
           {/* User card */}
           <div className={`mt-2 flex items-center gap-2.5 rounded-xl bg-surface-sunken p-2 ${collapsed ? 'justify-center' : ''}`}>
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-gradient text-[0.65rem] font-bold text-white">
-              {initials}
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-accent-gradient text-[0.65rem] font-bold text-white">
+              {user?.avatar ? (
+                <img src={user.avatar} alt="" className="h-full w-full object-cover" />
+              ) : (
+                initials
+              )}
             </span>
             {!collapsed && (
               <>

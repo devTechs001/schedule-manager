@@ -29,6 +29,90 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  /*
+   * Profile details. Kept flat (rather than nested under `profile`) so the
+   * existing updateProfile controller can whitelist them without reshaping
+   * payloads the frontend already sends.
+   */
+  headline: {
+    type: String,
+    trim: true,
+    maxlength: [120, 'Headline must be 120 characters or fewer'],
+  },
+  bio: {
+    type: String,
+    trim: true,
+    maxlength: [600, 'Bio must be 600 characters or fewer'],
+  },
+  jobTitle: {
+    type: String,
+    trim: true,
+    maxlength: [120, 'Job title must be 120 characters or fewer'],
+  },
+  company: {
+    type: String,
+    trim: true,
+    maxlength: [120, 'Company must be 120 characters or fewer'],
+  },
+  location: {
+    type: String,
+    trim: true,
+    maxlength: [120, 'Location must be 120 characters or fewer'],
+  },
+  website: {
+    type: String,
+    trim: true,
+    maxlength: [200, 'Website must be 200 characters or fewer'],
+  },
+  pronouns: {
+    type: String,
+    trim: true,
+    maxlength: [40, 'Pronouns must be 40 characters or fewer'],
+  },
+  timezone: {
+    type: String,
+    trim: true,
+    default: 'UTC',
+  },
+  /*
+   * Organisations the user belongs to.
+   *
+   * Deliberately embedded rather than modelled as separate documents: a
+   * membership is small, always read together with the profile, and this avoids
+   * a second round trip on the settings screen. The Workspace collection stays
+   * the source of truth for shared data; this is the user's view of it.
+   */
+  organisations: [
+    {
+      name: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 120,
+      },
+      role: {
+        type: String,
+        trim: true,
+        default: 'Member',
+        maxlength: 60,
+      },
+      website: {
+        type: String,
+        trim: true,
+        maxlength: 200,
+      },
+      joinedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
+  /** Free-form links shown on the profile card. */
+  socials: {
+    linkedin: { type: String, trim: true, maxlength: 200 },
+    x: { type: String, trim: true, maxlength: 200 },
+    github: { type: String, trim: true, maxlength: 200 },
+  },
   role: {
     type: String,
     enum: ['user', 'admin'],
@@ -37,8 +121,8 @@ const userSchema = new mongoose.Schema({
   preferences: {
     theme: {
       type: String,
-      enum: ['light', 'dark'],
-      default: 'light',
+      enum: ['light', 'dark', 'system', 'midnight', 'nord', 'sand'],
+      default: 'dark',
     },
     notifications: {
       email: { type: Boolean, default: true },

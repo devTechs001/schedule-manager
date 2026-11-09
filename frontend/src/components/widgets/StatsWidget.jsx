@@ -6,16 +6,12 @@ const StatsWidget = ({
   period = 'week',
   compact = false,
 }) => {
-  const defaultStats = [
-    { id: 1, name: 'Tasks Completed', value: 48, change: 12, changeType: 'increase', icon: FaTasks, color: 'primary' },
-    { id: 2, name: 'Meetings', value: 15, change: -3, changeType: 'decrease', icon: FaCalendarCheck, color: 'blue' },
-    { id: 3, name: 'Focus Hours', value: 32, change: 8, changeType: 'increase', icon: FaClock, color: 'green' },
-    { id: 4, name: 'Productivity', value: 85, change: 5, changeType: 'increase', icon: FaChartLine, color: 'purple', suffix: '%' },
-    { id: 5, name: 'Collaborations', value: 12, change: 4, changeType: 'increase', icon: FaUsers, color: 'yellow' },
-    { id: 6, name: 'Emails', value: 156, change: -23, changeType: 'decrease', icon: FaEnvelope, color: 'red' },
-  ];
-
-  const stats = customStats || defaultStats;
+  /*
+   * Stats are supplied by the caller from real data. There are deliberately no
+   * built-in numbers: showing "48 tasks completed" to someone with an empty
+   * workspace is indistinguishable from a bug.
+   */
+  const stats = Array.isArray(customStats) ? customStats : [];
 
   const colorClasses = {
     primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600',

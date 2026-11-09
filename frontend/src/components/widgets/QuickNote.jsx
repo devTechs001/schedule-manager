@@ -7,11 +7,10 @@ const QuickNote = ({
   onDelete,
   compact = false,
 }) => {
-  const [notes, setNotes] = useState(initialNotes.length > 0 ? initialNotes : [
-    { id: 1, content: 'Remember to call John about the project', color: 'yellow', pinned: true, createdAt: new Date() },
-    { id: 2, content: 'Buy groceries on the way home', color: 'green', pinned: false, createdAt: new Date() },
-    { id: 3, content: 'Review meeting notes from yesterday', color: 'blue', pinned: false, createdAt: new Date() },
-  ]);
+  // No invented notes. A new workspace shows an empty state with a prompt to
+  // add the first one — fabricating content here made real users think the app
+  // had shipped with someone else's data.
+  const [notes, setNotes] = useState(() => (Array.isArray(initialNotes) ? initialNotes : []));
   const [editingId, setEditingId] = useState(null);
   const [newNote, setNewNote] = useState('');
   const [showColorPicker, setShowColorPicker] = useState(null);
