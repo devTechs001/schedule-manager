@@ -145,6 +145,13 @@ const dismissBootSplash = () => {
     document.body.style.background = `rgb(${surface.trim().split(/\s+/).join(', ')})`;
   }
 
+  // On the marketing home the hero artwork is already painted underneath, so
+  // dissolve the splash instead of sliding out — the transition reads as one
+  // continuous first screen rather than a loader being swapped for a page.
+  if (window.location.pathname === '/' || /^\/(features|about|contact)\/?$/.test(window.location.pathname)) {
+    splash.style.transition = 'opacity 0.55s ease';
+  }
+
   splash.classList.add('boot--leaving');
   // Remove from the DOM after the fade so it cannot trap pointer events.
   const remove = () => splash.remove();

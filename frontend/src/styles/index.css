@@ -559,6 +559,111 @@
     background-size: 22px 22px;
   }
 
+  /* --------------------------------------------------------------------------
+     Hero artwork
+     A photographic background layer used behind the marketing page headers.
+     The light and dark images are swapped with the theme, and the scrim keeps
+     text contrast comfortable without hiding the art.
+     ------------------------------------------------------------------------ */
+  .hero-art {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .hero-art::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background-image: url('../assets/hero/hero-light.webp');
+    background-size: cover;
+    background-position: center right;
+    background-repeat: no-repeat;
+    opacity: 1;
+    /* Fade the art into the page on the text side */
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 34%, black 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 34%, black 100%);
+  }
+
+  /* Keep body copy readable over the busier right-hand side */
+  .hero-art::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      to right,
+      rgb(var(--surface) / 0.90) 0%,
+      rgb(var(--surface) / 0.62) 34%,
+      rgb(var(--surface) / 0.18) 62%,
+      rgb(var(--surface) / 0) 100%
+    );
+  }
+
+  .dark .hero-art::before,
+  [data-theme='midnight'] .hero-art::before,
+  [data-theme='nord'] .hero-art::before {
+    background-image: url('../assets/hero/hero-dark.webp');
+  }
+
+  /* Fallback masters for engines without WebP support */
+  @supports not (background-image: url('x.webp')) {
+    .hero-art::before {
+      background-image: url('../assets/hero/hero-light.jpg');
+    }
+    .dark .hero-art::before,
+    [data-theme='midnight'] .hero-art::before,
+    [data-theme='nord'] .hero-art::before {
+      background-image: url('../assets/hero/hero-dark.jpg');
+    }
+  }
+
+  .dark .hero-art::after,
+  [data-theme='midnight'] .hero-art::after,
+  [data-theme='nord'] .hero-art::after {
+    background: linear-gradient(
+      to right,
+      rgb(var(--surface) / 0.94) 0%,
+      rgb(var(--surface) / 0.78) 38%,
+      rgb(var(--surface) / 0.32) 68%,
+      rgb(var(--surface) / 0.08) 100%
+    );
+  }
+
+  /* Sand is a warm paper theme — neutralize the cool lavender artwork so it
+     reads as part of the palette rather than a sticker on top of it. */
+  [data-theme='sand'] .hero-art::before {
+    filter: sepia(0.42) saturate(0.85) hue-rotate(-12deg) brightness(1.03);
+  }
+
+  /* Compact heroes (Features / About / Contact) show more art, less scrim */
+  .hero-art--compact::after {
+    background: linear-gradient(
+      to right,
+      rgb(var(--surface) / 0.94) 0%,
+      rgb(var(--surface) / 0.72) 48%,
+      rgb(var(--surface) / 0.30) 100%
+    );
+  }
+
+  .dark .hero-art--compact::after {
+    background: linear-gradient(
+      to right,
+      rgb(var(--surface) / 0.94) 0%,
+      rgb(var(--surface) / 0.80) 45%,
+      rgb(var(--surface) / 0.45) 100%
+    );
+  }
+
+  /* Small screens crop tighter to the art's focal point */
+  @media (max-width: 640px) {
+    .hero-art::before {
+      background-position: 78% center;
+      -webkit-mask-image: linear-gradient(to bottom, black 0%, black 62%, transparent 100%);
+      mask-image: linear-gradient(to bottom, black 0%, black 62%, transparent 100%);
+    }
+  }
+
   .stagger > * { animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
   .stagger > *:nth-child(2) { animation-delay: 60ms; }
   .stagger > *:nth-child(3) { animation-delay: 120ms; }

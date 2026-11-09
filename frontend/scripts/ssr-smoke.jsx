@@ -134,6 +134,28 @@ try {
   });
 }
 
+// Marketing pages carry the hero artwork classes; assert they are actually
+// applied so a CSS refactor cannot silently drop the background.
+try {
+  const marketing = {
+    Home: (await import('../src/pages/Public/Home.jsx')).default,
+    Features: (await import('../src/pages/Public/Features.jsx')).default,
+    About: (await import('../src/pages/Public/About.jsx')).default,
+    Contact: (await import('../src/pages/Public/Contact.jsx')).default,
+  };
+  for (const [name, Component] of Object.entries(marketing)) {
+    const html = renderToString(wrap(Component, '/'));
+    results.push({
+      name: `hero/${name}`,
+      ok: html.includes('hero-art'),
+      length: html.length,
+      error: html.includes('hero-art') ? undefined : 'no hero-art class in output',
+    });
+  }
+} catch (error) {
+  results.push({ name: 'hero/registry', ok: false, error: String(error.message).split('\n')[0] });
+}
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\nSSR smoke: ${results.length - failed.length}/${results.length} pages rendered`);
 for (const r of results) {

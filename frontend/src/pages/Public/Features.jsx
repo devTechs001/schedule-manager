@@ -133,8 +133,8 @@ const Features = () => {
   return (
     <div>
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-line">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-mesh opacity-60" aria-hidden="true" />
+      <section className="hero-art hero-art--compact relative overflow-hidden border-b border-line">
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-mesh opacity-25" aria-hidden="true" />
         <div className="section py-16 text-center sm:py-20">
           <span className="eyebrow">Product</span>
           <h1 className="mx-auto mt-4 max-w-3xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl">

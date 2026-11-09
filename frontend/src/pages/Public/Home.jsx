@@ -152,10 +152,11 @@ const Home = () => {
   return (
     <div>
       {/* ================= HERO ================= */}
-      <section className="relative overflow-hidden">
+      <section className="hero-art relative overflow-hidden">
+        {/* Soft mesh + grid sit on top of the artwork for depth without hiding it */}
         <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
-          <div className="absolute inset-0 bg-mesh opacity-70" />
-          <div className="absolute inset-0 bg-grid-fade bg-grid opacity-[0.35] mask-fade-b" />
+          <div className="absolute inset-0 bg-mesh opacity-30" />
+          <div className="absolute inset-0 hidden bg-grid-fade bg-grid opacity-[0.25] mask-fade-b lg:block" />
         </div>
 
         <div className="section pb-20 pt-16 sm:pt-24">
