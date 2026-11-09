@@ -18,7 +18,7 @@ const FeedbackForm = ({ onSubmit }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-content mb-2">
           Rating
         </label>
         <div className="flex space-x-2">
@@ -34,7 +34,7 @@ const FeedbackForm = ({ onSubmit }) => {
                 className={
                   star <= formData.rating
                     ? 'text-yellow-400'
-                    : 'text-gray-300 dark:text-gray-600'
+                    : 'text-content-subtle dark:text-content-muted'
                 }
               />
             </button>
@@ -43,13 +43,13 @@ const FeedbackForm = ({ onSubmit }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-content mb-2">
           Category
         </label>
         <select
           value={formData.category}
           onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-          className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500"
+          className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg focus:ring-2 focus:ring-primary-500"
         >
           <option value="general">General Feedback</option>
           <option value="bug">Bug Report</option>
@@ -60,14 +60,14 @@ const FeedbackForm = ({ onSubmit }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-content mb-2">
           Your Feedback
         </label>
         <textarea
           value={formData.message}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
           rows={5}
-          className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500"
+          className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg focus:ring-2 focus:ring-primary-500"
           placeholder="Tell us what you think..."
           required
         />

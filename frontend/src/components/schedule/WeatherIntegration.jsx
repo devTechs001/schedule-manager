@@ -5,13 +5,8 @@ const WeatherIntegration = ({ events = [], location = 'New York', onSuggestResch
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const defaultEvents = [
-    { id: 1, title: 'Outdoor Team Building', isOutdoor: true, date: new Date(Date.now() + 86400000) },
-    { id: 2, title: 'Client Golf Meeting', isOutdoor: true, date: new Date(Date.now() + 172800000) },
-    { id: 3, title: 'Office Meeting', isOutdoor: false, date: new Date(Date.now() + 259200000) },
-  ];
 
-  const allEvents = events.length > 0 ? events : defaultEvents;
+;
 
   useEffect(() => {
     // Simulate weather fetch
@@ -82,8 +77,8 @@ const WeatherIntegration = ({ events = [], location = 'New York', onSuggestResch
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-        <div className="text-center py-8 text-gray-500">
+      <div className="bg-surface rounded-lg shadow-lg p-6">
+        <div className="text-center py-8 text-content-muted">
           <FaSun className="mx-auto text-4xl mb-3 animate-spin" />
           <p>Loading weather data...</p>
         </div>
@@ -92,13 +87,13 @@ const WeatherIntegration = ({ events = [], location = 'New York', onSuggestResch
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaSun className="text-yellow-500 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Weather & Events</h3>
+          <h3 className="text-lg font-semibold text-content">Weather & Events</h3>
         </div>
-        <span className="text-sm text-gray-500">{location}</span>
+        <span className="text-sm text-content-muted">{location}</span>
       </div>
 
       {/* Current Weather */}
@@ -121,19 +116,19 @@ const WeatherIntegration = ({ events = [], location = 'New York', onSuggestResch
 
       {/* 7-Day Forecast */}
       <div className="mb-6">
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">7-Day Forecast</h4>
+        <h4 className="text-sm font-medium text-content mb-3">7-Day Forecast</h4>
         <div className="flex gap-2 overflow-x-auto pb-2">
           {weather?.forecast.map((day, i) => {
             const WeatherIcon = getWeatherIcon(day.condition);
             const color = getWeatherColor(day.condition);
             return (
-              <div key={i} className="flex-shrink-0 text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg w-20">
-                <p className="text-xs text-gray-500 mb-1">
+              <div key={i} className="flex-shrink-0 text-center p-3 bg-surface-sunken rounded-lg w-20">
+                <p className="text-xs text-content-muted mb-1">
                   {i === 0 ? 'Today' : new Date(day.date).toLocaleDateString('en', { weekday: 'short' })}
                 </p>
                 <WeatherIcon className={`mx-auto text-${color}-500 text-xl mb-1`} />
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{day.high}°</p>
-                <p className="text-xs text-gray-500">{day.low}°</p>
+                <p className="text-sm font-medium text-content">{day.high}°</p>
+                <p className="text-xs text-content-muted">{day.low}°</p>
               </div>
             );
           })}
@@ -142,7 +137,7 @@ const WeatherIntegration = ({ events = [], location = 'New York', onSuggestResch
 
       {/* Outdoor Events Alerts */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Outdoor Events</h4>
+        <h4 className="text-sm font-medium text-content mb-3">Outdoor Events</h4>
         <div className="space-y-3">
           {allEvents.filter(e => e.isOutdoor).map((event) => {
             const eventWeather = getEventWeather(event.date);
@@ -157,19 +152,19 @@ const WeatherIntegration = ({ events = [], location = 'New York', onSuggestResch
                 className={`p-4 rounded-lg border-2 ${
                   hasBadWeather
                     ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20'
-                    : 'border-gray-200 dark:border-gray-700'
+                    : 'border-line'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
-                      <FaCalendarAlt className="text-gray-400" />
-                      <span className="font-medium text-gray-900 dark:text-white">{event.title}</span>
+                      <FaCalendarAlt className="text-content-subtle" />
+                      <span className="font-medium text-content">{event.title}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <WeatherIcon className={`text-${getWeatherColor(eventWeather.condition)}-500`} />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">{eventWeather.high}°F</span>
+                    <span className="text-sm text-content-muted">{eventWeather.high}°F</span>
                   </div>
                 </div>
                 

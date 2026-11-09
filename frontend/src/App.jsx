@@ -39,6 +39,7 @@ const Focus = lazy(() => import('@pages/Focus'));
 const SearchPage = lazy(() => import('@pages/Search'));
 const ActivityHub = lazy(() => import('@pages/ActivityHub'));
 const Notes = lazy(() => import('@pages/Notes'));
+const Goals = lazy(() => import('@pages/Goals'));
 
 // AI tools
 const AIInsights = lazy(() => import('@pages/AI/AIInsights'));
@@ -208,6 +209,7 @@ function AppContent() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/activity" element={<ActivityHub />} />
           <Route path="/notes" element={<Notes />} />
+          <Route path="/goals" element={<Goals />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/analytics/performance" element={<PerformanceAnalytics />} />
           <Route path="/analytics/time-tracking" element={<TimeTrackingPage />} />

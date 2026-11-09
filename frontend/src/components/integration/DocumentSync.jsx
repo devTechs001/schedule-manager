@@ -46,11 +46,11 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
   const isConnected = (id) => connectedStorages.includes(id);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaCloud className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Document Storage Sync</h3>
+          <h3 className="text-lg font-semibold text-content">Document Storage Sync</h3>
         </div>
       </div>
 
@@ -65,7 +65,7 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
               className={`p-4 rounded-lg border-2 ${
                 connected
                   ? 'border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20'
-                  : 'border-gray-200 dark:border-gray-700'
+                  : 'border-line'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -74,9 +74,9 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
                     <storage.icon className={`text-${storage.color}-600 text-xl`} />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">{storage.name}</h4>
+                    <h4 className="font-medium text-content">{storage.name}</h4>
                     {connected ? (
-                      <div className="flex items-center gap-3 text-sm text-gray-500">
+                      <div className="flex items-center gap-3 text-sm text-content-muted">
                         <span className="flex items-center gap-1">
                           <FaFile className="text-xs" /> {storage.files} files
                         </span>
@@ -84,7 +84,7 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
                         <span>{storage.used} synced</span>
                       </div>
                     ) : (
-                      <span className="text-sm text-gray-500">Not connected</span>
+                      <span className="text-sm text-content-muted">Not connected</span>
                     )}
                   </div>
                 </div>
@@ -95,11 +95,11 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
                       <button
                         onClick={() => handleSync(storage.id)}
                         disabled={isSyncing}
-                        className="p-2 text-gray-500 hover:text-primary-600"
+                        className="p-2 text-content-muted hover:text-primary-600"
                       >
                         <FaSync className={isSyncing ? 'animate-spin' : ''} />
                       </button>
-                      <button className="p-2 text-gray-500 hover:text-gray-700">
+                      <button className="p-2 text-content-muted hover:text-content">
                         <FaCog />
                       </button>
                     </>
@@ -123,10 +123,10 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
       </div>
 
       {/* Folder Selection */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg mb-4">
+      <div className="p-4 bg-surface-sunken rounded-lg mb-4">
         <div className="flex items-center gap-2 mb-3">
-          <FaFolder className="text-gray-500" />
-          <h4 className="font-medium text-gray-900 dark:text-white">Folders to Sync</h4>
+          <FaFolder className="text-content-muted" />
+          <h4 className="font-medium text-content">Folders to Sync</h4>
         </div>
         <div className="space-y-2">
           {folders.map((folder) => (
@@ -138,7 +138,7 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
                 className="rounded text-primary-600"
               />
               <FaFolder className="text-yellow-500" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">{folder}</span>
+              <span className="text-sm text-content">{folder}</span>
             </label>
           ))}
         </div>
@@ -148,11 +148,11 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
       <div className="space-y-3">
         <label className="flex items-center gap-3">
           <input type="checkbox" defaultChecked className="rounded" />
-          <span className="text-sm text-gray-700 dark:text-gray-300">Auto-sync on file changes</span>
+          <span className="text-sm text-content">Auto-sync on file changes</span>
         </label>
         <label className="flex items-center gap-3">
           <input type="checkbox" className="rounded" />
-          <span className="text-sm text-gray-700 dark:text-gray-300">Keep local copy of files</span>
+          <span className="text-sm text-content">Keep local copy of files</span>
         </label>
       </div>
     </div>

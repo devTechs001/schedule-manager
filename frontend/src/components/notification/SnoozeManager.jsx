@@ -2,14 +2,8 @@ import React, { useState } from 'react';
 import { FaClock, FaBell, FaUndo, FaTrash, FaCalendarAlt, FaTasks, FaEnvelope } from 'react-icons/fa';
 
 const SnoozeManager = ({ snoozedItems: initialItems = [], onUnsnooze, onDelete, onReschedule }) => {
-  const defaultItems = [
-    { id: 1, type: 'task', title: 'Review quarterly report', originalTime: new Date(Date.now() - 3600000), snoozeUntil: new Date(Date.now() + 3600000), snoozeCount: 2 },
-    { id: 2, type: 'reminder', title: 'Call with client', originalTime: new Date(Date.now() - 7200000), snoozeUntil: new Date(Date.now() + 1800000), snoozeCount: 1 },
-    { id: 3, type: 'email', title: 'Reply to Sarah\'s email', originalTime: new Date(Date.now() - 86400000), snoozeUntil: new Date(Date.now() + 7200000), snoozeCount: 3 },
-    { id: 4, type: 'event', title: 'Team meeting reminder', originalTime: new Date(Date.now() - 1800000), snoozeUntil: new Date(Date.now() + 900000), snoozeCount: 1 },
-  ];
 
-  const [items, setItems] = useState(initialItems.length > 0 ? initialItems : defaultItems);
+  const [items, setItems] = useState(initialItems);
 
   const getTimeUntil = (date) => {
     const diff = new Date(date).getTime() - Date.now();
@@ -51,11 +45,11 @@ const SnoozeManager = ({ snoozedItems: initialItems = [], onUnsnooze, onDelete, 
   const sortedItems = [...items].sort((a, b) => new Date(a.snoozeUntil) - new Date(b.snoozeUntil));
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaClock className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Snoozed Items</h3>
+          <h3 className="text-lg font-semibold text-content">Snoozed Items</h3>
           {items.length > 0 && (
             <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-sm rounded-full">
               {items.length} snoozed
@@ -65,7 +59,7 @@ const SnoozeManager = ({ snoozedItems: initialItems = [], onUnsnooze, onDelete, 
       </div>
 
       {items.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-content-muted">
           <FaClock className="mx-auto text-4xl mb-3 opacity-30" />
           <p>No snoozed items</p>
           <p className="text-sm mt-1">Items you snooze will appear here</p>
@@ -83,7 +77,7 @@ const SnoozeManager = ({ snoozedItems: initialItems = [], onUnsnooze, onDelete, 
                 className={`p-4 rounded-lg border-2 ${
                   isUrgent
                     ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20'
-                    : 'border-gray-200 dark:border-gray-700'
+                    : 'border-line'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -102,8 +96,8 @@ const SnoozeManager = ({ snoozedItems: initialItems = [], onUnsnooze, onDelete, 
                       }`} />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">{item.title}</p>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <p className="font-medium text-content">{item.title}</p>
+                      <div className="flex items-center gap-2 text-sm text-content-muted">
                         <span className={isUrgent ? 'text-red-600 font-medium' : ''}>
                           Wakes up {timeUntil}
                         </span>
@@ -133,7 +127,7 @@ const SnoozeManager = ({ snoozedItems: initialItems = [], onUnsnooze, onDelete, 
 
                 {/* Quick Snooze Options */}
                 <div className="flex gap-2 mt-3">
-                  <span className="text-xs text-gray-500 self-center">Snooze again:</span>
+                  <span className="text-xs text-content-muted self-center">Snooze again:</span>
                   {['15m', '1h', '4h', 'Tomorrow'].map((option) => {
                     const getNewTime = () => {
                       const now = new Date();
@@ -149,7 +143,7 @@ const SnoozeManager = ({ snoozedItems: initialItems = [], onUnsnooze, onDelete, 
                       <button
                         key={option}
                         onClick={() => handleReschedule(item.id, getNewTime())}
-                        className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                        className="px-2 py-1 bg-surface-sunken text-content text-xs rounded hover:bg-surface-sunken"
                       >
                         {option}
                       </button>

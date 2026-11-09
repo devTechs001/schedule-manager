@@ -51,18 +51,18 @@ const WeatherWidget = ({ location = 'New York', onLocationChange, compact = fals
   const getWeatherColor = (condition) => {
     switch (condition) {
       case 'sunny': return 'text-yellow-500';
-      case 'cloudy': return 'text-gray-400';
+      case 'cloudy': return 'text-content-subtle';
       case 'rainy': return 'text-blue-500';
       case 'stormy': return 'text-purple-500';
       case 'snowy': return 'text-cyan-400';
-      default: return 'text-gray-500';
+      default: return 'text-content-muted';
     }
   };
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 animate-pulse">
-        <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+      <div className="bg-surface rounded-lg shadow-lg p-4 animate-pulse">
+        <div className="h-20 bg-surface-sunken rounded-lg" />
       </div>
     );
   }
@@ -95,7 +95,7 @@ const WeatherWidget = ({ location = 'New York', onLocationChange, compact = fals
           <FaMapMarkerAlt />
           <span className="font-medium">{location}</span>
         </div>
-        <button onClick={() => setLoading(true)} className="p-2 hover:bg-white/10 rounded-lg">
+        <button onClick={() => setLoading(true)} className="p-2 hover:bg-surface/10 rounded-lg">
           <FaSyncAlt className={loading ? 'animate-spin' : ''} />
         </button>
       </div>
@@ -110,17 +110,17 @@ const WeatherWidget = ({ location = 'New York', onLocationChange, compact = fals
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="text-center p-3 bg-white/10 rounded-lg">
+        <div className="text-center p-3 bg-surface/10 rounded-lg">
           <FaTint className="mx-auto mb-1" />
           <p className="text-sm opacity-75">Humidity</p>
           <p className="font-bold">{weather?.humidity}%</p>
         </div>
-        <div className="text-center p-3 bg-white/10 rounded-lg">
+        <div className="text-center p-3 bg-surface/10 rounded-lg">
           <FaWind className="mx-auto mb-1" />
           <p className="text-sm opacity-75">Wind</p>
           <p className="font-bold">{weather?.wind} km/h</p>
         </div>
-        <div className="text-center p-3 bg-white/10 rounded-lg">
+        <div className="text-center p-3 bg-surface/10 rounded-lg">
           <FaThermometerHalf className="mx-auto mb-1" />
           <p className="text-sm opacity-75">Feels</p>
           <p className="font-bold">{weather?.feelsLike}°</p>

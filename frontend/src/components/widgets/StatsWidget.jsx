@@ -24,14 +24,14 @@ const StatsWidget = ({
 
   if (compact) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
+      <div className="bg-surface rounded-lg shadow-lg p-4">
         <div className="grid grid-cols-3 gap-4">
           {stats.slice(0, 3).map((stat) => (
             <div key={stat.id} className="text-center">
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-2xl font-bold text-content">
                 {stat.value}{stat.suffix || ''}
               </p>
-              <p className="text-xs text-gray-500">{stat.name}</p>
+              <p className="text-xs text-content-muted">{stat.name}</p>
             </div>
           ))}
         </div>
@@ -40,13 +40,13 @@ const StatsWidget = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaChartLine className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Statistics</h3>
+          <h3 className="text-lg font-semibold text-content">Statistics</h3>
         </div>
-        <select className="px-3 py-1.5 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+        <select className="px-3 py-1.5 text-sm border rounded-lg bg-surface-sunken border-line">
           <option value="week">This Week</option>
           <option value="month">This Month</option>
           <option value="year">This Year</option>
@@ -61,7 +61,7 @@ const StatsWidget = ({
           return (
             <div
               key={stat.id}
-              className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-4 rounded-lg bg-surface-sunken bg-surface-sunken/50 hover:bg-surface-sunken transition-colors"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClasses[stat.color]}`}>
@@ -74,17 +74,17 @@ const StatsWidget = ({
                   {Math.abs(stat.change)}%
                 </span>
               </div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+              <p className="text-2xl font-bold text-content mb-1">
                 {stat.value.toLocaleString()}{stat.suffix || ''}
               </p>
-              <p className="text-sm text-gray-500">{stat.name}</p>
+              <p className="text-sm text-content-muted">{stat.name}</p>
             </div>
           );
         })}
       </div>
 
       {/* Mini Chart Placeholder */}
-      <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+      <div className="mt-6 p-4 bg-surface-sunken bg-surface-sunken/50 rounded-lg">
         <div className="flex items-end justify-between h-20 gap-1">
           {[40, 65, 45, 80, 55, 90, 70].map((height, i) => (
             <div
@@ -94,7 +94,7 @@ const StatsWidget = ({
             />
           ))}
         </div>
-        <div className="flex justify-between mt-2 text-xs text-gray-500">
+        <div className="flex justify-between mt-2 text-xs text-content-muted">
           <span>Mon</span>
           <span>Tue</span>
           <span>Wed</span>

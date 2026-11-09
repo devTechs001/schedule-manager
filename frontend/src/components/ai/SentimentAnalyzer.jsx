@@ -57,10 +57,10 @@ const SentimentAnalyzer = ({ onAnalyze }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center gap-3 mb-6">
         <FaChartBar className="text-primary-600 text-xl" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-content">
           Sentiment Analyzer
         </h3>
       </div>
@@ -71,7 +71,7 @@ const SentimentAnalyzer = ({ onAnalyze }) => {
           onChange={(e) => setText(e.target.value)}
           placeholder="Enter text to analyze sentiment..."
           rows={4}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-3 py-2 border border-line rounded-lg bg-white bg-surface-sunken text-content"
         />
 
         <button
@@ -85,31 +85,31 @@ const SentimentAnalyzer = ({ onAnalyze }) => {
 
         {result && (
           <div className="mt-6 space-y-4">
-            <div className="flex items-center justify-center gap-4 p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div className="flex items-center justify-center gap-4 p-6 bg-surface-sunken rounded-lg">
               {getSentimentIcon()}
               <div>
                 <p className={`text-2xl font-bold text-${getSentimentColor()}-600 capitalize`}>
                   {result.sentiment}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-content-muted">
                   {Math.round(result.confidence * 100)}% confidence
                 </p>
               </div>
             </div>
 
-            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3">Emotion Breakdown</h4>
+            <div className="p-4 bg-surface-sunken rounded-lg">
+              <h4 className="font-medium text-content mb-3">Emotion Breakdown</h4>
               <div className="space-y-2">
                 {Object.entries(result.emotions).map(([emotion, value]) => (
                   <div key={emotion} className="flex items-center gap-3">
-                    <span className="w-20 text-sm text-gray-600 dark:text-gray-400 capitalize">{emotion}</span>
-                    <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                    <span className="w-20 text-sm text-content-muted capitalize">{emotion}</span>
+                    <div className="flex-1 h-2 bg-surface-sunken rounded-full overflow-hidden">
                       <div
                         className="h-full bg-primary-500 rounded-full transition-all"
                         style={{ width: `${value * 100}%` }}
                       />
                     </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="text-sm text-content-muted">
                       {Math.round(value * 100)}%
                     </span>
                   </div>
@@ -117,9 +117,9 @@ const SentimentAnalyzer = ({ onAnalyze }) => {
               </div>
             </div>
 
-            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div className="p-4 bg-surface-sunken rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Sentiment Score</span>
+                <span className="text-content-muted">Sentiment Score</span>
                 <span className={`text-xl font-bold text-${getSentimentColor()}-600`}>
                   {result.score}/100
                 </span>

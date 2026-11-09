@@ -49,16 +49,16 @@ const DocumentIntelligence = ({ onAnalyze }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center gap-3 mb-6">
         <FaFileAlt className="text-primary-600 text-xl" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-content">
           Document Intelligence
         </h3>
       </div>
 
       <div className="space-y-4">
-        <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+        <div className="border-2 border-dashed border-line rounded-lg p-6 text-center">
           <input
             type="file"
             id="doc-upload"
@@ -67,8 +67,8 @@ const DocumentIntelligence = ({ onAnalyze }) => {
             className="hidden"
           />
           <label htmlFor="doc-upload" className="cursor-pointer">
-            <FaUpload className="mx-auto text-3xl text-gray-400 mb-2" />
-            <p className="text-gray-600 dark:text-gray-400">
+            <FaUpload className="mx-auto text-3xl text-content-subtle mb-2" />
+            <p className="text-content-muted">
               Drop a document or click to upload
             </p>
             {document && (
@@ -82,7 +82,7 @@ const DocumentIntelligence = ({ onAnalyze }) => {
           onChange={(e) => setTextInput(e.target.value)}
           placeholder="Or paste your document text here..."
           rows={4}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-3 py-2 border border-line rounded-lg bg-white bg-surface-sunken text-content"
         />
 
         <button
@@ -96,13 +96,13 @@ const DocumentIntelligence = ({ onAnalyze }) => {
 
         {analysis && (
           <div className="mt-6 space-y-4">
-            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-2">Summary</h4>
-              <p className="text-gray-700 dark:text-gray-300">{analysis.summary}</p>
+            <div className="p-4 bg-surface-sunken rounded-lg">
+              <h4 className="font-medium text-content mb-2">Summary</h4>
+              <p className="text-content">{analysis.summary}</p>
             </div>
 
-            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+            <div className="p-4 bg-surface-sunken rounded-lg">
+              <h4 className="font-medium text-content mb-2 flex items-center gap-2">
                 <FaTags /> Key Topics
               </h4>
               <div className="flex flex-wrap gap-2">
@@ -117,11 +117,11 @@ const DocumentIntelligence = ({ onAnalyze }) => {
             <div className="grid grid-cols-2 gap-4">
               <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
                 <p className="text-2xl font-bold text-blue-600">{analysis.wordCount}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Words</p>
+                <p className="text-sm text-content-muted">Words</p>
               </div>
               <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
                 <p className="text-2xl font-bold text-green-600">{analysis.readingTime} min</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Read Time</p>
+                <p className="text-sm text-content-muted">Read Time</p>
               </div>
             </div>
           </div>

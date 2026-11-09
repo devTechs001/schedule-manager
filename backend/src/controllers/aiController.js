@@ -82,32 +82,15 @@ export const calculatePriority = asyncHandler(async (req, res) => {
 export const getInsights = asyncHandler(async (req, res) => {
   const userId = req.user?.id;
   
-  // For public endpoint, return sample insights
+  /*
+   * The public (unauthenticated) endpoint has no data to reason about, so it
+   * must not invent insights. Returning an empty list lets the UI show an
+   * honest "sign in to see insights" state. The previous version returned
+   * canned claims like "great job, you're making good progress" — statements
+   * about a user we know nothing about.
+   */
   if (!userId) {
-    const sampleInsights = [
-      {
-        type: 'productivity',
-        title: 'Daily Progress',
-        description: 'Great job! You\'re making good progress on your tasks today.',
-      },
-      {
-        type: 'suggestion',
-        title: 'Focus Time',
-        description: 'Consider scheduling 2-hour focus blocks for deep work.',
-        action: 'Optimize Schedule',
-      },
-      {
-        type: 'warning',
-        title: 'Meeting Load',
-        description: 'You have several meetings scheduled. Ensure you have breaks between them.',
-        action: 'Review Calendar',
-      },
-    ];
-
-    return res.json({
-      success: true,
-      data: sampleInsights,
-    });
+    return res.json({ success: true, data: [], reason: 'unauthenticated' });
   }
 
   const tasks = await Task.find({ user: userId });

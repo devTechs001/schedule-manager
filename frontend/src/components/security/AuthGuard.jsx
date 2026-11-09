@@ -21,10 +21,10 @@ const AuthGuard = ({
   if (isLoading) {
     return (
       fallback || (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+        <div className="min-h-screen flex items-center justify-center bg-surface-sunken">
           <div className="text-center">
             <FaSpinner className="mx-auto text-4xl text-primary-600 animate-spin mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">Verifying authentication...</p>
+            <p className="text-content-muted">Verifying authentication...</p>
           </div>
         </div>
       )
@@ -41,13 +41,13 @@ const AuthGuard = ({
     const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
     if (!hasRequiredRole) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-          <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md">
+        <div className="min-h-screen flex items-center justify-center bg-surface-sunken">
+          <div className="text-center p-8 bg-surface rounded-lg shadow-lg max-w-md">
             <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
               <FaLock className="text-red-500 text-2xl" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Access Denied</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <h2 className="text-xl font-bold text-content mb-2">Access Denied</h2>
+            <p className="text-content-muted mb-6">
               You don't have permission to access this page.
               Required roles: {requiredRoles.join(', ')}
             </p>

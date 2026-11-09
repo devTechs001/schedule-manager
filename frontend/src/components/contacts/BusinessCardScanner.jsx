@@ -54,16 +54,16 @@ const BusinessCardScanner = ({ onSave }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center gap-3 mb-6">
         <FaIdCard className="text-primary-600 text-xl" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Business Card Scanner</h3>
+        <h3 className="text-lg font-semibold text-content">Business Card Scanner</h3>
       </div>
 
       {!image ? (
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-12 text-center cursor-pointer hover:border-primary-500 transition-colors"
+          className="border-2 border-dashed border-line rounded-lg p-12 text-center cursor-pointer hover:border-primary-500 transition-colors"
         >
           <input
             ref={fileInputRef}
@@ -73,14 +73,14 @@ const BusinessCardScanner = ({ onSave }) => {
             onChange={handleFileUpload}
             className="hidden"
           />
-          <FaCamera className="mx-auto text-4xl text-gray-400 mb-4" />
-          <p className="text-gray-600 dark:text-gray-400 mb-2">Take a photo or upload an image</p>
-          <p className="text-sm text-gray-500">Supports JPG, PNG, HEIC</p>
+          <FaCamera className="mx-auto text-4xl text-content-subtle mb-4" />
+          <p className="text-content-muted mb-2">Take a photo or upload an image</p>
+          <p className="text-sm text-content-muted">Supports JPG, PNG, HEIC</p>
           <div className="flex gap-4 justify-center mt-4">
             <button className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg">
               <FaCamera /> Camera
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg">
+            <button className="flex items-center gap-2 px-4 py-2 bg-surface-sunken text-content rounded-lg">
               <FaUpload /> Upload
             </button>
           </div>
@@ -89,7 +89,7 @@ const BusinessCardScanner = ({ onSave }) => {
         <div className="space-y-6">
           {/* Preview */}
           <div className="relative">
-            <img src={image} alt="Business card" className="w-full rounded-lg max-h-48 object-contain bg-gray-100 dark:bg-gray-700" />
+            <img src={image} alt="Business card" className="w-full rounded-lg max-h-48 object-contain bg-surface-sunken" />
             {isScanning && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
                 <div className="text-center text-white">
@@ -104,7 +104,7 @@ const BusinessCardScanner = ({ onSave }) => {
           {extractedData && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="font-medium text-gray-900 dark:text-white">Extracted Information</h4>
+                <h4 className="font-medium text-content">Extracted Information</h4>
                 <button
                   onClick={() => setIsEditing(!isEditing)}
                   className="text-primary-600 hover:text-primary-700 text-sm flex items-center gap-1"
@@ -116,7 +116,7 @@ const BusinessCardScanner = ({ onSave }) => {
               <div className="grid grid-cols-2 gap-4">
                 {Object.entries(extractedData).map(([field, value]) => (
                   <div key={field} className={field === 'address' ? 'col-span-2' : ''}>
-                    <label className="block text-sm text-gray-500 dark:text-gray-400 capitalize mb-1">
+                    <label className="block text-sm text-content-muted capitalize mb-1">
                       {field}
                     </label>
                     {isEditing ? (
@@ -124,10 +124,10 @@ const BusinessCardScanner = ({ onSave }) => {
                         type="text"
                         value={value}
                         onChange={(e) => handleChange(field, e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-line rounded-lg bg-white bg-surface-sunken text-content"
                       />
                     ) : (
-                      <p className="text-gray-900 dark:text-white">{value}</p>
+                      <p className="text-content">{value}</p>
                     )}
                   </div>
                 ))}
@@ -142,7 +142,7 @@ const BusinessCardScanner = ({ onSave }) => {
                 </button>
                 <button
                   onClick={reset}
-                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg"
+                  className="px-4 py-2 bg-surface-sunken text-content rounded-lg"
                 >
                   Scan Another
                 </button>

@@ -53,16 +53,16 @@ const SharedCalendar = ({ events = [], members = [], onEventClick, onAddEvent })
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+    <div className="bg-surface rounded-lg shadow-lg">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between p-4 border-b border-line">
         <div className="flex items-center gap-3">
           <FaCalendarAlt className="text-primary-600" />
-          <h3 className="font-semibold text-gray-900 dark:text-white">Shared Calendar</h3>
+          <h3 className="font-semibold text-content">Shared Calendar</h3>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
-            <FaUsers className="text-gray-400" />
+            <FaUsers className="text-content-subtle" />
             <div className="flex -space-x-2">
               {members.slice(0, 3).map((m, i) => (
                 <div key={i} className="w-6 h-6 rounded-full bg-primary-500 border-2 border-white text-white text-xs flex items-center justify-center">
@@ -84,16 +84,16 @@ const SharedCalendar = ({ events = [], members = [], onEventClick, onAddEvent })
       <div className="flex items-center justify-between p-4">
         <button
           onClick={() => navigateMonth(-1)}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+          className="p-2 hover:bg-surface-sunken rounded"
         >
           <FaChevronLeft />
         </button>
-        <h4 className="text-lg font-medium text-gray-900 dark:text-white">
+        <h4 className="text-lg font-medium text-content">
           {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
         </h4>
         <button
           onClick={() => navigateMonth(1)}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+          className="p-2 hover:bg-surface-sunken rounded"
         >
           <FaChevronRight />
         </button>
@@ -103,7 +103,7 @@ const SharedCalendar = ({ events = [], members = [], onEventClick, onAddEvent })
       <div className="p-4">
         <div className="grid grid-cols-7 gap-1 mb-2">
           {weekDays.map(day => (
-            <div key={day} className="text-center text-sm font-medium text-gray-500 dark:text-gray-400 py-2">
+            <div key={day} className="text-center text-sm font-medium text-content-muted py-2">
               {day}
             </div>
           ))}
@@ -114,12 +114,12 @@ const SharedCalendar = ({ events = [], members = [], onEventClick, onAddEvent })
             return (
               <div
                 key={i}
-                className={`min-h-[80px] p-1 border border-gray-100 dark:border-gray-700 rounded ${
-                  !isCurrentMonth ? 'bg-gray-50 dark:bg-gray-900/50' : ''
+                className={`min-h-[80px] p-1 border border-line rounded ${
+                  !isCurrentMonth ? 'bg-surface-sunken/50' : ''
                 } ${isToday(date) ? 'ring-2 ring-primary-500' : ''}`}
               >
                 <span className={`text-sm ${
-                  isCurrentMonth ? 'text-gray-900 dark:text-white' : 'text-gray-400'
+                  isCurrentMonth ? 'text-content' : 'text-content-subtle'
                 } ${isToday(date) ? 'font-bold text-primary-600' : ''}`}>
                   {date.getDate()}
                 </span>
@@ -134,7 +134,7 @@ const SharedCalendar = ({ events = [], members = [], onEventClick, onAddEvent })
                     </button>
                   ))}
                   {dayEvents.length > 2 && (
-                    <span className="text-xs text-gray-500">+{dayEvents.length - 2} more</span>
+                    <span className="text-xs text-content-muted">+{dayEvents.length - 2} more</span>
                   )}
                 </div>
               </div>

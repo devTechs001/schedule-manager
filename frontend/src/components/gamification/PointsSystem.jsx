@@ -2,14 +2,8 @@ import React from 'react';
 import { FaCoins, FaArrowUp, FaGift, FaHistory, FaTasks, FaClock, FaFire } from 'react-icons/fa';
 
 const PointsSystem = ({ points = 0, history = [], onRedeem }) => {
-  const defaultHistory = [
-    { id: 1, action: 'Completed task', points: 10, date: new Date(), type: 'earn' },
-    { id: 2, action: 'Focus session', points: 25, date: new Date(Date.now() - 3600000), type: 'earn' },
-    { id: 3, action: 'Daily streak', points: 50, date: new Date(Date.now() - 7200000), type: 'earn' },
-    { id: 4, action: 'Redeemed reward', points: -100, date: new Date(Date.now() - 86400000), type: 'spend' },
-  ];
 
-  const allHistory = history.length > 0 ? history : defaultHistory;
+;
   const totalPoints = points || 1250;
 
   const pointCategories = [
@@ -32,11 +26,11 @@ const PointsSystem = ({ points = 0, history = [], onRedeem }) => {
     : 100;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaCoins className="text-yellow-500 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Points System</h3>
+          <h3 className="text-lg font-semibold text-content">Points System</h3>
         </div>
         <button
           onClick={onRedeem}
@@ -64,9 +58,9 @@ const PointsSystem = ({ points = 0, history = [], onRedeem }) => {
               <span>Progress to Level {levelInfo.level + 1}</span>
               <span>{progressToNext}%</span>
             </div>
-            <div className="h-2 bg-white/30 rounded-full overflow-hidden">
+            <div className="h-2 bg-surface/30 rounded-full overflow-hidden">
               <div
-                className="h-full bg-white rounded-full"
+                className="h-full bg-surface rounded-full"
                 style={{ width: `${progressToNext}%` }}
               />
             </div>
@@ -77,10 +71,10 @@ const PointsSystem = ({ points = 0, history = [], onRedeem }) => {
       {/* Points Breakdown */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         {pointCategories.map((cat) => (
-          <div key={cat.label} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-center">
+          <div key={cat.label} className="p-4 bg-surface-sunken rounded-lg text-center">
             <cat.icon className={`mx-auto text-${cat.color}-500 text-xl mb-2`} />
-            <p className="text-lg font-bold text-gray-900 dark:text-white">{cat.points}</p>
-            <p className="text-xs text-gray-500">{cat.label}</p>
+            <p className="text-lg font-bold text-content">{cat.points}</p>
+            <p className="text-xs text-content-muted">{cat.label}</p>
           </div>
         ))}
       </div>
@@ -88,12 +82,12 @@ const PointsSystem = ({ points = 0, history = [], onRedeem }) => {
       {/* Points History */}
       <div>
         <div className="flex items-center gap-2 mb-3">
-          <FaHistory className="text-gray-400" />
-          <h4 className="font-medium text-gray-900 dark:text-white">Recent Activity</h4>
+          <FaHistory className="text-content-subtle" />
+          <h4 className="font-medium text-content">Recent Activity</h4>
         </div>
         <div className="space-y-2 max-h-48 overflow-y-auto">
           {allHistory.map((item) => (
-            <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div key={item.id} className="flex items-center justify-between p-3 bg-surface-sunken rounded-lg">
               <div className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                   item.type === 'earn' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'
@@ -105,8 +99,8 @@ const PointsSystem = ({ points = 0, history = [], onRedeem }) => {
                   )}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-900 dark:text-white">{item.action}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm text-content">{item.action}</p>
+                  <p className="text-xs text-content-muted">
                     {new Date(item.date).toLocaleTimeString()}
                   </p>
                 </div>

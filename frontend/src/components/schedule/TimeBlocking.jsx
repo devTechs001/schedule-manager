@@ -22,9 +22,9 @@ const TimeBlocking = ({ date, blocks, onAddBlock, onEditBlock, onDeleteBlock }) 
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-content">
           Time Blocking - {format(date, 'EEEE, MMMM d')}
         </h3>
       </div>
@@ -41,12 +41,12 @@ const TimeBlocking = ({ date, blocks, onAddBlock, onEditBlock, onDeleteBlock }) 
                 flex items-center space-x-4 p-3 rounded-lg border-2 transition-all cursor-pointer
                 ${isOccupied
                   ? 'border-primary-300 bg-primary-50 dark:bg-primary-900/20'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-primary-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'border-line hover:border-primary-200 hover:bg-surface-sunken'
                 }
               `}
               onClick={() => !isOccupied && handleSlotClick(hour)}
             >
-              <div className="w-20 text-sm font-medium text-gray-600 dark:text-gray-400">
+              <div className="w-20 text-sm font-medium text-content-muted">
                 {format(addHours(startOfDay(date), hour), 'h:mm a')}
               </div>
 
@@ -56,13 +56,13 @@ const TimeBlocking = ({ date, blocks, onAddBlock, onEditBlock, onDeleteBlock }) 
                     {hourBlocks.map((block) => (
                       <div
                         key={block._id}
-                        className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded"
+                        className="flex items-center justify-between p-2 bg-surface rounded"
                       >
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-white">
+                          <p className="font-medium text-content">
                             {block.title}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-content-muted">
                             {format(new Date(block.start), 'h:mm a')} - {format(new Date(block.end), 'h:mm a')}
                           </p>
                         </div>
@@ -79,7 +79,7 @@ const TimeBlocking = ({ date, blocks, onAddBlock, onEditBlock, onDeleteBlock }) 
                     ))}
                   </div>
                 ) : (
-                  <div className="flex items-center text-gray-400 text-sm">
+                  <div className="flex items-center text-content-subtle text-sm">
                     <FaPlus className="mr-2" size={12} />
                     Click to add block
                   </div>

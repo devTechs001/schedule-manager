@@ -36,11 +36,11 @@ const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
   const isConnected = (id) => connectedTools.includes(id);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaProjectDiagram className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Project Management Sync</h3>
+          <h3 className="text-lg font-semibold text-content">Project Management Sync</h3>
         </div>
       </div>
 
@@ -55,7 +55,7 @@ const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
               className={`p-4 rounded-lg border-2 ${
                 connected
                   ? 'border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20'
-                  : 'border-gray-200 dark:border-gray-700'
+                  : 'border-line'
               }`}
             >
               <div className="flex items-center gap-3 mb-3">
@@ -63,7 +63,7 @@ const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
                   <tool.icon className={`text-${tool.color}-500 text-lg`} />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-medium text-gray-900 dark:text-white">{tool.name}</h4>
+                  <h4 className="font-medium text-content">{tool.name}</h4>
                   {connected && (
                     <span className="text-xs text-green-600 flex items-center gap-1">
                       <FaCheck /> Connected
@@ -73,7 +73,7 @@ const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
               </div>
 
               {connected && (
-                <div className="flex gap-4 text-sm text-gray-500 mb-3">
+                <div className="flex gap-4 text-sm text-content-muted mb-3">
                   <span>{tool.projects} projects</span>
                   <span>{tool.tasks} tasks</span>
                 </div>
@@ -85,7 +85,7 @@ const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
                     <button
                       onClick={() => handleSync(tool.id)}
                       disabled={isSyncing}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm"
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-surface-sunken hover:bg-surface-sunken rounded-lg text-sm"
                     >
                       <FaSync className={isSyncing ? 'animate-spin' : ''} />
                       {isSyncing ? 'Syncing...' : 'Sync'}
@@ -114,24 +114,24 @@ const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
       </div>
 
       {/* Import Options */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-        <h4 className="font-medium text-gray-900 dark:text-white mb-3">Import Options</h4>
+      <div className="p-4 bg-surface-sunken rounded-lg">
+        <h4 className="font-medium text-content mb-3">Import Options</h4>
         <div className="space-y-3">
           <label className="flex items-center gap-3">
             <input type="checkbox" defaultChecked className="rounded" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Import project structure</span>
+            <span className="text-sm text-content">Import project structure</span>
           </label>
           <label className="flex items-center gap-3">
             <input type="checkbox" defaultChecked className="rounded" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Import task assignments</span>
+            <span className="text-sm text-content">Import task assignments</span>
           </label>
           <label className="flex items-center gap-3">
             <input type="checkbox" className="rounded" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Import completed tasks</span>
+            <span className="text-sm text-content">Import completed tasks</span>
           </label>
           <label className="flex items-center gap-3">
             <input type="checkbox" defaultChecked className="rounded" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Sync due dates & priorities</span>
+            <span className="text-sm text-content">Sync due dates & priorities</span>
           </label>
         </div>
       </div>

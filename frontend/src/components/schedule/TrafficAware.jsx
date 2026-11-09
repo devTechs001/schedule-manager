@@ -5,13 +5,8 @@ const TrafficAware = ({ events = [], onUpdateDeparture }) => {
   const [trafficData, setTrafficData] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const defaultEvents = [
-    { id: 1, title: 'Client Meeting', location: '456 Business Ave', time: new Date(Date.now() + 3600000), duration: 60 },
-    { id: 2, title: 'Lunch with Team', location: '789 Restaurant St', time: new Date(Date.now() + 7200000), duration: 90 },
-    { id: 3, title: 'Doctor Appointment', location: '321 Medical Center', time: new Date(Date.now() + 14400000), duration: 45 },
-  ];
 
-  const allEvents = events.length > 0 ? events : defaultEvents;
+;
 
   useEffect(() => {
     // Simulate traffic data fetch
@@ -56,16 +51,16 @@ const TrafficAware = ({ events = [], onUpdateDeparture }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaCar className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Traffic-Aware Scheduling</h3>
+          <h3 className="text-lg font-semibold text-content">Traffic-Aware Scheduling</h3>
         </div>
         <button
           onClick={refreshTraffic}
           disabled={loading}
-          className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm"
+          className="flex items-center gap-2 px-3 py-2 bg-surface-sunken hover:bg-surface-sunken rounded-lg text-sm"
         >
           <FaSync className={loading ? 'animate-spin' : ''} />
           Refresh
@@ -73,7 +68,7 @@ const TrafficAware = ({ events = [], onUpdateDeparture }) => {
       </div>
 
       {loading && !Object.keys(trafficData).length ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-content-muted">
           <FaRoute className="mx-auto text-4xl mb-3 animate-pulse" />
           <p>Checking traffic conditions...</p>
         </div>
@@ -87,15 +82,15 @@ const TrafficAware = ({ events = [], onUpdateDeparture }) => {
             const delay = traffic.currentDuration - traffic.normalDuration;
             
             return (
-              <div key={event.id} className="p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700">
+              <div key={event.id} className="p-4 rounded-lg border-2 border-line">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">{event.title}</h4>
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                    <h4 className="font-medium text-content">{event.title}</h4>
+                    <div className="flex items-center gap-2 text-sm text-content-muted mt-1">
                       <FaMapMarkerAlt className="text-xs" />
                       <span>{event.location}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="flex items-center gap-2 text-sm text-content-muted">
                       <FaClock className="text-xs" />
                       <span>Starts at {formatTime(event.time)}</span>
                     </div>
@@ -106,19 +101,19 @@ const TrafficAware = ({ events = [], onUpdateDeparture }) => {
                 </div>
 
                 {/* Travel Info */}
-                <div className="grid grid-cols-3 gap-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-3">
+                <div className="grid grid-cols-3 gap-4 p-3 bg-surface-sunken rounded-lg mb-3">
                   <div className="text-center">
-                    <p className="text-xs text-gray-500">Normal</p>
-                    <p className="font-medium text-gray-900 dark:text-white">{traffic.normalDuration} min</p>
+                    <p className="text-xs text-content-muted">Normal</p>
+                    <p className="font-medium text-content">{traffic.normalDuration} min</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xs text-gray-500">Current</p>
-                    <p className={`font-medium ${delay > 5 ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+                    <p className="text-xs text-content-muted">Current</p>
+                    <p className={`font-medium ${delay > 5 ? 'text-red-600' : 'text-content'}`}>
                       {traffic.currentDuration} min
                     </p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xs text-gray-500">Leave by</p>
+                    <p className="text-xs text-content-muted">Leave by</p>
                     <p className="font-medium text-primary-600">{formatTime(traffic.suggestedDeparture)}</p>
                   </div>
                 </div>

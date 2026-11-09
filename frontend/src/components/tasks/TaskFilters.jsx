@@ -8,7 +8,7 @@ const TaskFilters = ({ filters, onFilterChange }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+    <div className="bg-surface rounded-lg shadow-sm border border-line p-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Search */}
         <Input
@@ -23,7 +23,7 @@ const TaskFilters = ({ filters, onFilterChange }) => {
           <select
             value={filters.status}
             onChange={(e) => handleChange('status', e.target.value)}
-            className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="all">All Status</option>
             <option value="todo">To Do</option>
@@ -37,7 +37,7 @@ const TaskFilters = ({ filters, onFilterChange }) => {
           <select
             value={filters.priority}
             onChange={(e) => handleChange('priority', e.target.value)}
-            className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="all">All Priority</option>
             <option value="low">Low</option>

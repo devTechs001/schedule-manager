@@ -68,7 +68,7 @@ const TaskBoard = ({
                 className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
                   filter === option.id
                     ? 'bg-primary-600 text-white shadow-sm'
-                    : 'text-content-muted hover:bg-gray-100 dark:hover:bg-white/5'
+                    : 'text-content-muted hover:bg-surface-sunken dark:hover:bg-surface/5'
                 }`}
               >
                 {option.label}

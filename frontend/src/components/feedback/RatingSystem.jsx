@@ -17,7 +17,7 @@ const RatingSystem = ({ rating, onRate, readonly = false }) => {
             className={
               star <= rating
                 ? 'text-yellow-400'
-                : 'text-gray-300 dark:text-gray-600'
+                : 'text-content-subtle dark:text-content-muted'
             }
           />
         </button>

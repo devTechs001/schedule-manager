@@ -33,20 +33,20 @@ const SmartComposer = ({ onGenerate, placeholder = 'Describe what you want to wr
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
+      <h3 className="text-lg font-semibold text-content mb-4">
         Smart Composer
       </h3>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-content mb-2">
             Tone
           </label>
           <select
             value={tone}
             onChange={(e) => setTone(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-3 py-2 border border-line rounded-lg bg-white bg-surface-sunken text-content"
           >
             {tones.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
@@ -55,7 +55,7 @@ const SmartComposer = ({ onGenerate, placeholder = 'Describe what you want to wr
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-content mb-2">
             What do you want to write?
           </label>
           <textarea
@@ -63,7 +63,7 @@ const SmartComposer = ({ onGenerate, placeholder = 'Describe what you want to wr
             onChange={(e) => setPrompt(e.target.value)}
             placeholder={placeholder}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400"
+            className="w-full px-3 py-2 border border-line rounded-lg bg-white bg-surface-sunken text-content placeholder-gray-400"
           />
         </div>
 
@@ -88,7 +88,7 @@ const SmartComposer = ({ onGenerate, placeholder = 'Describe what you want to wr
         {generatedText && (
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="text-sm font-medium text-content">
                 Generated Text
               </label>
               <button
@@ -98,8 +98,8 @@ const SmartComposer = ({ onGenerate, placeholder = 'Describe what you want to wr
                 Copy
               </button>
             </div>
-            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+            <div className="p-4 bg-surface-sunken rounded-lg">
+              <p className="text-content whitespace-pre-wrap">
                 {generatedText}
               </p>
             </div>

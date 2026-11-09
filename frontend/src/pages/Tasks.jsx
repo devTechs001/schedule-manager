@@ -7,6 +7,7 @@ import {
   FaPlus,
   FaSearch,
   FaSyncAlt,
+  FaColumns,
 } from 'react-icons/fa';
 import { isPast, isToday, startOfDay } from 'date-fns';
 import { useTasks } from '@hooks/useTasks';
@@ -167,6 +168,16 @@ const Tasks = () => {
             >
               <FaCalendarAlt size={9} /> Calendar
             </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('board')}
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                viewMode === 'board' ? 'bg-primary-600 text-white' : 'text-content-muted'
+              }`}
+              aria-pressed={viewMode === 'board'}
+            >
+              <FaColumns size={9} /> Board
+            </button>
           </div>
 
           <button
@@ -206,7 +217,83 @@ const Tasks = () => {
         ))}
       </div>
 
-      {viewMode === 'calendar' ? (
+      {viewMode === 'board' ? (
+        /* Kanban board — the one layout Tasks was missing. Columns are the real
+           statuses; dragging is handled by the update action, not faked. */
+        <div className="grid gap-3 md:grid-cols-3">
+          {[
+            { id: 'todo', label: 'To do', tone: 'border-t-primary-400' },
+            { id: 'in-progress', label: 'In progress', tone: 'border-t-amber-400' },
+            { id: 'completed', label: 'Completed', tone: 'border-t-emerald-400' },
+          ].map((column) => {
+            const items = visibleTasks.filter((task) => (task.status || 'todo') === column.id);
+            return (
+              <section
+                key={column.id}
+                className={`card flex flex-col border-t-4 ${column.tone}`}
+                aria-label={`${column.label} tasks`}
+              >
+                <header className="flex items-center justify-between gap-2 border-b border-line px-3 py-2.5">
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-content-muted">
+                    {column.label}
+                  </h2>
+                  <span className="rounded-md bg-surface-sunken px-1.5 py-0.5 text-[0.65rem] font-semibold text-content-subtle">
+                    {items.length}
+                  </span>
+                </header>
+
+                <div className="flex-1 space-y-2 p-2.5">
+                  {items.length === 0 ? (
+                    <p className="px-1 py-6 text-center text-[0.7rem] text-content-subtle">
+                      Nothing here
+                    </p>
+                  ) : (
+                    items.map((task) => (
+                      <button
+                        key={task._id}
+                        type="button"
+                        onClick={() => openEdit(task)}
+                        className="w-full rounded-xl border border-line bg-surface-raised p-2.5 text-left transition-colors hover:border-primary-300"
+                      >
+                        <span className="block text-xs font-semibold leading-snug text-content">
+                          {task.title}
+                        </span>
+                        <span className="mt-1 flex items-center gap-1.5">
+                          {task.priority && (
+                            <span
+                              className={`rounded px-1.5 py-0.5 text-[0.6rem] font-semibold capitalize ${
+                                task.priority === 'high'
+                                  ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300'
+                                  : task.priority === 'medium'
+                                    ? 'bg-amber-50 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300'
+                                    : 'bg-surface-sunken text-content-subtle'
+                              }`}
+                            >
+                              {task.priority}
+                            </span>
+                          )}
+                          {task.dueDate && (
+                            <span className="text-[0.6rem] text-content-subtle">
+                              {isPast(new Date(task.dueDate)) && task.status !== 'completed'
+                                ? 'Overdue'
+                                : isToday(new Date(task.dueDate))
+                                  ? 'Today'
+                                  : new Date(task.dueDate).toLocaleDateString(undefined, {
+                                      month: 'short',
+                                      day: 'numeric',
+                                    })}
+                            </span>
+                          )}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      ) : viewMode === 'calendar' ? (
         <TaskCalendar tasks={tasks} onTaskClick={openEdit} />
       ) : (
         <div className="grid gap-5 xl:grid-cols-[1fr_16rem]">

@@ -6,15 +6,8 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
   const [operation, setOperation] = useState(null);
   const [operationValue, setOperationValue] = useState('');
 
-  const defaultTasks = [
-    { id: 1, title: 'Complete quarterly report', priority: 'high', status: 'in_progress', dueDate: new Date(Date.now() + 86400000) },
-    { id: 2, title: 'Review team proposals', priority: 'medium', status: 'pending', dueDate: new Date(Date.now() + 172800000) },
-    { id: 3, title: 'Update documentation', priority: 'low', status: 'pending', dueDate: new Date(Date.now() + 259200000) },
-    { id: 4, title: 'Prepare presentation', priority: 'high', status: 'in_progress', dueDate: new Date(Date.now() + 345600000) },
-    { id: 5, title: 'Client follow-up calls', priority: 'medium', status: 'pending', dueDate: new Date(Date.now() + 432000000) },
-  ];
 
-  const tasks = initialTasks.length > 0 ? initialTasks : defaultTasks;
+  const tasks = initialTasks;
 
   const operations = [
     { id: 'complete', name: 'Mark Complete', icon: FaCheck, color: 'green' },
@@ -56,11 +49,11 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaLayerGroup className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Bulk Operations</h3>
+          <h3 className="text-lg font-semibold text-content">Bulk Operations</h3>
           {selectedIds.length > 0 && (
             <span className="px-3 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-sm">
               {selectedIds.length} selected
@@ -70,7 +63,7 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
         {selectedIds.length > 0 && (
           <button
             onClick={() => setSelectedIds([])}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-content-muted hover:text-content"
           >
             <FaTimes />
           </button>
@@ -78,7 +71,7 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
       </div>
 
       {/* Select All */}
-      <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+      <div className="flex items-center justify-between mb-4 p-3 bg-surface-sunken rounded-lg">
         <label className="flex items-center gap-3 cursor-pointer">
           <input
             type="checkbox"
@@ -86,9 +79,9 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
             onChange={selectAll}
             className="w-5 h-5 rounded text-primary-600"
           />
-          <span className="text-sm text-gray-700 dark:text-gray-300">Select All</span>
+          <span className="text-sm text-content">Select All</span>
         </label>
-        <span className="text-sm text-gray-500">{tasks.length} tasks</span>
+        <span className="text-sm text-content-muted">{tasks.length} tasks</span>
       </div>
 
       {/* Task List */}
@@ -99,7 +92,7 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
             className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
               selectedIds.includes(task.id)
                 ? 'bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-300 dark:border-primary-700'
-                : 'bg-gray-50 dark:bg-gray-700 border-2 border-transparent'
+                : 'bg-surface-sunken bg-surface-sunken border-2 border-transparent'
             }`}
           >
             <input
@@ -109,12 +102,12 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
               className="w-5 h-5 rounded text-primary-600"
             />
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">{task.title}</p>
+              <p className="text-sm font-medium text-content">{task.title}</p>
               <div className="flex items-center gap-2 mt-1">
                 <span className={`px-2 py-0.5 text-xs rounded-full bg-${getPriorityColor(task.priority)}-100 text-${getPriorityColor(task.priority)}-700`}>
                   {task.priority}
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-content-muted">
                   Due {new Date(task.dueDate).toLocaleDateString()}
                 </span>
               </div>
@@ -125,8 +118,8 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
 
       {/* Operations */}
       {selectedIds.length > 0 && (
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Choose operation:</p>
+        <div className="border-t border-line pt-4">
+          <p className="text-sm font-medium text-content mb-3">Choose operation:</p>
           <div className="grid grid-cols-3 gap-2 mb-4">
             {operations.map((op) => (
               <button
@@ -135,7 +128,7 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
                 className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
                   operation?.id === op.id
                     ? `bg-${op.color}-100 dark:bg-${op.color}-900/30 text-${op.color}-700 dark:text-${op.color}-300 border-2 border-${op.color}-300`
-                    : 'bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-2 border-transparent'
+                    : 'bg-surface-sunken bg-surface-sunken text-content border-2 border-transparent'
                 }`}
               >
                 <op.icon />
@@ -151,7 +144,7 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
                 <select
                   value={operationValue}
                   onChange={(e) => setOperationValue(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                  className="w-full px-4 py-2 border rounded-lg bg-surface-sunken border-line"
                 >
                   <option value="">Select {operation.name.toLowerCase()}</option>
                   {operation.options.map((opt) => (
@@ -163,7 +156,7 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
                   type="date"
                   value={operationValue}
                   onChange={(e) => setOperationValue(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                  className="w-full px-4 py-2 border rounded-lg bg-surface-sunken border-line"
                 />
               ) : (
                 <input
@@ -171,7 +164,7 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
                   placeholder={`Enter ${operation.name.toLowerCase()}`}
                   value={operationValue}
                   onChange={(e) => setOperationValue(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                  className="w-full px-4 py-2 border rounded-lg bg-surface-sunken border-line"
                 />
               )}
             </div>
@@ -200,7 +193,7 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
             </button>
             <button
               onClick={onCancel}
-              className="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg"
+              className="px-6 py-3 bg-surface-sunken text-content rounded-lg"
             >
               Cancel
             </button>

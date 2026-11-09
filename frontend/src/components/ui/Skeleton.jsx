@@ -21,7 +21,7 @@ const Skeleton = ({
     rounded: 'rounded-xl',
   };
 
-  const baseClasses = `bg-gray-200 dark:bg-gray-700 ${animations[animation]} ${variants[variant]}`;
+  const baseClasses = `bg-surface-sunken ${animations[animation]} ${variants[variant]}`;
 
   const style = {
     width: width || (variant === 'circular' ? height : '100%'),
@@ -43,7 +43,7 @@ const Skeleton = ({
 
 // Pre-built skeleton patterns
 export const SkeletonCard = ({ className = '' }) => (
-  <div className={`p-4 bg-white dark:bg-gray-800 rounded-lg shadow ${className}`}>
+  <div className={`p-4 bg-surface rounded-lg shadow ${className}`}>
     <div className="flex items-center gap-4 mb-4">
       <Skeleton variant="circular" width={48} height={48} />
       <div className="flex-1 space-y-2">
@@ -62,7 +62,7 @@ export const SkeletonCard = ({ className = '' }) => (
 export const SkeletonList = ({ items = 5, className = '' }) => (
   <div className={`space-y-3 ${className}`}>
     {Array.from({ length: items }).map((_, i) => (
-      <div key={i} className="flex items-center gap-4 p-3 bg-white dark:bg-gray-800 rounded-lg">
+      <div key={i} className="flex items-center gap-4 p-3 bg-surface rounded-lg">
         <Skeleton variant="circular" width={40} height={40} />
         <div className="flex-1">
           <Skeleton width="70%" className="mb-2" />
@@ -75,8 +75,8 @@ export const SkeletonList = ({ items = 5, className = '' }) => (
 );
 
 export const SkeletonTable = ({ rows = 5, columns = 4, className = '' }) => (
-  <div className={`bg-white dark:bg-gray-800 rounded-lg overflow-hidden ${className}`}>
-    <div className="grid gap-4 p-4 border-b border-gray-200 dark:border-gray-700" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+  <div className={`bg-surface rounded-lg overflow-hidden ${className}`}>
+    <div className="grid gap-4 p-4 border-b border-line" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
       {Array.from({ length: columns }).map((_, i) => (
         <Skeleton key={i} height={20} />
       ))}
@@ -84,7 +84,7 @@ export const SkeletonTable = ({ rows = 5, columns = 4, className = '' }) => (
     {Array.from({ length: rows }).map((_, rowIdx) => (
       <div
         key={rowIdx}
-        className="grid gap-4 p-4 border-b border-gray-100 dark:border-gray-700"
+        className="grid gap-4 p-4 border-b border-line"
         style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
       >
         {Array.from({ length: columns }).map((_, colIdx) => (

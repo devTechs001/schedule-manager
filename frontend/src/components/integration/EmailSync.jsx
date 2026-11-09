@@ -44,11 +44,11 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
   const isConnected = (id) => connectedAccounts.includes(id);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaEnvelope className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Email Sync</h3>
+          <h3 className="text-lg font-semibold text-content">Email Sync</h3>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
               className={`p-4 rounded-lg border-2 ${
                 connected
                   ? 'border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20'
-                  : 'border-gray-200 dark:border-gray-700'
+                  : 'border-line'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -72,10 +72,10 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
                     <provider.icon className={`text-${provider.color}-500 text-xl`} />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">{provider.name}</h4>
+                    <h4 className="font-medium text-content">{provider.name}</h4>
                     {connected ? (
                       <div className="flex items-center gap-3 text-sm">
-                        <span className="text-gray-500">{provider.emails} emails</span>
+                        <span className="text-content-muted">{provider.emails} emails</span>
                         {provider.unread > 0 && (
                           <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs">
                             {provider.unread} unread
@@ -83,7 +83,7 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
                         )}
                       </div>
                     ) : (
-                      <span className="text-sm text-gray-500">Not connected</span>
+                      <span className="text-sm text-content-muted">Not connected</span>
                     )}
                   </div>
                 </div>
@@ -94,11 +94,11 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
                       <button
                         onClick={() => handleSync(provider.id)}
                         disabled={isSyncing}
-                        className="p-2 text-gray-500 hover:text-primary-600"
+                        className="p-2 text-content-muted hover:text-primary-600"
                       >
                         <FaSync className={isSyncing ? 'animate-spin' : ''} />
                       </button>
-                      <button className="p-2 text-gray-500 hover:text-gray-700">
+                      <button className="p-2 text-content-muted hover:text-content">
                         <FaCog />
                       </button>
                     </>
@@ -122,10 +122,10 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
       </div>
 
       {/* Folder Selection */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg mb-4">
+      <div className="p-4 bg-surface-sunken rounded-lg mb-4">
         <div className="flex items-center gap-2 mb-3">
-          <FaFolder className="text-gray-500" />
-          <h4 className="font-medium text-gray-900 dark:text-white">Folders to Sync</h4>
+          <FaFolder className="text-content-muted" />
+          <h4 className="font-medium text-content">Folders to Sync</h4>
         </div>
         <div className="flex flex-wrap gap-2">
           {folders.map((folder) => (
@@ -135,7 +135,7 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
               className={`px-3 py-1 rounded-full text-sm capitalize ${
                 syncFolders.includes(folder)
                   ? 'bg-primary-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                  : 'bg-surface-sunken bg-surface-sunken text-content'
               }`}
             >
               {folder}
@@ -148,15 +148,15 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
       <div className="space-y-3">
         <label className="flex items-center gap-3">
           <input type="checkbox" defaultChecked className="rounded" />
-          <span className="text-sm text-gray-700 dark:text-gray-300">Sync attachments</span>
+          <span className="text-sm text-content">Sync attachments</span>
         </label>
         <label className="flex items-center gap-3">
           <input type="checkbox" defaultChecked className="rounded" />
-          <span className="text-sm text-gray-700 dark:text-gray-300">Extract tasks from emails</span>
+          <span className="text-sm text-content">Extract tasks from emails</span>
         </label>
         <label className="flex items-center gap-3">
           <input type="checkbox" className="rounded" />
-          <span className="text-sm text-gray-700 dark:text-gray-300">Mark as read when processed</span>
+          <span className="text-sm text-content">Mark as read when processed</span>
         </label>
       </div>
     </div>

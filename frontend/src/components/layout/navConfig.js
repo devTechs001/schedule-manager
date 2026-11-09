@@ -24,6 +24,7 @@ import {
   FaStopwatch,
   FaThLarge,
   FaStickyNote,
+  FaBullseye,
   FaShieldAlt,
   FaPlug,
 } from 'react-icons/fa';
@@ -42,6 +43,7 @@ export const NAV_SECTIONS = [
       { to: '/activity', icon: FaBell, label: 'Activity hub', keywords: 'reminders alerts overdue conflicts schedule attention' },
       { to: '/tasks', icon: FaTasks, label: 'Tasks', keywords: 'todo backlog' },
       { to: '/notes', icon: FaStickyNote, label: 'Notes', keywords: 'scratchpad memo jot quick note' },
+      { to: '/goals', icon: FaBullseye, label: 'Goals & habits', keywords: 'goals habits streak track target' },
       { to: '/schedule', icon: FaCalendarAlt, label: 'Schedule', keywords: 'calendar events meetings' },
       { to: '/planner', icon: FaColumns, label: 'Daily planner', keywords: 'timeline day plan time blocking' },
       { to: '/focus', icon: FaHourglassHalf, label: 'Focus timer', keywords: 'pomodoro deep work' },

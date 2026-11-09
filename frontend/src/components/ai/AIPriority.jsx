@@ -45,14 +45,14 @@ const AIPriority = ({ tasks, onReorder }) => {
         {priorityScores.map((task, index) => (
           <div
             key={task._id}
-            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            className="flex items-center justify-between p-3 bg-surface-sunken rounded-lg hover:bg-surface-sunken transition-colors"
           >
             <div className="flex items-center space-x-3 flex-1">
-              <div className="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full font-semibold text-sm">
+              <div className="flex items-center justify-center w-8 h-8 bg-surface-sunken rounded-full font-semibold text-sm">
                 {index + 1}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 dark:text-white truncate">
+                <p className="font-medium text-content truncate">
                   {task.title}
                 </p>
                 <div className="flex items-center space-x-2 mt-1">
@@ -76,7 +76,7 @@ const AIPriority = ({ tasks, onReorder }) => {
       </div>
 
       {tasks.length === 0 && (
-        <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+        <p className="text-content-muted text-center py-8">
           No tasks to prioritize
         </p>
       )}

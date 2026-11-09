@@ -2,14 +2,8 @@ import React, { useState } from 'react';
 import { FaBrain, FaBell, FaClock, FaExclamationTriangle, FaLightbulb, FaCheck, FaTimes, FaCog } from 'react-icons/fa';
 
 const SmartAlerts = ({ alerts: initialAlerts = [], onDismiss, onAction, onSnooze }) => {
-  const defaultAlerts = [
-    { id: 1, type: 'deadline', priority: 'high', title: 'Deadline Risk Detected', message: 'Project proposal may not be completed on time based on your current pace.', suggestion: 'Block 2 hours tomorrow morning for focused work', time: new Date() },
-    { id: 2, type: 'meeting', priority: 'medium', title: 'Meeting Overlap', message: 'You have back-to-back meetings for 4 hours today.', suggestion: 'Consider declining one meeting or requesting async update', time: new Date(Date.now() - 1800000) },
-    { id: 3, type: 'productivity', priority: 'low', title: 'Productivity Insight', message: 'You complete 40% more tasks between 9-11 AM.', suggestion: 'Schedule your most important task during this window', time: new Date(Date.now() - 3600000) },
-    { id: 4, type: 'workload', priority: 'medium', title: 'Workload Alert', message: 'You have 15 tasks due this week, above your usual 10.', suggestion: 'Delegate or reschedule 3 low-priority tasks', time: new Date(Date.now() - 7200000) },
-  ];
 
-  const [alerts, setAlerts] = useState(initialAlerts.length > 0 ? initialAlerts : defaultAlerts);
+  const [alerts, setAlerts] = useState(initialAlerts);
   const [expandedId, setExpandedId] = useState(null);
 
   const getPriorityStyles = (priority) => {
@@ -40,24 +34,24 @@ const SmartAlerts = ({ alerts: initialAlerts = [], onDismiss, onAction, onSnooze
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaBrain className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Smart Alerts</h3>
+          <h3 className="text-lg font-semibold text-content">Smart Alerts</h3>
           {alerts.length > 0 && (
             <span className="px-2 py-0.5 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm rounded-full">
               {alerts.length} active
             </span>
           )}
         </div>
-        <button className="p-2 text-gray-400 hover:text-gray-600">
+        <button className="p-2 text-content-subtle hover:text-content-muted">
           <FaCog />
         </button>
       </div>
 
       {alerts.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-content-muted">
           <FaBell className="mx-auto text-4xl mb-3 opacity-30" />
           <p>No active alerts</p>
           <p className="text-sm mt-1">AI is monitoring your schedule</p>
@@ -89,24 +83,24 @@ const SmartAlerts = ({ alerts: initialAlerts = [], onDismiss, onAction, onSnooze
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h4 className="font-medium text-gray-900 dark:text-white">{alert.title}</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{alert.message}</p>
+                        <h4 className="font-medium text-content">{alert.title}</h4>
+                        <p className="text-sm text-content-muted mt-1">{alert.message}</p>
                       </div>
                       <button
                         onClick={() => handleDismiss(alert.id)}
-                        className="p-1 text-gray-400 hover:text-gray-600"
+                        className="p-1 text-content-subtle hover:text-content-muted"
                       >
                         <FaTimes />
                       </button>
                     </div>
 
                     {/* AI Suggestion */}
-                    <div className="mt-3 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                      <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <div className="mt-3 p-3 bg-surface/50 bg-surface-raised/50 rounded-lg">
+                      <div className="flex items-center gap-2 text-sm text-content">
                         <FaLightbulb className="text-yellow-500" />
                         <span className="font-medium">AI Suggestion:</span>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{alert.suggestion}</p>
+                      <p className="text-sm text-content-muted mt-1">{alert.suggestion}</p>
                     </div>
 
                     {/* Actions */}
@@ -119,7 +113,7 @@ const SmartAlerts = ({ alerts: initialAlerts = [], onDismiss, onAction, onSnooze
                       </button>
                       <button
                         onClick={() => setExpandedId(isExpanded ? null : alert.id)}
-                        className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-lg"
+                        className="px-3 py-1.5 bg-surface-sunken text-content text-sm rounded-lg"
                       >
                         Snooze
                       </button>
@@ -132,7 +126,7 @@ const SmartAlerts = ({ alerts: initialAlerts = [], onDismiss, onAction, onSnooze
                           <button
                             key={option}
                             onClick={() => handleSnooze(alert.id, option)}
-                            className="px-2 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs rounded hover:bg-gray-300 dark:hover:bg-gray-500"
+                            className="px-2 py-1 bg-surface-sunken text-content text-xs rounded hover:bg-surface-sunken"
                           >
                             {option}
                           </button>

@@ -33,11 +33,11 @@ const GoalTracker = ({ goals: initialGoals = [], onUpdate }) => {
   const getProgress = (goal) => Math.round((goal.current / goal.target) * 100);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaBullseye className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Goal Tracker</h3>
+          <h3 className="text-lg font-semibold text-content">Goal Tracker</h3>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
@@ -48,13 +48,13 @@ const GoalTracker = ({ goals: initialGoals = [], onUpdate }) => {
       </div>
 
       {showForm && (
-        <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-3">
+        <div className="mb-4 p-4 bg-surface-sunken rounded-lg space-y-3">
           <input
             type="text"
             value={newGoal.title}
             onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
             placeholder="Goal title"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            className="w-full px-3 py-2 border border-line rounded-lg bg-surface text-content"
           />
           <div className="grid grid-cols-3 gap-2">
             <input
@@ -62,21 +62,21 @@ const GoalTracker = ({ goals: initialGoals = [], onUpdate }) => {
               value={newGoal.target}
               onChange={(e) => setNewGoal({ ...newGoal, target: parseInt(e.target.value) || 0 })}
               placeholder="Target"
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="px-3 py-2 border border-line rounded-lg bg-surface text-content"
             />
             <input
               type="number"
               value={newGoal.current}
               onChange={(e) => setNewGoal({ ...newGoal, current: parseInt(e.target.value) || 0 })}
               placeholder="Current"
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="px-3 py-2 border border-line rounded-lg bg-surface text-content"
             />
             <input
               type="text"
               value={newGoal.unit}
               onChange={(e) => setNewGoal({ ...newGoal, unit: e.target.value })}
               placeholder="Unit"
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="px-3 py-2 border border-line rounded-lg bg-surface text-content"
             />
           </div>
           <button
@@ -90,7 +90,7 @@ const GoalTracker = ({ goals: initialGoals = [], onUpdate }) => {
 
       <div className="space-y-4">
         {goals.length === 0 ? (
-          <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+          <p className="text-center text-content-muted py-8">
             No goals set. Add your first goal to start tracking!
           </p>
         ) : (
@@ -98,35 +98,35 @@ const GoalTracker = ({ goals: initialGoals = [], onUpdate }) => {
             const progress = getProgress(goal);
             const isComplete = progress >= 100;
             return (
-              <div key={goal.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div key={goal.id} className="p-4 bg-surface-sunken rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     {isComplete && <FaCheck className="text-green-500" />}
-                    <h4 className={`font-medium ${isComplete ? 'text-green-600' : 'text-gray-900 dark:text-white'}`}>
+                    <h4 className={`font-medium ${isComplete ? 'text-green-600' : 'text-content'}`}>
                       {goal.title}
                     </h4>
                   </div>
-                  <button onClick={() => deleteGoal(goal.id)} className="text-gray-400 hover:text-red-500">
+                  <button onClick={() => deleteGoal(goal.id)} className="text-content-subtle hover:text-red-500">
                     <FaTrash size={12} />
                   </button>
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="flex-1 h-3 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                  <div className="flex-1 h-3 bg-surface-sunken rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${isComplete ? 'bg-green-500' : 'bg-primary-500'}`}
                       style={{ width: `${Math.min(100, progress)}%` }}
                     />
                   </div>
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{progress}%</span>
+                  <span className="text-sm font-medium text-content-muted">{progress}%</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                  <span className="text-sm text-content-muted">
                     {goal.current} / {goal.target} {goal.unit}
                   </span>
                   <div className="flex gap-1">
                     <button
                       onClick={() => updateProgress(goal.id, -1)}
-                      className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 rounded hover:bg-gray-300"
+                      className="px-2 py-1 text-xs bg-surface-sunken rounded hover:bg-surface-sunken"
                     >-</button>
                     <button
                       onClick={() => updateProgress(goal.id, 1)}

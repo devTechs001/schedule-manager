@@ -55,16 +55,16 @@ const SmartReplies = ({ originalMessage, onSend, onEdit }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <FaMagic className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Smart Replies</h3>
+          <h3 className="text-lg font-semibold text-content">Smart Replies</h3>
         </div>
         <select
           value={tone}
           onChange={(e) => setTone(e.target.value)}
-          className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+          className="px-3 py-1 border border-line rounded-lg bg-white bg-surface-sunken text-content text-sm"
         >
           {tones.map((t) => (
             <option key={t.value} value={t.value}>{t.label}</option>
@@ -74,9 +74,9 @@ const SmartReplies = ({ originalMessage, onSend, onEdit }) => {
 
       {/* Original Message Context */}
       {originalMessage && (
-        <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Replying to:</p>
-          <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{originalMessage}</p>
+        <div className="mb-4 p-3 bg-surface-sunken rounded-lg">
+          <p className="text-sm text-content-muted">Replying to:</p>
+          <p className="text-sm text-content line-clamp-2">{originalMessage}</p>
         </div>
       )}
 
@@ -110,23 +110,23 @@ const SmartReplies = ({ originalMessage, onSend, onEdit }) => {
               className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                 selectedReply === suggestion.id
                   ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                  : 'border-line hover:border-line'
               }`}
             >
-              <p className="text-gray-700 dark:text-gray-300 mb-2">{suggestion.text}</p>
+              <p className="text-content mb-2">{suggestion.text}</p>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500 capitalize">{suggestion.tone}</span>
+                <span className="text-xs text-content-muted capitalize">{suggestion.tone}</span>
                 <div className="flex gap-2">
                   <button
                     onClick={(e) => { e.stopPropagation(); handleEdit(suggestion.text); }}
-                    className="p-1 text-gray-400 hover:text-primary-600"
+                    className="p-1 text-content-subtle hover:text-primary-600"
                   >
                     <FaEdit />
                   </button>
-                  <button className="p-1 text-gray-400 hover:text-green-600">
+                  <button className="p-1 text-content-subtle hover:text-green-600">
                     <FaThumbsUp />
                   </button>
-                  <button className="p-1 text-gray-400 hover:text-red-600">
+                  <button className="p-1 text-content-subtle hover:text-red-600">
                     <FaThumbsDown />
                   </button>
                 </div>
@@ -150,7 +150,7 @@ const SmartReplies = ({ originalMessage, onSend, onEdit }) => {
           onChange={(e) => { setCustomReply(e.target.value); setSelectedReply(null); }}
           placeholder="Or write your own reply..."
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-3 py-2 border border-line rounded-lg bg-white bg-surface-sunken text-content"
         />
       </div>
 
