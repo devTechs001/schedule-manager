@@ -37,6 +37,7 @@ const Settings = lazy(() => import('@pages/Settings'));
 const Planner = lazy(() => import('@pages/Planner'));
 const Focus = lazy(() => import('@pages/Focus'));
 const SearchPage = lazy(() => import('@pages/Search'));
+const ActivityHub = lazy(() => import('@pages/ActivityHub'));
 
 // AI tools
 const AIInsights = lazy(() => import('@pages/AI/AIInsights'));
@@ -204,6 +205,7 @@ function AppContent() {
           <Route path="/planner" element={<Planner />} />
           <Route path="/focus" element={<Focus />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/activity" element={<ActivityHub />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/analytics/performance" element={<PerformanceAnalytics />} />
           <Route path="/analytics/time-tracking" element={<TimeTrackingPage />} />

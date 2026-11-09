@@ -93,7 +93,14 @@ jobs:
         working-directory: ./frontend
         continue-on-error: true
         run: pnpm run lint
-      
+
+      # Module resolution, reminder-engine unit tests and the SSR render of
+      # every page. These are real gates: a broken export or bad date maths
+      # fails the build here rather than at runtime in a browser.
+      - name: Check (modules, tests, SSR)
+        working-directory: ./frontend
+        run: pnpm run check
+
       - name: Build
         working-directory: ./frontend
         run: pnpm run build

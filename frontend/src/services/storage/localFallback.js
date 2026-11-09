@@ -218,11 +218,54 @@ export const seedContacts = [
   { _id: uid(), name: 'Jonas Kim', email: 'jonas@studio.co', company: 'Studio Co', position: 'Designer', tags: ['vendor'] },
 ];
 
+export const seedAppointments = [
+  {
+    _id: uid(),
+    title: 'Standup with the team',
+    notes: 'Quick round-robin on blockers.',
+    at: hoursFromNow(1),
+    notifyMinutesBefore: 10,
+    repeat: 'weekdays',
+    categories: ['work'],
+    linkedTaskId: null,
+    linkedEventId: null,
+    done: false,
+    createdAt: hoursFromNow(-72),
+  },
+  {
+    _id: uid(),
+    title: 'Renew the domain',
+    notes: 'Card on file expires soon — check before renewing.',
+    at: hoursFromNow(20),
+    notifyMinutesBefore: 1440,
+    repeat: 'none',
+    categories: ['admin'],
+    linkedTaskId: null,
+    linkedEventId: null,
+    done: false,
+    createdAt: hoursFromNow(-120),
+  },
+  {
+    _id: uid(),
+    title: 'Call Amara about the proposal',
+    notes: 'Confirm scope and the delivery date.',
+    at: hoursFromNow(4),
+    notifyMinutesBefore: 30,
+    repeat: 'none',
+    categories: ['client'],
+    linkedTaskId: null,
+    linkedEventId: null,
+    done: false,
+    createdAt: hoursFromNow(-48),
+  },
+];
+
 const SEEDS = {
   tasks: seedTasks,
   events: seedEvents,
   emails: seedEmails,
   contacts: seedContacts,
+  appointments: seedAppointments,
 };
 
 const clone = (value) => JSON.parse(JSON.stringify(value));

@@ -3,6 +3,7 @@ import tasksAPI, { asList } from '@services/api/tasksAPI';
 import { readCollection, writeCollection, newLocalId } from '@services/storage/localFallback';
 import { useOffline } from './useOffline';
 import toast from 'react-hot-toast';
+import { publishActivity } from '@services/store/activitySnapshot';
 
 /**
  * Shared task state with a local-first fallback.
@@ -52,6 +53,12 @@ export const useTasks = (options = {}) => {
   useEffect(() => {
     if (autoFetch) fetchTasks();
   }, [autoFetch, fetchTasks]);
+
+  // Share this instance's data with read-only consumers (header badge) so they
+  // never need their own fetch.
+  useEffect(() => {
+    publishActivity({ tasks });
+  }, [tasks]);
 
   /** Persist to the local store, returning the new collection. */
   const persistLocal = (next) => {

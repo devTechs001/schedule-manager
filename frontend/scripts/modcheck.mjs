@@ -24,5 +24,11 @@ for (const file of files) {
   }
 }
 console.log(`\nModule check: ${files.length - failed}/${files.length} modules transformed`);
-await server.close();
-process.exitCode = failed ? 1 : 0;
+// Vite's middleware-mode server keeps handles (watchers, HMR sockets) open, and
+// `await server.close()` can resolve without releasing them — which hangs any
+// chained command. Report first, then terminate the loop outright.
+console.log(`MODCHECK_RESULT ${failed ? 'FAIL' : 'PASS'}`);
+server.close().catch(() => {});
+// Give stdout one tick to flush, then leave regardless of lingering handles.
+setTimeout(() => process.exit(failed ? 1 : 0), 50).unref?.();
+process.exit(failed ? 1 : 0);

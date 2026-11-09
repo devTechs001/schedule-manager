@@ -3,6 +3,7 @@ import scheduleAPI from '@services/api/scheduleAPI';
 import { asList } from '@services/api/tasksAPI';
 import { readCollection, writeCollection, newLocalId } from '@services/storage/localFallback';
 import toast from 'react-hot-toast';
+import { publishActivity } from '@services/store/activitySnapshot';
 
 export const useSchedule = (options = {}) => {
   const { autoFetch = true } = options;
@@ -30,6 +31,11 @@ export const useSchedule = (options = {}) => {
   useEffect(() => {
     if (autoFetch) fetchEvents();
   }, [autoFetch, fetchEvents]);
+
+  // Share this instance's data with read-only consumers (header badge).
+  useEffect(() => {
+    publishActivity({ events });
+  }, [events]);
 
   const persistLocal = (next) => {
     writeCollection('events', next);

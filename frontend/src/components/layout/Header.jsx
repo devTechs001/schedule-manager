@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   FaBell,
@@ -7,19 +7,23 @@ import {
   FaSignOutAlt,
   FaCog,
   FaUser,
-  FaRegClock,
-  FaCheckCircle,
   FaChevronDown,
   FaHome,
 } from 'react-icons/fa';
 import { useAuth } from '@contexts/AuthContext';
 import ThemeMenu from './ThemeMenu';
 import { ALL_NAV_ITEMS } from './navConfig';
+import { buildReminders, summariseReminders } from '@utils/reminders';
+import { subscribeActivity, getActivitySnapshot } from '@services/store/activitySnapshot';
 
 const PAGE_TITLES = {
   '/dashboard': 'Dashboard',
+  '/activity': 'Activity hub',
   '/tasks': 'Tasks',
   '/schedule': 'Schedule',
+  '/planner': 'Daily planner',
+  '/focus': 'Focus timer',
+  '/search': 'Search',
   '/emails': 'Inbox',
   '/contacts': 'Contacts',
   '/analytics': 'Analytics',
@@ -37,10 +41,24 @@ const PAGE_TITLES = {
 };
 
 const NotificationsPanel = ({ open, onClose }) => {
-  const items = [
-    { icon: FaCheckCircle, tone: 'text-emerald-500', title: 'All caught up', body: 'No overdue tasks right now. Nice work.' },
-    { icon: FaRegClock, tone: 'text-primary-500', title: 'Plan tomorrow', body: 'Two minutes now saves an hour in the morning.' },
-  ];
+  // Same shared snapshot as the bell badge — no fetching in the layout.
+  const { tasks, events } = useSyncExternalStore(
+    subscribeActivity,
+    getActivitySnapshot,
+    getActivitySnapshot
+  );
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    if (!open) return undefined;
+    setNow(new Date());
+    const id = window.setInterval(() => setNow(new Date()), 30000);
+    return () => window.clearInterval(id);
+  }, [open]);
+
+  const reminders = buildReminders({ tasks, events, now, lookaheadHours: 24 });
+  const summary = summariseReminders(reminders);
+  const top = reminders.slice(0, 4);
 
   if (!open) return null;
 
@@ -49,24 +67,47 @@ const NotificationsPanel = ({ open, onClose }) => {
       <div className="fixed inset-0 z-[85]" onClick={onClose} aria-hidden="true" />
       <div className="absolute right-0 top-full z-[86] mt-2 w-80 overflow-hidden rounded-2xl border border-line bg-surface-raised shadow-lift animate-fade-in">
         <div className="flex items-center justify-between border-b border-line px-4 py-3">
-          <p className="text-sm font-semibold text-content">Notifications</p>
-          <span className="badge badge-success">clear</span>
+          <p className="text-sm font-semibold text-content">Needs attention</p>
+          <span className={`badge ${summary.urgent > 0 ? 'badge-danger' : 'badge-success'}`}>
+            {summary.urgent > 0 ? summary.urgent : 'clear'}
+          </span>
         </div>
-        <ul className="divide-y divide-line">
-          {items.map(({ icon: Icon, tone, title, body }) => (
-            <li key={title} className="flex gap-3 px-4 py-3">
-              <Icon size={14} className={`mt-0.5 shrink-0 ${tone}`} />
-              <div>
-                <p className="text-xs font-semibold text-content">{title}</p>
-                <p className="mt-0.5 text-xs text-content-muted">{body}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
+
+        {top.length === 0 ? (
+          <p className="px-4 py-6 text-center text-xs text-content-muted">
+            Nothing overdue or starting soon. Nice work.
+          </p>
+        ) : (
+          <ul className="divide-y divide-line">
+            {top.map((reminder) => (
+              <li key={`${reminder.source}-${reminder.id}`} className="flex gap-3 px-4 py-3">
+                <span
+                  className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${
+                    reminder.severity === 'critical' || reminder.severity === 'high'
+                      ? 'bg-rose-500'
+                      : 'bg-amber-500'
+                  }`}
+                />
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold text-content">{reminder.title}</p>
+                  <p className="mt-0.5 text-xs capitalize text-content-muted">{reminder.message}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <Link
+          to="/activity"
+          onClick={onClose}
+          className="block border-t border-line px-4 py-2.5 text-center text-xs font-semibold text-primary-600 hover:bg-surface-sunken"
+        >
+          Open activity hub
+        </Link>
         <Link
           to="/settings/notifications"
           onClick={onClose}
-          className="block border-t border-line px-4 py-2.5 text-center text-xs font-semibold text-primary-600 hover:bg-surface-sunken"
+          className="block border-t border-line px-4 py-2 text-center text-[0.68rem] text-content-subtle hover:bg-surface-sunken"
         >
           Notification settings
         </Link>
@@ -82,6 +123,30 @@ const Header = ({ onMenuClick, onOpenSearch, breadcrumb }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const menuRef = useRef(null);
+
+  // Live urgent count for the bell badge. Reads the shared snapshot published
+  // by whichever page already fetched the data — the header must never trigger
+  // its own request, or every route change would double the traffic.
+  const activity = useSyncExternalStore(subscribeActivity, getActivitySnapshot, getActivitySnapshot);
+  const [bellNow, setBellNow] = useState(new Date());
+
+  useEffect(() => {
+    const id = window.setInterval(() => setBellNow(new Date()), 60000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const headerUrgent = useMemo(
+    () =>
+      summariseReminders(
+        buildReminders({
+          tasks: activity.tasks,
+          events: activity.events,
+          now: bellNow,
+          lookaheadHours: 24,
+        })
+      ).urgent,
+    [activity, bellNow]
+  );
 
   useEffect(() => {
     setMenuOpen(false);
@@ -180,7 +245,11 @@ const Header = ({ onMenuClick, onOpenSearch, breadcrumb }) => {
             aria-expanded={notificationsOpen}
           >
             <FaBell size={16} />
-            <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            {headerUrgent > 0 && (
+              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[0.6rem] font-bold text-white">
+                {headerUrgent > 9 ? '9+' : headerUrgent}
+              </span>
+            )}
           </button>
           <NotificationsPanel open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
         </div>

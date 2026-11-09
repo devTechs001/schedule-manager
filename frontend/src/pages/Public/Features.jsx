@@ -68,6 +68,7 @@ const FEATURES = [
   // Planning & focus
   { cat: 'focus', icon: FaThLarge, title: 'Daily timeline', body: 'Your whole day from 07:00 to 22:00 with events, a live now-line and click-a-slot time blocking.' },
   { cat: 'focus', icon: FaMagic, title: 'Auto-plan my day', body: 'One tap fills the free gaps with your highest-priority open tasks, sized 60, 45 or 30 minutes with buffers.' },
+  { cat: 'focus', icon: FaBell, title: 'Reminders & activity hub', body: 'One screen for everything that needs you: overdue work, tasks due, meetings starting and calendar clashes — each fixable in place.' },
   { cat: 'focus', icon: FaClock, title: 'Pomodoro timer', body: '25/5/15 sessions with a progress ring, optional task link and a persisted history of every session.' },
   { cat: 'focus', icon: FaSearch, title: 'Universal search', body: 'Query tasks, events, emails and contacts in one place, filter by type, and share a URL that keeps the term.' },
   { cat: 'focus', icon: FaKeyboard, title: 'Keyboard-first', body: 'Command palette, G-then-letter navigation, a “?” cheat sheet and one-key theme switching.' },

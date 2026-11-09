@@ -15,6 +15,7 @@ import {
   FaRegMoon,
   FaColumns,
   FaHourglassHalf,
+  FaBell,
 } from 'react-icons/fa';
 
 /**
@@ -28,6 +29,7 @@ export const NAV_SECTIONS = [
     title: 'My work',
     items: [
       { to: '/dashboard', icon: FaHome, label: 'Dashboard', keywords: 'home overview today' },
+      { to: '/activity', icon: FaBell, label: 'Activity hub', keywords: 'reminders alerts overdue conflicts schedule attention' },
       { to: '/tasks', icon: FaTasks, label: 'Tasks', keywords: 'todo backlog' },
       { to: '/schedule', icon: FaCalendarAlt, label: 'Schedule', keywords: 'calendar events meetings' },
       { to: '/planner', icon: FaColumns, label: 'Daily planner', keywords: 'timeline day plan time blocking' },
@@ -82,6 +84,7 @@ export const MOBILE_SECONDARY = [
 
 export const QUICK_ACTIONS = [
   { to: '/tasks', icon: FaPlus, label: 'New task', hint: 'Capture something to do', keywords: 'create add todo' },
+  { to: '/activity', icon: FaBell, label: 'Set a reminder', hint: 'Never miss a moment', keywords: 'reminder alert notify' },
   { to: '/planner', icon: FaColumns, label: 'Plan my day', hint: 'Time-block the schedule', keywords: 'planner timeline' },
   { to: '/focus', icon: FaHourglassHalf, label: 'Start focus timer', hint: '25 minutes of deep work', keywords: 'pomodoro timer' },
   { to: '/schedule', icon: FaCalendarAlt, label: 'New event', hint: 'Block time on the calendar', keywords: 'meeting create' },
