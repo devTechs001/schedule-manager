@@ -1,141 +1,223 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FaSave, FaTimes, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaVideo, FaBell } from 'react-icons/fa';
 import Input from '@components/ui/Input';
-import Button from '@components/ui/Button';
-import { FaSave, FaTimes } from 'react-icons/fa';
+import { Field, Select, Textarea } from '@components/ui/Field';
+
+/** Local ISO string (YYYY-MM-DDTHH:mm) for <input type="datetime-local"> */
+const toLocalInput = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const offset = date.getTimezoneOffset();
+  return new Date(date.getTime() - offset * 60 * 1000).toISOString().slice(0, 16);
+};
+
+const TYPES = [
+  { id: 'meeting', label: 'Meeting' },
+  { id: 'task', label: 'Focus / task' },
+  { id: 'deadline', label: 'Deadline' },
+  { id: 'reminder', label: 'Reminder' },
+];
+
+const REMINDERS = [
+  { value: 0, label: 'No reminder' },
+  { value: 5, label: '5 minutes before' },
+  { value: 15, label: '15 minutes before' },
+  { value: 30, label: '30 minutes before' },
+  { value: 60, label: '1 hour before' },
+  { value: 1440, label: '1 day before' },
+];
 
 const EventForm = ({ event, onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    start: '',
-    end: '',
-    type: 'meeting',
-    location: '',
-    attendees: [],
-    reminder: 15,
-  });
+  const initial = useMemo(() => {
+    const now = new Date();
+    const start = event?.start ? new Date(event.start) : new Date(now.getTime() + 60 * 60 * 1000);
+    const end = event?.end
+      ? new Date(event.end)
+      : new Date(start.getTime() + 60 * 60 * 1000);
+
+    return {
+      title: event?.title || '',
+      description: event?.description || '',
+      start: toLocalInput(start),
+      end: toLocalInput(end),
+      type: event?.type || 'meeting',
+      location: event?.location || '',
+      meetingLink: event?.meetingLink || '',
+      reminder: event?.reminder?.minutesBefore ?? 15,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event?._id]);
+
+  const [form, setForm] = useState(initial);
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (event) {
-      setFormData({
-        ...event,
-        start: event.start ? new Date(event.start).toISOString().slice(0, 16) : '',
-        end: event.end ? new Date(event.end).toISOString().slice(0, 16) : '',
-      });
-    }
-  }, [event]);
+    setForm(initial);
+  }, [initial]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit({
-      ...formData,
-      start: new Date(formData.start),
-      end: new Date(formData.end),
-    });
+  const update = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleSubmit = async (event_) => {
+    event_.preventDefault();
+
+    const nextErrors = {};
+    if (form.title.trim().length < 2) nextErrors.title = 'Give the event a title';
+    if (!form.start) nextErrors.start = 'Pick a start time';
+    if (!form.end) nextErrors.end = 'Pick an end time';
+    if (form.start && form.end && new Date(form.end) <= new Date(form.start)) {
+      nextErrors.end = 'The end must be after the start';
+    }
+
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await onSubmit({
+        ...form,
+        title: form.title.trim(),
+        start: new Date(form.start).toISOString(),
+        end: new Date(form.end).toISOString(),
+        reminder: { enabled: Boolean(form.reminder), minutesBefore: Number(form.reminder) || 0 },
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <Input
-        label="Event Title"
-        name="title"
-        value={formData.title}
-        onChange={handleChange}
-        placeholder="Enter event title"
-        required
-      />
+      <Field label="Event title" htmlFor="event-title" required error={errors.title}>
+        <Input
+          id="event-title"
+          value={form.title}
+          onChange={(e) => update('title', e.target.value)}
+          placeholder="e.g. Design review with the team"
+          autoFocus
+        />
+      </Field>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Starts" htmlFor="event-start" required error={errors.start}>
+          <div className="relative">
+            <FaCalendarAlt className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-content-subtle" size={11} />
+            <Input
+              id="event-start"
+              type="datetime-local"
+              value={form.start}
+              onChange={(e) => update('start', e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </Field>
+
+        <Field label="Ends" htmlFor="event-end" required error={errors.end}>
+          <div className="relative">
+            <FaClock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-content-subtle" size={11} />
+            <Input
+              id="event-end"
+              type="datetime-local"
+              value={form.end}
+              onChange={(e) => update('end', e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </Field>
+      </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Description
-        </label>
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          rows={3}
-          className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          placeholder="Event description"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input
-          label="Start Date & Time"
-          type="datetime-local"
-          name="start"
-          value={formData.start}
-          onChange={handleChange}
-          required
-        />
-
-        <Input
-          label="End Date & Time"
-          type="datetime-local"
-          name="end"
-          value={formData.end}
-          onChange={handleChange}
-          required
-        />
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Event Type
-          </label>
-          <select
-            name="type"
-            value={formData.type}
-            onChange={handleChange}
-            className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          >
-            <option value="meeting">Meeting</option>
-            <option value="task">Task</option>
-            <option value="deadline">Deadline</option>
-            <option value="reminder">Reminder</option>
-          </select>
+        <p className="label">Type</p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {TYPES.map((type) => (
+            <button
+              key={type.id}
+              type="button"
+              onClick={() => update('type', type.id)}
+              aria-pressed={form.type === type.id}
+              className={`rounded-xl border px-2 py-2 text-xs font-semibold transition-colors ${
+                form.type === type.id
+                  ? 'border-primary-400 bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-200'
+                  : 'border-line text-content-muted hover:border-primary-300'
+              }`}
+            >
+              {type.label}
+            </button>
+          ))}
         </div>
+      </div>
 
-        <Input
-          label="Location"
-          name="location"
-          value={formData.location}
-          onChange={handleChange}
-          placeholder="Event location"
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Location" htmlFor="event-location" hint="Optional">
+          <div className="relative">
+            <FaMapMarkerAlt className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-content-subtle" size={11} />
+            <Input
+              id="event-location"
+              value={form.location}
+              onChange={(e) => update('location', e.target.value)}
+              placeholder="Room 4, Nairobi"
+              className="pl-10"
+            />
+          </div>
+        </Field>
+
+        <Field label="Meeting link" htmlFor="event-link" hint="Zoom, Meet, Teams…">
+          <div className="relative">
+            <FaVideo className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-content-subtle" size={11} />
+            <Input
+              id="event-link"
+              value={form.meetingLink}
+              onChange={(e) => update('meetingLink', e.target.value)}
+              placeholder="https://meet.google.com/…"
+              className="pl-10"
+            />
+          </div>
+        </Field>
+      </div>
+
+      <Field label="Reminder" htmlFor="event-reminder">
+        <div className="relative">
+          <FaBell className="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-content-subtle" size={11} />
+          <Select
+            id="event-reminder"
+            value={form.reminder}
+            onChange={(e) => update('reminder', e.target.value)}
+            className="pl-10"
+          >
+            {REMINDERS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </Field>
+
+      <Field label="Notes" htmlFor="event-description">
+        <Textarea
+          id="event-description"
+          value={form.description}
+          onChange={(e) => update('description', e.target.value)}
+          rows={3}
+          placeholder="Agenda, context, links…"
         />
-      </div>
+      </Field>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Reminder (minutes before)
-        </label>
-        <select
-          name="reminder"
-          value={formData.reminder}
-          onChange={handleChange}
-          className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        >
-          <option value="0">No reminder</option>
-          <option value="5">5 minutes</option>
-          <option value="15">15 minutes</option>
-          <option value="30">30 minutes</option>
-          <option value="60">1 hour</option>
-          <option value="1440">1 day</option>
-        </select>
-      </div>
-
-      <div className="flex justify-end space-x-3 pt-4">
-        <Button type="button" variant="secondary" icon={<FaTimes />} onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" variant="primary" icon={<FaSave />}>
-          {event ? 'Update' : 'Create'} Event
-        </Button>
+      <div className="flex items-center justify-end gap-2 border-t border-line pt-4">
+        {onCancel && (
+          <button type="button" onClick={onCancel} className="btn btn-ghost btn-sm">
+            <FaTimes size={9} /> Cancel
+          </button>
+        )}
+        <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>
+          <FaSave size={9} /> {saving ? 'Saving…' : event?._id ? 'Save event' : 'Create event'}
+        </button>
       </div>
     </form>
   );

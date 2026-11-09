@@ -1,221 +1,200 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import {
-  FaHome,
-  FaTasks,
-  FaEnvelope,
-  FaUsers,
-  FaCalendar,
-  FaChartLine,
-  FaRobot,
-  FaCog,
-  FaComments,
-  FaChevronDown,
-  FaChevronUp,
-  FaSlidersH,
-  FaBell,
-  FaShieldAlt,
-  FaUniversalAccess,
-  FaProjectDiagram,
-  FaVideo,
-  FaStar,
-} from 'react-icons/fa';
+import React, { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { FaChevronDown, FaSignOutAlt, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { NAV_SECTIONS, SETTINGS_ITEM } from './navConfig';
+import Brand from '@components/public/Brand';
+import { useAuth } from '@contexts/AuthContext';
 
-const Sidebar = ({ isOpen, onClose }) => {
-  const [expandedSections, setExpandedSections] = useState({
-    settings: false,
-    collaboration: false,
-    ai: false,
-    analytics: false,
-    gamification: false,
-  });
+const STORAGE_KEY = 'sidebar:collapsed';
 
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+const Sidebar = ({ isOpen, onClose, collapsed = false, onToggleCollapse }) => {
+  const { user, logout } = useAuth();
+  const location = useLocation();
+  const [openSections, setOpenSections] = useState({ team: false });
+
+  useEffect(() => {
+    // Auto-open the section that contains the active route
+    if (location.pathname.startsWith('/collaboration') || location.pathname.startsWith('/leader')) {
+      setOpenSections((sections) => ({ ...sections, team: true }));
+    }
+  }, [location.pathname]);
+
+  const toggleSection = (id) =>
+    setOpenSections((sections) => ({ ...sections, [id]: !sections[id] }));
+
+  const handleNavigate = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) onClose?.();
   };
 
-  const linkClass = ({ isActive }) => `
-    flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200
-    ${isActive
-      ? 'bg-primary-600 text-white shadow-md'
-      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-    }
-  `;
-
-  const subLinkClass = ({ isActive }) => `
-    flex items-center space-x-3 px-8 py-2 rounded-lg ml-6 transition-all duration-200
-    ${isActive
-      ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
-      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-    }
-  `;
-
-  const menuItems = [
-    { path: '/', icon: FaHome, label: 'Dashboard' },
-    { path: '/tasks', icon: FaTasks, label: 'Tasks' },
-    { path: '/emails', icon: FaEnvelope, label: 'Emails' },
-    { path: '/contacts', icon: FaUsers, label: 'Contacts' },
-    { path: '/schedule', icon: FaCalendar, label: 'Schedule' },
-    {
-      label: 'AI Tools',
-      icon: FaRobot,
-      expanded: expandedSections.ai,
-      toggle: () => toggleSection('ai'),
-      children: [
-        { path: '/ai-insights', label: 'AI Insights' },
-        { path: '/ai-chat', label: 'AI Chat' },
-        { path: '/predictive-scheduler', label: 'Predictive Scheduler' },
-        { path: '/meeting-assistant', label: 'Meeting Assistant' },
-      ]
-    },
-    {
-      label: 'Collaboration',
-      icon: FaComments,
-      expanded: expandedSections.collaboration,
-      toggle: () => toggleSection('collaboration'),
-      children: [
-        { path: '/collaboration', label: 'Workspace' },
-        { path: '/collaboration/projects', label: 'Projects' },
-        { path: '/collaboration/meetings', label: 'Meetings' },
-      ]
-    },
-    {
-      label: 'Analytics',
-      icon: FaChartLine,
-      expanded: expandedSections.analytics,
-      toggle: () => toggleSection('analytics'),
-      children: [
-        { path: '/analytics', label: 'Overview' },
-        { path: '/analytics/performance', label: 'Performance' },
-        { path: '/analytics/time-tracking', label: 'Time Tracking' },
-        { path: '/analytics/productivity', label: 'Productivity' },
-      ]
-    },
-    {
-      label: 'Gamification',
-      icon: FaStar,
-      expanded: expandedSections.gamification,
-      toggle: () => toggleSection('gamification'),
-      children: [
-        { path: '/leaderboard', label: 'Leaderboard' },
-        { path: '/achievements', label: 'Achievements' },
-        { path: '/challenges', label: 'Challenges' },
-        { path: '/rewards', label: 'Rewards' },
-      ]
-    },
-    {
-      label: 'Settings',
-      icon: FaCog,
-      expanded: expandedSections.settings,
-      toggle: () => toggleSection('settings'),
-      children: [
-        { path: '/settings', label: 'General' },
-        { path: '/settings/integrations', label: 'Integrations' },
-        { path: '/settings/notifications', label: 'Notifications' },
-        { path: '/settings/security', label: 'Security' },
-        { path: '/settings/accessibility', label: 'Accessibility' },
-      ]
-    },
-  ];
+  const initials = (user?.name || 'You')
+    .split(' ')
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   return (
     <>
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={onClose}
-        />
-      )}
+      {/* Mobile backdrop */}
+      <div
+        className={`fixed inset-0 z-[60] bg-neutral-950/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
+          isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-      {/* Sidebar */}
       <aside
-        className={`
-          fixed inset-y-0 left-0 z-50
-          w-64 bg-white dark:bg-gray-800
-          border-r border-gray-200 dark:border-gray-700
-          transform transition-transform duration-300 ease-in-out
-          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        className={`fixed inset-y-0 left-0 z-[70] flex flex-col border-r border-line bg-surface transition-[width,transform] duration-300 ease-spring
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0
         `}
+        style={{ width: collapsed ? '5.25rem' : 'var(--sidebar-w)' }}
+        aria-label="Primary"
       >
-        <div className="h-full flex flex-col">
-          {/* Logo - Mobile */}
-          <div className="lg:hidden p-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">AI</span>
-              </div>
-              <span className="text-xl font-bold text-gradient">AI Scheduler</span>
-            </div>
-          </div>
+        {/* Brand row */}
+        <div className={`flex h-[var(--header-h)] shrink-0 items-center border-b border-line px-4 ${collapsed ? 'justify-center px-0' : 'justify-between'}`}>
+          <Brand showText={!collapsed} subtitle={collapsed ? null : 'AI schedule manager'} />
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-ghost btn-icon lg:hidden"
+            aria-label="Close menu"
+          >
+            <FaTimes size={15} />
+          </button>
+        </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            {menuItems.map((item, index) => (
-              item.children ? (
-                // Collapsible section
-                <div key={index} className="mb-1">
-                  <button
-                    onClick={item.toggle}
-                    className={`
-                      w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200
-                      ${expandedSections[item.label.toLowerCase()]
-                        ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}
-                    `}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <item.icon size={20} />
-                      <span className="font-medium">{item.label}</span>
-                    </div>
-                    {item.expanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
-                  </button>
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 scrollbar-none">
+          {NAV_SECTIONS.map((section) => {
+            const isCollapsedSection = section.collapsible && !openSections[section.id] && !collapsed;
+            return (
+              <div key={section.id} className="mb-1">
+                {!collapsed && section.title && (
+                  section.collapsible ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleSection(section.id)}
+                      className="nav-section-label flex w-full items-center justify-between hover:text-content"
+                      aria-expanded={!isCollapsedSection}
+                    >
+                      {section.title}
+                      <FaChevronDown
+                        size={9}
+                        className={`transition-transform ${isCollapsedSection ? '-rotate-90' : ''}`}
+                      />
+                    </button>
+                  ) : (
+                    <p className="nav-section-label">{section.title}</p>
+                  )
+                )}
 
-                  {/* Sub-menu items */}
-                  {item.expanded && (
-                    <div className="mt-1 space-y-1">
-                      {item.children.map((child, childIndex) => (
+                {section.items.length > 0 && !(isCollapsedSection && !collapsed) && (
+                  <ul className="space-y-0.5">
+                    {section.items.map((item) => (
+                      <li key={item.to}>
                         <NavLink
-                          key={childIndex}
-                          to={child.path}
-                          className={subLinkClass}
-                          onClick={() => window.innerWidth < 1024 && onClose()}
+                          to={item.to}
+                          end={item.to === '/dashboard'}
+                          onClick={handleNavigate}
+                          title={collapsed ? item.label : undefined}
+                          className={({ isActive }) =>
+                            `sidebar-link ${isActive ? 'sidebar-link-active' : ''} ${
+                              collapsed ? 'sidebar-link-collapsed' : ''
+                            }`
+                          }
                         >
-                          <span className="ml-4">{child.label}</span>
+                          <item.icon size={16} className="shrink-0" />
+                          {!collapsed && <span className="truncate">{item.label}</span>}
                         </NavLink>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // Regular link
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className={linkClass}
-                  onClick={() => window.innerWidth < 1024 && onClose()}
-                >
-                  <item.icon size={20} />
-                  <span className="font-medium">{item.label}</span>
-                </NavLink>
-              )
-            ))}
-          </nav>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+        </nav>
 
-          {/* AI Assistant Quick Access */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <button className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg hover:shadow-lg transition-all duration-200">
-              <FaRobot size={20} />
-              <span className="font-medium">AI Assistant</span>
-            </button>
+        {/* Footer */}
+        <div className="border-t border-line p-3">
+          <NavLink
+            to={SETTINGS_ITEM.to}
+            onClick={handleNavigate}
+            title={collapsed ? SETTINGS_ITEM.label : undefined}
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? 'sidebar-link-active' : ''} ${collapsed ? 'sidebar-link-collapsed' : ''}`
+            }
+          >
+            <SETTINGS_ITEM.icon size={16} className="shrink-0" />
+            {!collapsed && <span>Settings</span>}
+          </NavLink>
+
+          {/* User card */}
+          <div className={`mt-2 flex items-center gap-2.5 rounded-xl bg-surface-sunken p-2 ${collapsed ? 'justify-center' : ''}`}>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-gradient text-[0.65rem] font-bold text-white">
+              {initials}
+            </span>
+            {!collapsed && (
+              <>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-semibold text-content">{user?.name || 'Guest'}</p>
+                  <p className="truncate text-[0.65rem] text-content-subtle">{user?.email || 'Not signed in'}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => logout()}
+                  className="rounded-lg p-1.5 text-content-subtle transition-colors hover:bg-white/60 hover:text-rose-500 dark:hover:bg-white/10"
+                  aria-label="Sign out"
+                  title="Sign out"
+                >
+                  <FaSignOutAlt size={12} />
+                </button>
+              </>
+            )}
           </div>
+
+          {/* Collapse toggle (desktop) */}
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className={`btn btn-ghost btn-sm mt-2 hidden w-full lg:inline-flex ${collapsed ? 'justify-center px-0' : 'justify-between'}`}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? (
+              <FaChevronRight size={11} />
+            ) : (
+              <>
+                <span className="text-[0.7rem] font-medium">Collapse</span>
+                <FaChevronLeft size={11} />
+              </>
+            )}
+          </button>
         </div>
       </aside>
     </>
   );
+};
+
+export const useSidebarPreference = () => {
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, String(collapsed));
+    } catch {
+      /* ignore */
+    }
+  }, [collapsed]);
+
+  return { collapsed, toggle: () => setCollapsed((value) => !value) };
 };
 
 export default Sidebar;

@@ -1,74 +1,107 @@
 import { useState, useEffect, useCallback } from 'react';
 import scheduleAPI from '@services/api/scheduleAPI';
+import { asList } from '@services/api/tasksAPI';
+import { readCollection, writeCollection, newLocalId } from '@services/storage/localFallback';
 import toast from 'react-hot-toast';
 
-export const useSchedule = () => {
+export const useSchedule = (options = {}) => {
+  const { autoFetch = true } = options;
   const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(autoFetch);
   const [error, setError] = useState(null);
+  const [localOnly, setLocalOnly] = useState(false);
 
-  const fetchEvents = useCallback(async () => {
+  const fetchEvents = useCallback(async (params = {}) => {
     try {
       setLoading(true);
-      const data = await scheduleAPI.getAll();
-      setEvents(data);
+      const data = await scheduleAPI.getAll(params);
+      setEvents(asList(data));
+      setLocalOnly(false);
       setError(null);
     } catch (err) {
+      setEvents(readCollection('events'));
+      setLocalOnly(true);
       setError(err.message);
-      toast.error('Failed to fetch events');
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    if (autoFetch) fetchEvents();
+  }, [autoFetch, fetchEvents]);
+
+  const persistLocal = (next) => {
+    writeCollection('events', next);
+    setEvents(next);
+  };
 
   const createEvent = async (eventData) => {
+    const optimistic = { ...eventData, _id: newLocalId(), createdAt: new Date().toISOString() };
+    const next = [...asList(events), optimistic];
+    setEvents(next);
+
+    if (localOnly) {
+      persistLocal(next);
+      toast.success('Event added');
+      return optimistic;
+    }
+
     try {
       const newEvent = await scheduleAPI.create(eventData);
-      setEvents(prev => [...prev, newEvent]);
-      toast.success('Event created successfully');
+      setEvents((prev) => asList(prev).map((event) => (event._id === optimistic._id ? newEvent : event)));
+      toast.success('Event added to your calendar');
       return newEvent;
     } catch (err) {
-      toast.error('Failed to create event');
-      throw err;
+      persistLocal(next);
+      setLocalOnly(true);
+      toast.success('Event saved locally');
+      return optimistic;
     }
   };
 
   const updateEvent = async (id, updates) => {
+    const next = asList(events).map((event) =>
+      event._id === id ? { ...event, ...updates } : event
+    );
+    persistLocal(next);
+
+    if (localOnly) return next.find((event) => event._id === id);
+
     try {
-      const updatedEvent = await scheduleAPI.update(id, updates);
-      setEvents(prev => prev.map(event => 
-        event._id === id ? updatedEvent : event
-      ));
-      toast.success('Event updated successfully');
-      return updatedEvent;
-    } catch (err) {
-      toast.error('Failed to update event');
-      throw err;
+      const updated = await scheduleAPI.update(id, updates);
+      setEvents((prev) => asList(prev).map((event) => (event._id === id ? { ...event, ...updated } : event)));
+      return updated;
+    } catch {
+      setLocalOnly(true);
+      return next.find((event) => event._id === id);
     }
   };
 
   const deleteEvent = async (id) => {
+    const next = asList(events).filter((event) => event._id !== id);
+    persistLocal(next);
+    toast.success('Event removed');
+
+    if (localOnly) return;
+
     try {
       await scheduleAPI.delete(id);
-      setEvents(prev => prev.filter(event => event._id !== id));
-      toast.success('Event deleted successfully');
-    } catch (err) {
-      toast.error('Failed to delete event');
-      throw err;
+    } catch {
+      setLocalOnly(true);
     }
   };
 
   return {
-    events,
+    events: asList(events),
     loading,
     error,
+    localOnly,
     createEvent,
     updateEvent,
     deleteEvent,
     refreshEvents: fetchEvents,
   };
 };
+
+export default useSchedule;

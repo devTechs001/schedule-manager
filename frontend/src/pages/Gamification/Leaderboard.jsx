@@ -26,4 +26,4 @@ const LeaderboardPage = () => {
   );
 };
 
-export default Leaderboard;
+export default LeaderboardPage;

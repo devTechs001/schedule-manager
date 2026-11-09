@@ -9,36 +9,61 @@ const client = axios.create({
   },
 });
 
-// Request interceptor
+// Request interceptor — attach the bearer token
 client.interceptors.request.use(
-  (config) => {
+  (requestConfig) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      requestConfig.headers.Authorization = `Bearer ${token}`;
     }
-    return config;
+    return requestConfig;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor
+// Events so the UI can react to auth expiry without a hard redirect loop
+const emitAuthExpired = () => {
+  window.dispatchEvent(new CustomEvent('auth:expired'));
+};
+
+// Response interceptor — unwrap `{ success, data }` envelopes and normalise errors
 client.interceptors.response.use(
   (response) => {
-    // Extract the actual data from the response
+    const body = response.data;
     // Backend returns { success: boolean, data: actualData, ... }
-    if (response.data && typeof response.data === 'object' && 'data' in response.data) {
-      return response.data.data;
+    if (body && typeof body === 'object' && 'data' in body) {
+      return body.data;
     }
-    return response.data;
+    return body;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+
+    if (status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      emitAuthExpired();
     }
-    return Promise.reject(error.response?.data || error.message);
+
+    // Normalise the rejection to a plain Error so `err.message` always works
+    const payload = error.response?.data;
+    let message =
+      (typeof payload === 'string' && payload) ||
+      payload?.message ||
+      payload?.error ||
+      error.message ||
+      'Request failed';
+
+    if (Array.isArray(payload?.errors) && payload.errors.length) {
+      message = payload.errors
+        .map((item) => (typeof item === 'string' ? item : item.msg || item.message))
+        .filter(Boolean)
+        .join(', ') || message;
+    }
+
+    const normalised = new Error(message);
+    normalised.status = status;
+    normalised.payload = payload;
+    return Promise.reject(normalised);
   }
 );
 

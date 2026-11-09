@@ -1,181 +1,199 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
-import config from '../config/app';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import client from '../services/api/client';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
 
+const TOKEN_KEY = 'token';
+
+const readToken = () => {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
-
-  useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      fetchUser();
-    } else {
-      setLoading(false);
-    }
-  }, [token]);
-
-  const fetchUser = async () => {
+  const [user, setUser] = useState(() => {
     try {
-      const response = await axios.get(`${config.apiUrl}/auth/me`);
+      const cached = localStorage.getItem('demoUser');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(readToken);
+  const [isDemo, setIsDemo] = useState(() => {
+    try {
+      return localStorage.getItem('demoSession') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const bootstrapped = useRef(false);
 
-      if (response.data.success) {
-        setUser(response.data.data.user); // Note: backend wraps data in 'data' property
-      } else {
-        throw new Error(response.data.message || 'Failed to fetch user');
+  const logout = useCallback((options = {}) => {
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem('demoSession');
+      localStorage.removeItem('demoUser');
+      localStorage.removeItem('demoSeeded');
+    } catch {
+      /* ignore */
+    }
+    setToken(null);
+    setUser(null);
+    if (options.redirect) {
+      window.location.assign('/login');
+    }
+  }, []);
+
+  const fetchUser = useCallback(async () => {
+    try {
+      const data = await client.get('/auth/me');
+      const nextUser = data?.user || data;
+      if (nextUser) {
+        setUser(nextUser);
       }
     } catch (error) {
-      console.error('Failed to fetch user:', error);
-      // Only logout if it's an authentication error
-      if (error.response && error.response.status === 401) {
-        logout();
+      // A stale or revoked token means we simply drop the session — unless this
+      // is a local demo sandbox, which must stay usable without a backend.
+      if (error.status === 401 || error.status === 403) {
+        let inDemo = false;
+        try {
+          inDemo = localStorage.getItem('demoSession') === 'true';
+        } catch {
+          inDemo = false;
+        }
+        if (!inDemo) logout();
+        else setIsDemo(true);
       }
-      throw error; // Re-throw to be handled by calling code if needed
+      // Network errors keep the (possibly valid) token so offline mode works.
     } finally {
       setLoading(false);
     }
+  }, [logout]);
+
+  useEffect(() => {
+    if (!token) {
+      let demoUser = null;
+      try {
+        const raw = localStorage.getItem('demoUser');
+        demoUser = raw ? JSON.parse(raw) : null;
+      } catch {
+        demoUser = null;
+      }
+
+      if (!demoUser && (typeof window !== 'undefined' && localStorage.getItem('demoSession') === 'true')) {
+        demoUser = {
+          name: 'Demo User',
+          email: 'demo@schedai.local',
+          role: 'user',
+          _localSandbox: true,
+        };
+      }
+
+      if (demoUser) {
+        setUser(demoUser);
+        setIsDemo(true);
+      }
+      setLoading(false);
+      return;
+    }
+    if (bootstrapped.current) return;
+    bootstrapped.current = true;
+    fetchUser();
+  }, [token, fetchUser]);
+
+  // React to 401s raised by the API client
+  useEffect(() => {
+    const onExpired = () => logout();
+    window.addEventListener('auth:expired', onExpired);
+    return () => window.removeEventListener('auth:expired', onExpired);
+  }, [logout]);
+
+  const persistSession = (data) => {
+    const nextToken = data?.token;
+    const nextUser = data?.user;
+    if (!nextToken || !nextUser) {
+      throw new Error('Unexpected response from the server');
+    }
+    localStorage.setItem(TOKEN_KEY, nextToken);
+    localStorage.removeItem('demoSession');
+    localStorage.removeItem('demoUser');
+    setToken(nextToken);
+    setUser(nextUser);
+    setIsDemo(false);
+    return nextUser;
   };
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post(`${config.apiUrl}/auth/login`, {
-        email,
-        password,
-      });
-
-      if (response.data.success) {
-        const { token, user } = response.data.data; // Note: backend wraps data in 'data' property
-        localStorage.setItem('token', token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        setToken(token);
-        setUser(user);
-        return user;
-      } else {
-        throw new Error(response.data.message || 'Login failed');
-      }
+      const data = await client.post('/auth/login', { email, password });
+      return persistSession(data);
     } catch (error) {
-      // Handle different types of errors
-      if (error.response) {
-        // Server responded with error status
-        const errorMessage = error.response.data?.message ||
-                            error.response.data?.error ||
-                            `Login failed with status: ${error.response.status}`;
-        throw new Error(errorMessage);
-      } else if (error.request) {
-        // Request was made but no response received
-        throw new Error('No response from server. Please check if the backend is running.');
-      } else {
-        // Something else happened
-        throw new Error(error.message || 'An unexpected error occurred during login.');
-      }
+      throw new Error(error.message || 'Login failed');
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await axios.post(`${config.apiUrl}/auth/register`, userData);
-
-      if (response.data.success) {
-        const { token, user } = response.data.data; // Note: backend wraps data in 'data' property
-        localStorage.setItem('token', token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        setToken(token);
-        setUser(user);
-        return user;
-      } else {
-        throw new Error(response.data.message || 'Registration failed');
-      }
+      const data = await client.post('/auth/register', userData);
+      return persistSession(data);
     } catch (error) {
-      // Handle different types of errors
-      if (error.response) {
-        // Server responded with error status
-        const errorMessage = error.response.data?.message ||
-                            error.response.data?.error ||
-                            `Registration failed with status: ${error.response.status}`;
-        throw new Error(errorMessage);
-      } else if (error.request) {
-        // Request was made but no response received
-        throw new Error('No response from server. Please check if the backend is running.');
-      } else {
-        // Something else happened
-        throw new Error(error.message || 'An unexpected error occurred during registration.');
-      }
+      throw new Error(error.message || 'Registration failed');
     }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
-    setToken(null);
-    setUser(null);
   };
 
   const updateProfile = async (updates) => {
     try {
-      const response = await axios.put(`${config.apiUrl}/auth/profile`, updates);
-
-      if (response.data.success) {
-        setUser(response.data.data.user); // Note: backend wraps data in 'data' property
-        return response.data.data.user;
-      } else {
-        throw new Error(response.data.message || 'Profile update failed');
-      }
+      const data = await client.put('/auth/profile', updates);
+      const nextUser = data?.user || data;
+      if (nextUser) setUser((prev) => ({ ...prev, ...nextUser }));
+      return nextUser;
     } catch (error) {
-      // Handle different types of errors
-      if (error.response) {
-        // Server responded with error status
-        const errorMessage = error.response.data?.message ||
-                            error.response.data?.error ||
-                            `Profile update failed with status: ${error.response.status}`;
-        throw new Error(errorMessage);
-      } else if (error.request) {
-        // Request was made but no response received
-        throw new Error('No response from server. Please check if the backend is running.');
-      } else {
-        // Something else happened
-        throw new Error(error.message || 'An unexpected error occurred during profile update.');
-      }
+      throw new Error(error.message || 'Profile update failed');
     }
   };
 
-  // Helper function to check if user exists (for registration form feedback)
-  const checkUserExists = async (email) => {
+  const changePassword = async (currentPassword, newPassword) => {
     try {
-      // We'll make a request to a hypothetical endpoint that checks user existence
-      // Since there isn't one, we'll handle this differently
-      // For now, we'll just return a generic function that can be expanded later
-      return false; // Placeholder - would check actual API endpoint
+      await client.put('/auth/change-password', {
+        currentPassword,
+        newPassword,
+      });
+      return true;
     } catch (error) {
-      console.warn('Could not check user existence:', error);
-      return false; // Assume user doesn't exist if we can't check
+      throw new Error(error.message || 'Could not change password');
     }
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        login,
-        register,
-        logout,
-        updateProfile,
-        checkUserExists,
-        isAuthenticated: !!user,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  const checkUserExists = async () => false;
+
+  const value = {
+    user,
+    loading,
+    token,
+    login,
+    register,
+    logout,
+    updateProfile,
+    changePassword,
+    checkUserExists,
+    isDemo,
+    isAuthenticated: Boolean(user),
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export default AuthContext;

@@ -26,4 +26,4 @@ const AchievementsPage = () => {
   );
 };
 
-export default Achievements;
+export default AchievementsPage;

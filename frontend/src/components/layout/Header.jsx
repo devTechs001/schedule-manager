@@ -1,105 +1,243 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FaBell, FaUserCircle, FaMoon, FaSun, FaBars, FaSignOutAlt, FaCog } from 'react-icons/fa';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  FaBell,
+  FaBars,
+  FaSearch,
+  FaSignOutAlt,
+  FaCog,
+  FaUser,
+  FaRegClock,
+  FaCheckCircle,
+  FaChevronDown,
+  FaHome,
+} from 'react-icons/fa';
 import { useAuth } from '@contexts/AuthContext';
-import { useTheme } from '@contexts/ThemeContext';
-import Button from '@components/ui/Button';
+import ThemeMenu from './ThemeMenu';
+import { ALL_NAV_ITEMS } from './navConfig';
 
-const Header = ({ onMenuClick }) => {
-  const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const navigate = useNavigate();
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [notifications, setNotifications] = useState([]);
+const PAGE_TITLES = {
+  '/dashboard': 'Dashboard',
+  '/tasks': 'Tasks',
+  '/schedule': 'Schedule',
+  '/emails': 'Inbox',
+  '/contacts': 'Contacts',
+  '/analytics': 'Analytics',
+  '/settings': 'Settings',
+  '/ai-insights': 'AI insights',
+  '/ai-chat': 'AI chat',
+  '/predictive-scheduler': 'Predictive planner',
+  '/meeting-assistant': 'Meeting assistant',
+  '/collaboration': 'Team workspace',
+  '/collaboration/projects': 'Projects',
+  '/collaboration/meetings': 'Meetings',
+  '/leaderboard': 'Leaderboard',
+  '/achievements': 'Achievements',
+  '/challenges': 'Challenges',
+  '/rewards': 'Rewards',
+};
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+const NotificationsPanel = ({ open, onClose }) => {
+  const items = [
+    { icon: FaCheckCircle, tone: 'text-emerald-500', title: 'All caught up', body: 'No overdue tasks right now. Nice work.' },
+    { icon: FaRegClock, tone: 'text-primary-500', title: 'Plan tomorrow', body: 'Two minutes now saves an hour in the morning.' },
+  ];
+
+  if (!open) return null;
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-      <div className="px-4 py-3">
-        <div className="flex items-center justify-between">
-          {/* Left Section */}
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={onMenuClick}
-              className="lg:hidden text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
-            >
-              <FaBars size={24} />
-            </button>
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">AI</span>
+    <>
+      <div className="fixed inset-0 z-[85]" onClick={onClose} aria-hidden="true" />
+      <div className="absolute right-0 top-full z-[86] mt-2 w-80 overflow-hidden rounded-2xl border border-line bg-surface-raised shadow-lift animate-fade-in">
+        <div className="flex items-center justify-between border-b border-line px-4 py-3">
+          <p className="text-sm font-semibold text-content">Notifications</p>
+          <span className="badge badge-success">clear</span>
+        </div>
+        <ul className="divide-y divide-line">
+          {items.map(({ icon: Icon, tone, title, body }) => (
+            <li key={title} className="flex gap-3 px-4 py-3">
+              <Icon size={14} className={`mt-0.5 shrink-0 ${tone}`} />
+              <div>
+                <p className="text-xs font-semibold text-content">{title}</p>
+                <p className="mt-0.5 text-xs text-content-muted">{body}</p>
               </div>
-              <span className="hidden sm:block text-xl font-bold text-gradient">
-                AI Schedule Manager
-              </span>
-            </Link>
-          </div>
+            </li>
+          ))}
+        </ul>
+        <Link
+          to="/settings/notifications"
+          onClick={onClose}
+          className="block border-t border-line px-4 py-2.5 text-center text-xs font-semibold text-primary-600 hover:bg-surface-sunken"
+        >
+          Notification settings
+        </Link>
+      </div>
+    </>
+  );
+};
 
-          {/* Right Section */}
-          <div className="flex items-center space-x-4">
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-            >
-              {theme === 'dark' ? <FaSun size={20} /> : <FaMoon size={20} />}
-            </button>
+const Header = ({ onMenuClick, onOpenSearch, breadcrumb }) => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const menuRef = useRef(null);
 
-            {/* Notifications */}
-            <div className="relative">
-              <button className="p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                <FaBell size={20} />
-                {notifications.length > 0 && (
-                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
-                    {notifications.length}
-                  </span>
+  useEffect(() => {
+    setMenuOpen(false);
+    setNotificationsOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onPointerDown = (event) => {
+      if (!menuRef.current?.contains(event.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [menuOpen]);
+
+  // Cmd/Ctrl+K anywhere opens search
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        onOpenSearch?.();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onOpenSearch]);
+
+  const title = PAGE_TITLES[location.pathname] || breadcrumb || 'Dashboard';
+  const parent = ALL_NAV_ITEMS.find((item) => item.to === location.pathname)?.section;
+  const initials = (user?.name || 'You')
+    .split(' ')
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
+  return (
+    <header className="sticky top-0 z-[65] flex h-[var(--header-h)] items-center gap-3 border-b border-line bg-surface/85 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+      {/* Mobile menu */}
+      <button
+        type="button"
+        onClick={onMenuClick}
+        className="btn btn-ghost btn-icon -ml-2 lg:hidden"
+        aria-label="Open menu"
+      >
+        <FaBars size={17} />
+      </button>
+
+      {/* Breadcrumb */}
+      <div className="min-w-0">
+        <nav className="hidden items-center gap-1.5 text-[0.7rem] font-medium text-content-subtle sm:flex" aria-label="Breadcrumb">
+          <Link to="/dashboard" className="flex items-center gap-1 hover:text-primary-600">
+            <FaHome size={9} /> App
+          </Link>
+          {parent && parent !== 'Workspace' && (
+            <>
+              <span aria-hidden="true">/</span>
+              <span>{parent}</span>
+            </>
+          )}
+        </nav>
+        <h1 className="truncate text-base font-semibold text-content">{title}</h1>
+      </div>
+
+      <div className="ml-auto flex items-center gap-1.5">
+        {/* Search trigger */}
+        <button
+          type="button"
+          onClick={onOpenSearch}
+          className="group hidden items-center gap-2 rounded-xl border border-line bg-surface-sunken/70 px-3 py-2 text-xs text-content-subtle transition-colors hover:border-primary-300 hover:text-content sm:flex"
+          aria-label="Open command palette"
+        >
+          <FaSearch size={11} />
+          <span className="w-28 text-left lg:w-40">Search anything…</span>
+          <span className="kbd ml-1 hidden lg:inline-flex">⌘K</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={onOpenSearch}
+          className="btn btn-ghost btn-icon sm:hidden"
+          aria-label="Search"
+        >
+          <FaSearch size={15} />
+        </button>
+
+        <ThemeMenu />
+
+        {/* Notifications */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setNotificationsOpen((open) => !open)}
+            className={`btn btn-ghost btn-icon ${notificationsOpen ? 'bg-gray-100 dark:bg-white/5' : ''}`}
+            aria-label="Notifications"
+            aria-expanded={notificationsOpen}
+          >
+            <FaBell size={16} />
+            <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          </button>
+          <NotificationsPanel open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+        </div>
+
+        {/* User menu */}
+        <div className="relative" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="ml-1 flex items-center gap-2 rounded-xl p-1 pr-2 transition-colors hover:bg-gray-100 dark:hover:bg-white/5"
+            aria-label="Account menu"
+            aria-expanded={menuOpen}
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-gradient text-[0.65rem] font-bold text-white">
+              {initials}
+            </span>
+            <span className="hidden max-w-[9rem] truncate text-xs font-semibold text-content md:block">
+              {user?.name?.split(' ')[0] || 'Guest'}
+            </span>
+            <FaChevronDown size={9} className="hidden text-content-subtle md:block" />
+          </button>
+
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-60 overflow-hidden rounded-2xl border border-line bg-surface-raised shadow-lift animate-fade-in">
+              <div className="border-b border-line px-4 py-3">
+                <p className="truncate text-sm font-semibold text-content">{user?.name || 'Guest'}</p>
+                <p className="truncate text-xs text-content-subtle">{user?.email || 'Not signed in'}</p>
+                {user?.role && (
+                  <span className="badge badge-accent mt-2 capitalize">{user.role}</span>
                 )}
-              </button>
+              </div>
+              <div className="p-1.5">
+                <button
+                  type="button"
+                  onClick={() => navigate('/settings')}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-content-muted hover:bg-gray-100 dark:hover:bg-white/5"
+                >
+                  <FaUser size={12} /> Profile
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/settings')}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-content-muted hover:bg-gray-100 dark:hover:bg-white/5"
+                >
+                  <FaCog size={12} /> Settings
+                </button>
+                <button
+                  type="button"
+                  onClick={() => logout({ redirect: true })}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                >
+                  <FaSignOutAlt size={12} /> Sign out
+                </button>
+              </div>
             </div>
-
-            {/* User Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                <FaUserCircle size={24} className="text-gray-600 dark:text-gray-300" />
-                <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {user?.name || 'User'}
-                </span>
-              </button>
-
-              {showUserMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setShowUserMenu(false)}
-                  />
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-20">
-                    <Link
-                      to="/settings"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      <FaCog className="mr-2" />
-                      Settings
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <FaSignOutAlt className="mr-2" />
-                      Logout
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </header>

@@ -62,4 +62,4 @@ const AIInsightsPage = () => {
   );
 };
 
-export default AIInsights;
+export default AIInsightsPage;

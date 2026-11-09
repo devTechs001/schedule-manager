@@ -26,4 +26,4 @@ const ChallengesPage = () => {
   );
 };
 
-export default Challenges;
+export default ChallengesPage;

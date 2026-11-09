@@ -1,25 +1,51 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FaPlus, FaSyncAlt, FaInbox } from 'react-icons/fa';
 import { useEmails } from '@hooks/useEmails';
 import EmailInbox from '@components/emails/EmailInbox';
 import EmailThread from '@components/emails/EmailThread';
 import EmailComposer from '@components/emails/EmailComposer';
 import EmailFilters from '@components/emails/EmailFilters';
 import Modal from '@components/ui/Modal';
-import Button from '@components/ui/Button';
-import { FaPlus } from 'react-icons/fa';
+import EmptyState from '@components/ui/EmptyState';
 
 const Emails = () => {
-  const { emails, loading, sendEmail, markAsRead, toggleStar, deleteEmail } = useEmails();
+  const { emails, loading, sendEmail, markAsRead, toggleStar, deleteEmail, refreshEmails } = useEmails();
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [showComposer, setShowComposer] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
   const [activeFilter, setActiveFilter] = useState('inbox');
 
-  const handleSelectEmail = (email) => {
-    setSelectedEmail(email);
-    if (!email.read) {
-      markAsRead(email._id);
+  useEffect(() => {
+    document.title = 'Inbox — SchedAI';
+  }, []);
+
+  const counts = useMemo(() => {
+    const list = Array.isArray(emails) ? emails : [];
+    return {
+      inbox: list.filter((email) => (email.type || 'inbox') === 'inbox' && !email.trash).length,
+      starred: list.filter((email) => email.starred && !email.trash).length,
+      sent: list.filter((email) => email.type === 'sent').length,
+      trash: list.filter((email) => email.trash).length,
+    };
+  }, [emails]);
+
+  const filtered = useMemo(() => {
+    const list = Array.isArray(emails) ? emails : [];
+    switch (activeFilter) {
+      case 'starred':
+        return list.filter((email) => email.starred && !email.trash);
+      case 'sent':
+        return list.filter((email) => email.type === 'sent');
+      case 'trash':
+        return list.filter((email) => email.trash);
+      default:
+        return list.filter((email) => (email.type || 'inbox') === 'inbox' && !email.trash);
     }
+  }, [emails, activeFilter]);
+
+  const handleSelect = (email) => {
+    setSelectedEmail(email);
+    if (email && !email.read) markAsRead(email._id);
   };
 
   const handleReply = (email) => {
@@ -27,109 +53,128 @@ const Emails = () => {
     setShowComposer(true);
   };
 
-  const handleSendEmail = async (emailData) => {
-    await sendEmail(emailData);
+  const handleSend = async (data) => {
+    await sendEmail(data);
     setShowComposer(false);
     setReplyTo(null);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this email?')) {
+    if (window.confirm('Move this email to trash?')) {
       await deleteEmail(id);
       setSelectedEmail(null);
     }
   };
 
-  // Ensure emails is an array before filtering
-  const emailsArray = Array.isArray(emails) ? emails : [];
-
-  const filteredEmails = emailsArray.filter(email => {
-    switch (activeFilter) {
-      case 'starred':
-        return email.starred;
-      case 'sent':
-        return email.type === 'sent';
-      case 'trash':
-        return email.trash;
-      default:
-        return !email.trash;
-    }
-  });
-
-  const filterCounts = {
-    inbox: emailsArray.filter(e => !e.trash).length,
-    starred: emailsArray.filter(e => e.starred).length,
-    sent: emailsArray.filter(e => e.type === 'sent').length,
-    trash: emailsArray.filter(e => e.trash).length,
-  };
+  const unread = filtered.filter((email) => !email.read).length;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Emails</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage your email communications
+          <h1 className="page-title">Inbox</h1>
+          <p className="page-subtitle">
+            {loading ? 'Fetching mail…' : `${filtered.length} messages · ${unread} unread`}
           </p>
         </div>
-        <Button
-          variant="primary"
-          icon={<FaPlus />}
-          onClick={() => setShowComposer(true)}
-        >
-          Compose
-        </Button>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => refreshEmails()} className="btn btn-outline btn-sm" aria-label="Refresh inbox">
+            <FaSyncAlt size={9} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button type="button" onClick={() => setShowComposer(true)} className="btn btn-primary btn-sm">
+            <FaPlus size={9} /> Compose
+          </button>
+        </div>
       </div>
 
-      {/* Email Layout */}
-      <div className="grid grid-cols-12 gap-6 h-[calc(100vh-250px)]">
-        {/* Filters Sidebar */}
-        <div className="col-span-12 lg:col-span-2">
-          <EmailFilters
-            activeFilter={activeFilter}
-            onFilterChange={setActiveFilter}
-            counts={filterCounts}
-          />
+      <div className="grid gap-4 lg:grid-cols-[13rem_1fr_1.3fr]">
+        <div className="lg:sticky lg:top-24 lg:self-start">
+          <EmailFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} counts={counts} />
+          <div className="card mt-3 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-content-subtle">At a glance</p>
+            <ul className="mt-2.5 space-y-1.5 text-xs text-content-muted">
+              <li className="flex items-center justify-between">
+                <span>Unread</span>
+                <span className="font-semibold text-content">{unread}</span>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Starred</span>
+                <span className="font-semibold text-content">{counts.starred}</span>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Sent</span>
+                <span className="font-semibold text-content">{counts.sent}</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
-        {/* Email List */}
-        <div className="col-span-12 lg:col-span-4">
+        <div>
           <EmailInbox
-            emails={filteredEmails}
-            onSelectEmail={handleSelectEmail}
+            emails={filtered}
+            loading={loading}
+            onSelectEmail={handleSelect}
             selectedEmail={selectedEmail}
-          />
-        </div>
-
-        {/* Email Content */}
-        <div className="col-span-12 lg:col-span-6">
-          <EmailThread
-            email={selectedEmail}
-            onReply={handleReply}
-            onDelete={handleDelete}
             onToggleStar={toggleStar}
           />
         </div>
+
+        <div className="hidden lg:block">
+          {filtered.length === 0 && !loading ? (
+            <div className="card flex h-full min-h-[28rem] items-center justify-center">
+              <EmptyState
+                icon={<FaInbox />}
+                title="Nothing in this folder"
+                description="Switch filters or compose a new message."
+                action={
+                  <button type="button" onClick={() => setShowComposer(true)} className="btn btn-primary btn-sm mt-1">
+                    Compose email
+                  </button>
+                }
+              />
+            </div>
+          ) : (
+            <EmailThread
+              email={selectedEmail}
+              onReply={handleReply}
+              onDelete={handleDelete}
+              onToggleStar={toggleStar}
+            />
+          )}
+        </div>
       </div>
 
-      {/* Email Composer Modal */}
+      {/* Mobile reading pane */}
+      {selectedEmail && (
+        <div className="lg:hidden">
+          <Modal isOpen={Boolean(selectedEmail)} onClose={() => setSelectedEmail(null)} title="Message" size="lg">
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-content">{selectedEmail.subject}</p>
+                <p className="text-xs text-content-muted">From {selectedEmail.from}</p>
+              </div>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-content-muted">{selectedEmail.body}</p>
+            </div>
+          </Modal>
+        </div>
+      )}
+
       <Modal
         isOpen={showComposer}
         onClose={() => {
           setShowComposer(false);
           setReplyTo(null);
         }}
-        title={replyTo ? 'Reply to Email' : 'Compose Email'}
-        size="xl"
+        title={replyTo ? 'Reply' : 'New message'}
+        size="lg"
       >
         <EmailComposer
-          onSend={handleSendEmail}
-          onClose={() => {
+          replyTo={replyTo}
+          onSubmit={handleSend}
+          onCancel={() => {
             setShowComposer(false);
             setReplyTo(null);
           }}
-          replyTo={replyTo}
         />
       </Modal>
     </div>

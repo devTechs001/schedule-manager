@@ -1,90 +1,107 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FaBuilding, FaSyncAlt, FaUserPlus, FaUsers } from 'react-icons/fa';
 import { useContacts } from '@hooks/useContacts';
 import ContactList from '@components/contacts/ContactList';
 import ContactForm from '@components/contacts/ContactForm';
-import ContactGroups from '@components/contacts/ContactGroups';
 import Modal from '@components/ui/Modal';
 
 const Contacts = () => {
-  const { contacts, loading, createContact, updateContact, deleteContact } = useContacts();
+  const { contacts, loading, createContact, updateContact, deleteContact, refreshContacts } = useContacts();
   const [showModal, setShowModal] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
-  const [groups, setGroups] = useState([
-    { _id: '1', name: 'Work', contactCount: 5 },
-    { _id: '2', name: 'Personal', contactCount: 3 },
-  ]);
 
-  const handleAddContact = () => {
+  useEffect(() => {
+    document.title = 'Contacts — SchedAI';
+  }, []);
+
+  const stats = useMemo(() => {
+    const list = Array.isArray(contacts) ? contacts : [];
+    const companies = new Set(list.map((contact) => contact.company).filter(Boolean));
+    return {
+      total: list.length,
+      companies: companies.size,
+      withPhone: list.filter((contact) => contact.phone).length,
+    };
+  }, [contacts]);
+
+  const openCreate = () => {
     setSelectedContact(null);
     setShowModal(true);
   };
 
-  const handleEditContact = (contact) => {
+  const openEdit = (contact) => {
     setSelectedContact(contact);
     setShowModal(true);
   };
 
-  const handleSubmit = async (contactData) => {
-    try {
-      if (selectedContact) {
-        await updateContact(selectedContact._id, contactData);
-      } else {
-        await createContact(contactData);
-      }
-      setShowModal(false);
-      setSelectedContact(null);
-    } catch (error) {
-      console.error('Failed to save contact:', error);
+  const handleSubmit = async (data) => {
+    if (selectedContact?._id) {
+      await updateContact(selectedContact._id, data);
+    } else {
+      await createContact(data);
     }
+    setShowModal(false);
+    setSelectedContact(null);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this contact?')) {
+    if (window.confirm('Delete this contact?')) {
       await deleteContact(id);
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Contacts</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Manage your contact list
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Contact Groups */}
-        <div className="lg:col-span-1">
-          <ContactGroups
-            groups={groups}
-            onAddGroup={(group) => setGroups([...groups, group])}
-            onEditGroup={(group) => console.log('Edit group:', group)}
-            onDeleteGroup={(id) => setGroups(groups.filter(g => g._id !== id))}
-          />
+    <div className="space-y-5">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Contacts</h1>
+          <p className="page-subtitle">The people you plan your week with.</p>
         </div>
-
-        {/* Contact List */}
-        <div className="lg:col-span-3">
-          <ContactList
-            contacts={contacts}
-            loading={loading}
-            onAdd={handleAddContact}
-            onEdit={handleEditContact}
-            onDelete={handleDelete}
-          />
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => refreshContacts()} className="btn btn-outline btn-sm" aria-label="Refresh contacts">
+            <FaSyncAlt size={9} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button type="button" onClick={openCreate} className="btn btn-primary btn-sm">
+            <FaUserPlus size={9} /> Add contact
+          </button>
         </div>
       </div>
 
-      {/* Contact Form Modal */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        {[
+          { icon: FaUsers, label: 'Total contacts', value: stats.total },
+          { icon: FaBuilding, label: 'Companies', value: stats.companies },
+          { icon: FaUserPlus, label: 'With phone', value: stats.withPhone },
+        ].map((stat) => (
+          <div key={stat.label} className="card flex items-center gap-3 p-3.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300">
+              <stat.icon size={12} />
+            </span>
+            <div>
+              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-content-subtle">
+                {stat.label}
+              </p>
+              <p className="font-display text-lg font-bold leading-tight text-content">{stat.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <ContactList
+        contacts={contacts}
+        loading={loading}
+        onAdd={openCreate}
+        onEdit={openEdit}
+        onDelete={handleDelete}
+      />
+
       <Modal
         isOpen={showModal}
         onClose={() => {
           setShowModal(false);
           setSelectedContact(null);
         }}
-        title={selectedContact ? 'Edit Contact' : 'Create New Contact'}
+        title={selectedContact?._id ? 'Edit contact' : 'New contact'}
         size="lg"
       >
         <ContactForm

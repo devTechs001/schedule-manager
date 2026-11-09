@@ -1,61 +1,39 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
 const Card = ({
   children,
   title,
   subtitle,
+  action,
   footer,
   hoverable = false,
   className = '',
   bodyClassName = '',
+  headerClassName = '',
   onClick,
+  as: Tag = 'div',
+  ...props
 }) => {
-  const CardWrapper = hoverable ? motion.div : 'div';
-  const hoverProps = hoverable ? {
-    whileHover: { scale: 1.02, y: -4 },
-    transition: { duration: 0.2 }
-  } : {};
-
   return (
-    <CardWrapper
-      className={`
-        bg-white dark:bg-gray-800 
-        rounded-lg shadow-md 
-        border border-gray-200 dark:border-gray-700 
-        overflow-hidden
-        transition-all duration-200
-        ${hoverable ? 'cursor-pointer hover:shadow-lg' : ''}
-        ${className}
-      `}
+    <Tag
       onClick={onClick}
-      {...hoverProps}
+      className={`card ${hoverable ? 'card-hover cursor-pointer' : ''} ${className}`}
+      {...props}
     >
-      {(title || subtitle) && (
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          {title && (
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {title}
-            </h3>
-          )}
-          {subtitle && (
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {subtitle}
-            </p>
-          )}
+      {(title || subtitle || action) && (
+        <div className={`flex items-start justify-between gap-4 border-b border-line px-5 py-4 ${headerClassName}`}>
+          <div className="min-w-0">
+            {title && <h3 className="truncate text-base font-semibold text-content">{title}</h3>}
+            {subtitle && <p className="mt-0.5 text-sm text-content-muted">{subtitle}</p>}
+          </div>
+          {action && <div className="shrink-0">{action}</div>}
         </div>
       )}
-      
-      <div className={`p-6 ${bodyClassName}`}>
-        {children}
-      </div>
 
-      {footer && (
-        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700">
-          {footer}
-        </div>
-      )}
-    </CardWrapper>
+      <div className={`card-pad ${bodyClassName}`}>{children}</div>
+
+      {footer && <div className="border-t border-line px-5 py-3.5">{footer}</div>}
+    </Tag>
   );
 };
 

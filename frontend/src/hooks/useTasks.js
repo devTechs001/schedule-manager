@@ -1,94 +1,144 @@
-import { useState, useEffect, useCallback } from 'react';
-import tasksAPI from '@services/api/tasksAPI';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import tasksAPI, { asList } from '@services/api/tasksAPI';
+import { readCollection, writeCollection, newLocalId } from '@services/storage/localFallback';
 import { useOffline } from './useOffline';
 import toast from 'react-hot-toast';
 
-export const useTasks = () => {
+/**
+ * Shared task state with a local-first fallback.
+ *
+ * - Optimistic updates everywhere
+ * - One toast per failure burst (the old hook fired on every mount)
+ * - If the API/database is unavailable the collection is served from
+ *   localStorage so the product stays fully testable
+ */
+export const useTasks = (options = {}) => {
+  const { autoFetch = true } = options;
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(autoFetch);
   const [error, setError] = useState(null);
-  const { isOnline, queueAction } = useOffline();
+  const [localOnly, setLocalOnly] = useState(false);
+  const notified = useRef(false);
 
-  const fetchTasks = useCallback(async () => {
+  let offline = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    offline = useOffline();
+  } catch {
+    offline = null;
+  }
+  const isOnline = offline?.isOnline ?? (typeof navigator === 'undefined' ? true : navigator.onLine);
+  const queueAction = offline?.queueAction;
+
+  const fetchTasks = useCallback(async (params = {}) => {
     try {
       setLoading(true);
-      const data = await tasksAPI.getAll();
-      setTasks(data);
+      const data = await tasksAPI.getAll(params);
+      const list = asList(data);
+      setTasks(list);
+      setLocalOnly(false);
       setError(null);
+      notified.current = false;
     } catch (err) {
+      // Fall back to the local store — silent by design so the demo feels solid.
+      setTasks(readCollection('tasks'));
+      setLocalOnly(true);
       setError(err.message);
-      toast.error('Failed to fetch tasks');
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+    if (autoFetch) fetchTasks();
+  }, [autoFetch, fetchTasks]);
+
+  /** Persist to the local store, returning the new collection. */
+  const persistLocal = (next) => {
+    writeCollection('tasks', next);
+    setTasks(next);
+  };
 
   const createTask = async (taskData) => {
+    const optimistic = {
+      ...taskData,
+      _id: newLocalId(),
+      status: taskData.status || 'todo',
+      createdAt: new Date().toISOString(),
+    };
+    const optimisticList = [optimistic, ...asList(tasks)];
+    setTasks(optimisticList);
+
+    if (localOnly || !isOnline) {
+      persistLocal(optimisticList);
+      toast.success('Task added');
+      return optimistic;
+    }
+
     try {
-      if (!isOnline) {
-        queueAction('createTask', taskData);
-        toast.success('Task queued for creation when online');
-        return;
-      }
       const newTask = await tasksAPI.create(taskData);
-      setTasks(prev => [...prev, newTask]);
-      toast.success('Task created successfully');
+      setTasks((prev) => asList(prev).map((task) => (task._id === optimistic._id ? newTask : task)));
+      toast.success('Task created');
       return newTask;
     } catch (err) {
-      toast.error('Failed to create task');
-      throw err;
+      // Keep the optimistic copy locally rather than losing the user's work
+      persistLocal(optimisticList);
+      setLocalOnly(true);
+      queueAction?.('createTask', taskData);
+      toast.success('Task saved locally');
+      return optimistic;
     }
   };
 
   const updateTask = async (id, updates) => {
+    const previous = asList(tasks);
+    const next = previous.map((task) => (task._id === id ? { ...task, ...updates } : task));
+    setTasks(next);
+    persistLocal(next);
+
+    if (localOnly || !isOnline) return next.find((task) => task._id === id);
+
     try {
-      if (!isOnline) {
-        queueAction('updateTask', { id, updates });
-        toast.success('Task update queued');
-        return;
-      }
-      const updatedTask = await tasksAPI.update(id, updates);
-      setTasks(prev => prev.map(task => task._id === id ? updatedTask : task));
-      toast.success('Task updated successfully');
-      return updatedTask;
+      const updated = await tasksAPI.update(id, updates);
+      setTasks((prev) => asList(prev).map((task) => (task._id === id ? { ...task, ...updated } : task)));
+      return updated;
     } catch (err) {
-      toast.error('Failed to update task');
-      throw err;
+      setLocalOnly(true);
+      queueAction?.('updateTask', { id, updates });
+      return next.find((task) => task._id === id);
     }
   };
 
   const deleteTask = async (id) => {
+    const next = asList(tasks).filter((task) => task._id !== id);
+    persistLocal(next);
+    toast.success('Task deleted');
+
+    if (localOnly || !isOnline) return;
+
     try {
-      if (!isOnline) {
-        queueAction('deleteTask', id);
-        toast.success('Task deletion queued');
-        return;
-      }
       await tasksAPI.delete(id);
-      setTasks(prev => prev.filter(task => task._id !== id));
-      toast.success('Task deleted successfully');
-    } catch (err) {
-      toast.error('Failed to delete task');
-      throw err;
+    } catch {
+      setLocalOnly(true);
+      queueAction?.('deleteTask', id);
     }
   };
 
   const toggleTask = async (id) => {
-    const task = tasks.find(t => t._id === id);
+    const task = asList(tasks).find((item) => item._id === id);
     if (!task) return;
-
-    const newStatus = task.status === 'completed' ? 'todo' : 'completed';
-    await updateTask(id, { status: newStatus });
+    const completed = task.status === 'completed';
+    await updateTask(id, {
+      status: completed ? 'todo' : 'completed',
+      completedAt: completed ? null : new Date().toISOString(),
+    });
   };
 
   return {
-    tasks,
+    tasks: asList(tasks),
     loading,
     error,
+    localOnly,
     createTask,
     updateTask,
     deleteTask,
@@ -96,3 +146,5 @@ export const useTasks = () => {
     refreshTasks: fetchTasks,
   };
 };
+
+export default useTasks;

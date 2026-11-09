@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import User from '../models/User.js';
-import bcrypt from 'bcryptjs';
 import config from '../config/app.js';
 
 // Connect to database
@@ -63,14 +62,15 @@ const seedAdmin = async () => {
 
     // Create admin user
     const defaultPassword = 'AdminPass123!';
-    const hashedPassword = await bcrypt.hash(defaultPassword, 10); // Default strong password
 
+    // NOTE: the User model hashes the password in a pre-save hook. Passing an
+    // already-hashed value here would hash it twice and make login impossible.
     const adminUser = await User.create({
       name: 'Admin User',
       email: 'devtechs842@gmail.com',
-      password: hashedPassword,
-      role: 'admin', // Set as admin
-      isVerified: true, // Mark as verified
+      password: defaultPassword,
+      role: 'admin',
+      isVerified: true,
     });
 
     console.log('Default password set to:', defaultPassword);

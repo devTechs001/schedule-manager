@@ -32,7 +32,7 @@ import rateLimiter, { authLimiter } from './middleware/rateLimit.js';
 
 // Import utils
 import { logger } from './utils/logger.js';
-import { connectDB } from './utils/database.js';
+import { connectDB, isDbConnected } from './utils/database.js';
 
 // Initialize express app
 const app = express();
@@ -41,7 +41,7 @@ const httpServer = createServer(app);
 // Initialize Socket.IO
 const io = new Server(httpServer, {
   cors: {
-    origin: config.client.url || 'http://localhost:5173',
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   },
@@ -68,19 +68,51 @@ app.use(helmet({
 }));
 
 // CORS Configuration
+// Allows: the configured client URL, local dev servers, any *.e2b.app preview
+// host/proxy, and (in development) any origin at all — so the mobile app,
+// preview sandboxes and LAN devices can reach the API without config changes.
+const isDev = (process.env.NODE_ENV || 'development') === 'development';
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+
+  const allowedOrigins = [
+    config.client.url,
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+  ].filter(Boolean);
+
+  if (allowedOrigins.includes(origin)) return true;
+
+  try {
+    const { protocol, hostname } = new URL(origin);
+
+    // Live preview / sandbox hosts
+    if (hostname.endsWith('.e2b.app')) return true;
+
+    // Vercel / Netlify / Render deployments of this project
+    if (hostname.endsWith('.netlify.app') || hostname.endsWith('.vercel.app')) return true;
+    if (hostname.endsWith('.onrender.com')) return true;
+
+    // Private network / LAN development
+    if (
+      isDev &&
+      (protocol === 'http:' || protocol === 'https:') &&
+      /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\d{1,3}(\.\d{1,3}){3}|[\w-]+\.local)$/.test(hostname)
+    ) {
+      return true;
+    }
+  } catch {
+    return false;
+  }
+
+  return isDev;
+};
+
 app.use(cors({
   origin: (origin, callback) => {
-    const allowedOrigins = [
-      config.client.url,
-      'http://localhost:5173',
-      'http://localhost:3000',
-    ].filter(Boolean);
-
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    if (isAllowedOrigin(origin)) return callback(null, true);
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,
   optionsSuccessStatus: 200,
@@ -134,7 +166,7 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    database: isDbConnected() ? 'connected' : 'disconnected',
     memory: {
       rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`,
       heapTotal: `${Math.round(process.memoryUsage().heapTotal / 1024 / 1024)}MB`,

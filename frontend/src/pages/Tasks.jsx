@@ -1,107 +1,350 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  FaCalendarAlt,
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaList,
+  FaPlus,
+  FaSearch,
+  FaSyncAlt,
+} from 'react-icons/fa';
+import { isPast, isToday, startOfDay } from 'date-fns';
 import { useTasks } from '@hooks/useTasks';
 import TaskList from '@components/tasks/TaskList';
 import TaskForm from '@components/tasks/TaskForm';
-import Modal from '@components/ui/Modal';
-import { FaCalendar, FaList } from 'react-icons/fa';
 import TaskCalendar from '@components/tasks/TaskCalendar';
+import QuickAddTask from '@components/tasks/QuickAddTask';
+import Modal from '@components/ui/Modal';
+import EmptyState from '@components/ui/EmptyState';
+import LoadingSpinner from '@components/ui/LoadingSpinner';
+
+const FILTERS = [
+  { id: 'all', label: 'All' },
+  { id: 'todo', label: 'To do' },
+  { id: 'in-progress', label: 'In progress' },
+  { id: 'completed', label: 'Completed' },
+  { id: 'overdue', label: 'Overdue' },
+  { id: 'today', label: 'Today' },
+];
+
+const SORTS = [
+  { id: 'priority', label: 'Priority' },
+  { id: 'due', label: 'Due date' },
+  { id: 'created', label: 'Newest' },
+  { id: 'title', label: 'A → Z' },
+];
+
+const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
 
 const Tasks = () => {
-  const { tasks, loading, createTask, updateTask, deleteTask, toggleTask } = useTasks();
+  const { tasks, loading, createTask, updateTask, deleteTask, toggleTask, refreshTasks } = useTasks();
   const [showModal, setShowModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
-  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
+  const [viewMode, setViewMode] = useState('list');
+  const [filter, setFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('priority');
+  const [query, setQuery] = useState('');
 
-  const handleAddTask = () => {
+  useEffect(() => {
+    document.title = 'Tasks — SchedAI';
+  }, []);
+
+  const counts = useMemo(() => {
+    const list = Array.isArray(tasks) ? tasks : [];
+    return {
+      all: list.length,
+      todo: list.filter((task) => task.status === 'todo').length,
+      'in-progress': list.filter((task) => task.status === 'in-progress').length,
+      completed: list.filter((task) => task.status === 'completed').length,
+      overdue: list.filter(
+        (task) => task.dueDate && isPast(new Date(task.dueDate)) && task.status !== 'completed'
+      ).length,
+      today: list.filter((task) => task.dueDate && isToday(new Date(task.dueDate))).length,
+    };
+  }, [tasks]);
+
+  const visibleTasks = useMemo(() => {
+    let list = Array.isArray(tasks) ? [...tasks] : [];
+
+    if (filter === 'overdue') {
+      list = list.filter(
+        (task) => task.dueDate && isPast(new Date(task.dueDate)) && task.status !== 'completed'
+      );
+    } else if (filter === 'today') {
+      list = list.filter((task) => task.dueDate && isToday(new Date(task.dueDate)));
+    } else if (filter !== 'all') {
+      list = list.filter((task) => task.status === filter);
+    }
+
+    const term = query.trim().toLowerCase();
+    if (term) {
+      list = list.filter(
+        (task) =>
+          (task.title || '').toLowerCase().includes(term) ||
+          (task.description || '').toLowerCase().includes(term) ||
+          (Array.isArray(task.tags) && task.tags.join(' ').toLowerCase().includes(term))
+      );
+    }
+
+    list.sort((a, b) => {
+      if (sortBy === 'priority') {
+        const diff = (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1);
+        if (diff !== 0) return diff;
+      }
+      if (sortBy === 'title') return (a.title || '').localeCompare(b.title || '');
+      if (sortBy === 'created') {
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      }
+      const aDue = a.dueDate ? new Date(a.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
+      const bDue = b.dueDate ? new Date(b.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
+      if (sortBy === 'priority' && aDue !== bDue) return aDue - bDue;
+      return (a.status === 'completed' ? 1 : 0) - (b.status === 'completed' ? 1 : 0) || aDue - bDue;
+    });
+
+    return list;
+  }, [tasks, filter, query, sortBy]);
+
+  const openCreate = () => {
     setSelectedTask(null);
     setShowModal(true);
   };
 
-  const handleEditTask = (task) => {
+  const openEdit = (task) => {
     setSelectedTask(task);
     setShowModal(true);
   };
 
   const handleSubmit = async (taskData) => {
-    try {
-      if (selectedTask) {
-        await updateTask(selectedTask._id, taskData);
-      } else {
-        await createTask(taskData);
-      }
-      setShowModal(false);
-      setSelectedTask(null);
-    } catch (error) {
-      console.error('Failed to save task:', error);
+    if (selectedTask?._id) {
+      await updateTask(selectedTask._id, taskData);
+    } else {
+      await createTask(taskData);
     }
+    setShowModal(false);
+    setSelectedTask(null);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
+    if (window.confirm('Delete this task? This cannot be undone.')) {
       await deleteTask(id);
+      setShowModal(false);
+      setSelectedTask(null);
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      {/* Page header */}
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tasks</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage your tasks and to-dos
+          <h1 className="page-title">Tasks</h1>
+          <p className="page-subtitle">
+            {loading
+              ? 'Loading your tasks…'
+              : `${counts.all} total · ${counts.overdue} overdue · ${counts.completed} completed`}
           </p>
         </div>
-        <div className="flex items-center space-x-2">
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded-xl border border-line bg-surface-raised p-0.5">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                viewMode === 'list' ? 'bg-primary-600 text-white' : 'text-content-muted'
+              }`}
+              aria-pressed={viewMode === 'list'}
+            >
+              <FaList size={9} /> List
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('calendar')}
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                viewMode === 'calendar' ? 'bg-primary-600 text-white' : 'text-content-muted'
+              }`}
+              aria-pressed={viewMode === 'calendar'}
+            >
+              <FaCalendarAlt size={9} /> Calendar
+            </button>
+          </div>
+
           <button
-            onClick={() => setViewMode('list')}
-            className={`p-2 rounded-lg ${
-              viewMode === 'list'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-            }`}
+            type="button"
+            onClick={() => refreshTasks()}
+            className="btn btn-outline btn-sm"
+            aria-label="Refresh tasks"
           >
-            <FaList size={20} />
+            <FaSyncAlt size={9} className={loading ? 'animate-spin' : ''} />
           </button>
-          <button
-            onClick={() => setViewMode('calendar')}
-            className={`p-2 rounded-lg ${
-              viewMode === 'calendar'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-            }`}
-          >
-            <FaCalendar size={20} />
+
+          <button type="button" onClick={openCreate} className="btn btn-primary btn-sm">
+            <FaPlus size={9} /> New task
           </button>
         </div>
       </div>
 
-      {/* Content */}
-      {viewMode === 'list' ? (
-        <TaskList
-          tasks={tasks}
-          loading={loading}
-          onAdd={handleAddTask}
-          onEdit={handleEditTask}
-          onDelete={handleDelete}
-          onToggle={toggleTask}
-        />
+      {/* Quick stats */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: 'To do', value: counts.todo, icon: FaList, tone: 'text-primary-600 bg-primary-50 dark:bg-primary-500/15 dark:text-primary-300' },
+          { label: 'In progress', value: counts['in-progress'], icon: FaSyncAlt, tone: 'text-secondary-600 bg-secondary-50 dark:bg-secondary-500/15 dark:text-secondary-300' },
+          { label: 'Completed', value: counts.completed, icon: FaCheckCircle, tone: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/15 dark:text-emerald-300' },
+          { label: 'Overdue', value: counts.overdue, icon: FaExclamationTriangle, tone: 'text-rose-500 bg-rose-50 dark:bg-rose-500/15 dark:text-rose-300' },
+        ].map((stat) => (
+          <div key={stat.label} className="card flex items-center gap-3 p-3.5">
+            <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${stat.tone}`}>
+              <stat.icon size={12} />
+            </span>
+            <div>
+              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-content-subtle">
+                {stat.label}
+              </p>
+              <p className="font-display text-lg font-bold leading-tight text-content">{stat.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {viewMode === 'calendar' ? (
+        <TaskCalendar tasks={tasks} onTaskClick={openEdit} />
       ) : (
-        <TaskCalendar
-          tasks={tasks}
-          onSelectTask={handleEditTask}
-          onSelectSlot={handleAddTask}
-        />
+        <div className="grid gap-5 xl:grid-cols-[1fr_16rem]">
+          <div className="space-y-3">
+            <QuickAddTask onCreate={(data) => createTask(data)} />
+
+            {/* Filters & search */}
+            <div className="card flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
+              <div className="relative flex-1">
+                <FaSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-content-subtle" size={11} />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search tasks, tags, descriptions…"
+                  className="input pl-9 text-xs"
+                  aria-label="Search tasks"
+                />
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {FILTERS.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setFilter(option.id)}
+                    className={`rounded-lg px-2.5 py-1.5 text-[0.68rem] font-semibold transition-colors ${
+                      filter === option.id
+                        ? 'bg-primary-600 text-white'
+                        : 'text-content-muted hover:bg-gray-100 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    {option.label}
+                    <span className="ml-1 opacity-70">{counts[option.id] ?? 0}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* List */}
+            {loading && visibleTasks.length === 0 ? (
+              <div className="card flex flex-col items-center gap-2 py-20">
+                <LoadingSpinner size="md" />
+                <p className="text-sm text-content-muted">Loading tasks…</p>
+              </div>
+            ) : visibleTasks.length === 0 ? (
+              <EmptyState
+                icon={<FaList />}
+                title={query ? 'No tasks match that search' : 'Nothing here'}
+                description={
+                  query
+                    ? 'Try a different word, or clear the filters.'
+                    : 'Add your first task and start planning.'
+                }
+                action={
+                  <button type="button" onClick={openCreate} className="btn btn-primary btn-sm mt-1">
+                    <FaPlus size={9} /> Add task
+                  </button>
+                }
+              />
+            ) : (
+              <TaskList
+                tasks={visibleTasks}
+                onEdit={openEdit}
+                onDelete={handleDelete}
+                onToggle={toggleTask}
+                onAdd={openCreate}
+              />
+            )}
+          </div>
+
+          {/* Sidebar summary */}
+          <aside className="space-y-3">
+            <div className="card p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-content-subtle">Sort by</p>
+              <div className="mt-2.5 space-y-1">
+                {SORTS.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setSortBy(option.id)}
+                    className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                      sortBy === option.id
+                        ? 'bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-200'
+                        : 'text-content-muted hover:bg-gray-100 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    {option.label}
+                    {sortBy === option.id && <span className="h-1.5 w-1.5 rounded-full bg-primary-500" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="card p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-content-subtle">Due soon</p>
+              <div className="mt-2.5 space-y-2">
+                {visibleTasks
+                  .filter((task) => task.dueDate && task.status !== 'completed')
+                  .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+                  .slice(0, 5)
+                  .map((task) => (
+                    <button
+                      key={task._id}
+                      type="button"
+                      onClick={() => openEdit(task)}
+                      className="block w-full truncate rounded-lg border border-line px-2.5 py-1.5 text-left text-xs text-content-muted hover:border-primary-300"
+                    >
+                      {task.title}
+                    </button>
+                  ))}
+                {visibleTasks.filter((task) => task.dueDate && task.status !== 'completed').length === 0 && (
+                  <p className="text-xs text-content-subtle">Nothing scheduled. Nice.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-line bg-surface-raised p-4">
+              <p className="text-xs font-semibold text-content">✓ Completed this week</p>
+              <p className="mt-1 font-display text-2xl font-bold text-content">{counts.completed}</p>
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
+                <div
+                  className="h-full rounded-full bg-accent-gradient"
+                  style={{ width: `${counts.all ? Math.round((counts.completed / counts.all) * 100) : 0}%` }}
+                />
+              </div>
+            </div>
+          </aside>
+        </div>
       )}
 
-      {/* Task Form Modal */}
       <Modal
         isOpen={showModal}
         onClose={() => {
           setShowModal(false);
           setSelectedTask(null);
         }}
-        title={selectedTask ? 'Edit Task' : 'Create New Task'}
+        title={selectedTask?._id ? 'Edit task' : 'New task'}
+        subtitle={selectedTask?._id ? 'Update the details below.' : 'Capture it now — prioritise later.'}
         size="lg"
       >
         <TaskForm

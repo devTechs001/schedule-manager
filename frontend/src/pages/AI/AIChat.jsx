@@ -74,4 +74,4 @@ const AIChatPage = () => {
   );
 };
 
-export default AIChat;
+export default AIChatPage;

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+import React, { useMemo, useState } from 'react';
+import { Calendar, dateFnsLocalizer, Views } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import enUS from 'date-fns/locale/en-US';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -14,73 +14,109 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-const CalendarView = ({ events, onSelectEvent, onSelectSlot, onEventDrop }) => {
+const TYPE_COLORS = {
+  meeting: { backgroundColor: '#6366f1', borderColor: '#4f46e5' },
+  task: { backgroundColor: '#f59e0b', borderColor: '#d97706' },
+  deadline: { backgroundColor: '#ef4444', borderColor: '#dc2626' },
+  reminder: { backgroundColor: '#10b981', borderColor: '#059669' },
+};
+
+const VIEWS_MAP = {
+  month: Views.MONTH,
+  week: Views.WEEK,
+  work_week: Views.WORK_WEEK,
+  day: Views.DAY,
+  agenda: Views.AGENDA,
+};
+
+const CalendarView = ({ events = [], onSelectEvent, onSelectSlot, onEventDrop }) => {
   const [view, setView] = useState('month');
+  const [date, setDate] = useState(new Date());
 
-  const eventStyleGetter = (event) => {
-    const colors = {
-      meeting: { backgroundColor: '#6366f1' },
-      task: { backgroundColor: '#f59e0b' },
-      deadline: { backgroundColor: '#ef4444' },
-      reminder: { backgroundColor: '#22c55e' },
-    };
+  // react-big-calendar needs Date objects for start/end
+  const calendarEvents = useMemo(
+    () =>
+      (Array.isArray(events) ? events : []).map((event) => ({
+        ...event,
+        start: new Date(event.start),
+        end: event.end ? new Date(event.end) : new Date(new Date(event.start).getTime() + 60 * 60 * 1000),
+      })),
+    [events]
+  );
 
-    return {
-      style: {
-        ...colors[event.type] || { backgroundColor: '#6366f1' },
-        borderRadius: '5px',
-        opacity: 0.9,
-        color: 'white',
-        border: '0px',
-        display: 'block',
-      },
-    };
+  const eventPropGetter = (event) => {
+    const colors = TYPE_COLORS[event.type] || TYPE_COLORS.meeting;
+    return { style: { ...colors, color: '#fff', borderRadius: '6px', border: '0', fontSize: '0.72rem' } };
   };
 
   const handleEventDrop = ({ event, start, end }) => {
-    onEventDrop({ ...event, start, end });
+    if (typeof onEventDrop === 'function' && event?._id) {
+      onEventDrop(event, start, end);
+    }
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Calendar</h2>
-        <div className="flex space-x-2">
-          {['month', 'week', 'day', 'agenda'].map((v) => (
+    <div className="card overflow-hidden">
+      {/* View switcher */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
+        <div>
+          <h2 className="text-sm font-semibold text-content">Calendar</h2>
+          <p className="text-[0.68rem] text-content-muted">
+            {calendarEvents.length} event{calendarEvents.length === 1 ? '' : 's'} in view
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {Object.keys(VIEWS_MAP).map((option) => (
             <button
-              key={v}
-              onClick={() => setView(v)}
-              className={`
-                px-4 py-2 rounded-lg font-medium transition-colors capitalize
-                ${view === v
+              key={option}
+              type="button"
+              onClick={() => setView(option)}
+              className={`rounded-lg px-2.5 py-1.5 text-[0.68rem] font-semibold capitalize transition-colors ${
+                view === option
                   ? 'bg-primary-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                }
-              `}
+                  : 'text-content-muted hover:bg-gray-100 dark:hover:bg-white/5'
+              }`}
+              aria-pressed={view === option}
             >
-              {v}
+              {option.replace('_', ' ')}
             </button>
           ))}
         </div>
       </div>
 
-      <div style={{ height: '700px' }} className="calendar-container">
+      <div className="p-3 sm:p-4">
         <Calendar
           localizer={localizer}
-          events={events}
+          events={calendarEvents}
+          view={VIEWS_MAP[view]}
+          onView={(nextView) => {
+            const match = Object.entries(VIEWS_MAP).find(([, value]) => value === nextView);
+            if (match) setView(match[0]);
+          }}
+          date={date}
+          onNavigate={setDate}
           startAccessor="start"
           endAccessor="end"
-          view={view}
-          onView={setView}
+          titleAccessor="title"
+          selectable
+          resizable={false}
           onSelectEvent={onSelectEvent}
           onSelectSlot={onSelectSlot}
           onEventDrop={handleEventDrop}
-          selectable
-          resizable
-          eventPropGetter={eventStyleGetter}
+          eventPropGetter={eventPropGetter}
           popup
-          className="dark:text-white"
+          style={{ height: '70vh', minHeight: 520 }}
         />
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-4 border-t border-line px-4 py-2.5">
+        {Object.entries(TYPE_COLORS).map(([type, colors]) => (
+          <span key={type} className="flex items-center gap-1.5 text-[0.65rem] capitalize text-content-muted">
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: colors.backgroundColor }} />
+            {type}
+          </span>
+        ))}
       </div>
     </div>
   );

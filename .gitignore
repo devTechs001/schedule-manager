@@ -3,6 +3,7 @@ dist/
 build/
 *.log
 logs/
+package-lock.json
 backend/server.log
 .env
 .env.local

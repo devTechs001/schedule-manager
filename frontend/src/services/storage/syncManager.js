@@ -77,4 +77,5 @@ const syncManager = {
   },
 };
 
+export { syncManager };
 export default syncManager;

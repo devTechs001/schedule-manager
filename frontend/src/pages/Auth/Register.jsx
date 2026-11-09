@@ -1,222 +1,240 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@contexts/AuthContext';
-import Input from '@components/ui/Input';
-import Button from '@components/ui/Button';
-import { FaUser, FaEnvelope, FaLock, FaRobot } from 'react-icons/fa';
 import toast from 'react-hot-toast';
-import { validateEmail, validatePassword, getPasswordStrength } from '@utils/validators';
+import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowRight, FaCheck } from 'react-icons/fa';
+import { useAuth } from '@contexts/AuthContext';
+import { getPasswordStrength } from '@utils/validators';
+import AuthShell from './AuthShell';
+
+const STRENGTH_STYLES = {
+  weak: { bar: 'bg-rose-500', text: 'text-rose-500', label: 'Weak' },
+  medium: { bar: 'bg-amber-500', text: 'text-amber-500', label: 'Fair' },
+  strong: { bar: 'bg-emerald-500', text: 'text-emerald-500', label: 'Strong' },
+};
 
 const Register = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(null);
+  const [touched, setTouched] = useState({});
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    document.title = 'Create account — SchedAI';
+  }, []);
 
-    // Validation
-    if (!validateEmail(formData.email)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
+  const strength = useMemo(
+    () => (form.password ? getPasswordStrength(form.password) : null),
+    [form.password]
+  );
 
-    if (!validatePassword(formData.password)) {
-      toast.error('Password must be at least 8 characters with uppercase, lowercase, and number');
-      return;
-    }
+  const checks = useMemo(
+    () => [
+      { label: '8+ characters', ok: form.password.length >= 8 },
+      { label: 'Upper & lowercase', ok: /[a-z]/.test(form.password) && /[A-Z]/.test(form.password) },
+      { label: 'A number', ok: /\d/.test(form.password) },
+      { label: 'Passwords match', ok: form.password.length > 0 && form.password === form.confirmPassword },
+    ],
+    [form.password, form.confirmPassword]
+  );
 
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
+  const errors = {
+    name: touched.name && form.name.trim().length < 2 ? 'Enter at least two characters' : '',
+    email: touched.email && !/^\S+@\S+\.\S+$/.test(form.email) ? 'Enter a valid email address' : '',
+    password: touched.password && form.password.length < 8 ? 'Use at least 8 characters' : '',
+    confirmPassword:
+      touched.confirmPassword && form.password !== form.confirmPassword ? 'Passwords do not match' : '',
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setTouched({ name: true, email: true, password: true, confirmPassword: true });
+
+    if (form.name.trim().length < 2) return toast.error('Please enter your name');
+    if (!/^\S+@\S+\.\S+$/.test(form.email)) return toast.error('Please enter a valid email');
+    if (strength?.level === 'weak') return toast.error('Choose a stronger password');
+    if (form.password !== form.confirmPassword) return toast.error('Passwords do not match');
+    if (!accepted) return toast.error('Please accept the terms to continue');
 
     setLoading(true);
-
     try {
-      await register(formData);
-      toast.success('Account created successfully!');
-      navigate('/');
+      await register({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        password: form.password,
+      });
+      toast.success('Account created — welcome aboard!');
+      navigate('/dashboard', { replace: true });
     } catch (error) {
-      console.error('Registration error details:', error); // Log for debugging
-
-      let errorMessage = error.message || 'Registration failed. Please try again.';
-      let solution = '';
-
-      // Provide specific solutions based on error message
-      if (error.message.toLowerCase().includes('already exists')) {
-        errorMessage = 'An account with this email already exists.';
-        solution = 'Please use a different email address or try logging in instead.';
-      } else if (error.message.toLowerCase().includes('validation failed')) {
-        errorMessage = 'Please check your input. Some fields may be invalid.';
-        solution = 'Make sure your email is valid and your password meets the requirements.';
-      } else if (error.message.toLowerCase().includes('network') || error.message.toLowerCase().includes('no response from server')) {
-        errorMessage = 'Cannot connect to the server. Please check if the backend is running.';
-        solution = 'Make sure the backend server is running on port 5000.';
-      } else if (error.message.toLowerCase().includes('404')) {
-        errorMessage = 'Registration service not found.';
-        solution = 'Please contact the administrator. The registration service may be temporarily unavailable.';
-      }
-
-      // Show error with solution
-      toast.error(
-        <div className="text-left">
-          <div className="font-semibold">Registration Failed</div>
-          <div>{errorMessage}</div>
-          {solution && <div className="mt-1 text-sm opacity-80">{solution}</div>}
-        </div>,
-        { duration: 8000 } // Show for 8 seconds to allow reading
-      );
+      toast.error(error.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-
-    if (name === 'password') {
-      setPasswordStrength(getPasswordStrength(value));
-    }
-  };
+  const update = (field) => (event) => setForm({ ...form, [field]: event.target.value });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800 px-4 py-12">
-      <div className="max-w-md w-full space-y-8">
-        {/* Logo & Header */}
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <FaRobot className="text-white" size={32} />
-            </div>
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Create Account
-          </h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Join AI Schedule Manager and boost your productivity
-          </p>
-        </div>
-
-        {/* Register Form */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <Input
-              label="Full Name"
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              icon={<FaUser />}
-              placeholder="John Doe"
-              required
-            />
-
-            <Input
-              label="Email Address"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              icon={<FaEnvelope />}
-              placeholder="you@example.com"
-              required
-            />
-
-            <div>
-              <Input
-                label="Password"
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                icon={<FaLock />}
-                placeholder="Create a strong password"
-                required
-              />
-              {passwordStrength && (
-                <div className="mt-2">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full bg-${passwordStrength.color}-500 transition-all duration-300`}
-                        style={{
-                          width: `${
-                            passwordStrength.level === 'weak'
-                              ? '33%'
-                              : passwordStrength.level === 'medium'
-                              ? '66%'
-                              : '100%'
-                          }`,
-                        }}
-                      />
-                    </div>
-                    <span className={`text-xs font-medium text-${passwordStrength.color}-600`}>
-                      {passwordStrength.level}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <Input
-              label="Confirm Password"
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              icon={<FaLock />}
-              placeholder="Confirm your password"
-              required
-            />
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                required
-                className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-              />
-              <label className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                I agree to the{' '}
-                <Link to="/terms" className="text-primary-600 hover:text-primary-700">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link to="/privacy" className="text-primary-600 hover:text-primary-700">
-                  Privacy Policy
-                </Link>
-              </label>
-            </div>
-
-            <Button
-              type="submit"
-              variant="primary"
-              fullWidth
-              loading={loading}
-              disabled={loading}
-            >
-              Create Account
-            </Button>
-          </form>
-        </div>
-
-        {/* Login Link */}
-        <p className="text-center text-gray-600 dark:text-gray-400">
+    <AuthShell
+      title="Create your account"
+      subtitle="Free to start. Your first plan is about two minutes away."
+      highlights={[
+        'No credit card required',
+        'Unlimited tasks & events',
+        'Offline-first PWA',
+        'All themes included',
+      ]}
+      footer={
+        <p className="text-sm text-content-muted">
           Already have an account?{' '}
-          <Link to="/login" className="text-primary-600 hover:text-primary-700 dark:text-primary-400 font-medium">
+          <Link to="/login" className="link">
             Sign in
           </Link>
         </p>
-      </div>
-    </div>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        <div>
+          <label htmlFor="name" className="label">Full name</label>
+          <div className="relative">
+            <FaUser className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-content-subtle" size={11} />
+            <input
+              id="name"
+              autoComplete="name"
+              value={form.name}
+              onChange={update('name')}
+              onBlur={() => setTouched((state) => ({ ...state, name: true }))}
+              placeholder="Amara Otieno"
+              className={`input pl-10 ${errors.name ? 'input-error' : ''}`}
+              required
+            />
+          </div>
+          {errors.name && <p className="error-text">{errors.name}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="email" className="label">Email address</label>
+          <div className="relative">
+            <FaEnvelope className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-content-subtle" size={11} />
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              value={form.email}
+              onChange={update('email')}
+              onBlur={() => setTouched((state) => ({ ...state, email: true }))}
+              placeholder="you@example.com"
+              className={`input pl-10 ${errors.email ? 'input-error' : ''}`}
+              required
+            />
+          </div>
+          {errors.email && <p className="error-text">{errors.email}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="password" className="label">Password</label>
+          <div className="relative">
+            <FaLock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-content-subtle" size={11} />
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              value={form.password}
+              onChange={update('password')}
+              onBlur={() => setTouched((state) => ({ ...state, password: true }))}
+              placeholder="Create a strong password"
+              className={`input pl-10 pr-10 ${errors.password ? 'input-error' : ''}`}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-content-subtle hover:text-content"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <FaEyeSlash size={11} /> : <FaEye size={11} />}
+            </button>
+          </div>
+          {form.password && (
+            <div className="mt-2">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      STRENGTH_STYLES[strength?.level]?.bar || 'bg-gray-300'
+                    }`}
+                    style={{ width: strength?.level === 'weak' ? '38%' : strength?.level === 'medium' ? '68%' : '100%' }}
+                  />
+                </div>
+                <span className={`text-[0.68rem] font-semibold ${STRENGTH_STYLES[strength?.level]?.text || ''}`}>
+                  {STRENGTH_STYLES[strength?.level]?.label || ''}
+                </span>
+              </div>
+              <ul className="mt-2 grid grid-cols-2 gap-1">
+                {checks.slice(0, 3).map((check) => (
+                  <li
+                    key={check.label}
+                    className={`flex items-center gap-1.5 text-[0.65rem] ${
+                      check.ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-content-subtle'
+                    }`}
+                  >
+                    <FaCheck size={7} className={check.ok ? '' : 'opacity-30'} /> {check.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="confirmPassword" className="label">Confirm password</label>
+          <div className="relative">
+            <FaLock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-content-subtle" size={11} />
+            <input
+              id="confirmPassword"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              value={form.confirmPassword}
+              onChange={update('confirmPassword')}
+              onBlur={() => setTouched((state) => ({ ...state, confirmPassword: true }))}
+              placeholder="Repeat your password"
+              className={`input pl-10 ${errors.confirmPassword ? 'input-error' : ''}`}
+              required
+            />
+          </div>
+          {errors.confirmPassword ? (
+            <p className="error-text">{errors.confirmPassword}</p>
+          ) : (
+            form.confirmPassword && (
+              <p className="mt-1.5 flex items-center gap-1 text-[0.68rem] text-emerald-600 dark:text-emerald-400">
+                <FaCheck size={7} /> Passwords match
+              </p>
+            )
+          )}
+        </div>
+
+        <label className="flex items-start gap-2 text-xs text-content-muted">
+          <input
+            type="checkbox"
+            checked={accepted}
+            onChange={(event) => setAccepted(event.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-line text-primary-600 focus:ring-primary-500"
+            required
+          />
+          <span>
+            I agree to the{' '}
+            <Link to="/contact" className="link">terms of service</Link> and{' '}
+            <Link to="/contact" className="link">privacy policy</Link>.
+          </span>
+        </label>
+
+        <button type="submit" className="btn btn-primary w-full" disabled={loading}>
+          {loading ? 'Creating account…' : 'Create free account'} {!loading && <FaArrowRight size={10} />}
+        </button>
+      </form>
+    </AuthShell>
   );
 };
 

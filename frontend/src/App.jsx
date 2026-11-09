@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
 // Contexts
@@ -7,16 +7,23 @@ import { AppProvider } from '@contexts/AppContext';
 import { AuthProvider, useAuth } from '@contexts/AuthContext';
 import { ThemeProvider } from '@contexts/ThemeContext';
 import { AIProvider } from '@contexts/AIContext';
-import { CollaborationProvider } from '@context/CollaborationContext';
-import { NotificationProvider } from '@context/NotificationContext';
-import { OfflineProvider } from '@context/OfflineContext';
-import { PerformanceProvider } from '@context/PerformanceContext';
+import { CollaborationProvider } from '@contexts/CollaborationContext';
+import { NotificationProvider } from '@contexts/NotificationContext';
+import { OfflineProvider } from '@contexts/OfflineContext';
+import { PerformanceProvider } from '@contexts/PerformanceContext';
 
 // Layout
 import Layout from '@components/layout/Layout';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
 
-// Lazy load pages - Main
+// Public / marketing (eager — this is the first paint for logged-out visitors)
+import Home from '@pages/Public/Home';
+import PublicLayout from '@pages/Public/PublicLayout';
+const Features = lazy(() => import('@pages/Public/Features'));
+const About = lazy(() => import('@pages/Public/About'));
+const Contact = lazy(() => import('@pages/Public/Contact'));
+
+// Main app pages
 const Dashboard = lazy(() => import('@pages/Dashboard'));
 const Tasks = lazy(() => import('@pages/Tasks'));
 const Emails = lazy(() => import('@pages/Emails'));
@@ -24,94 +31,105 @@ const Contacts = lazy(() => import('@pages/Contacts'));
 const Schedule = lazy(() => import('@pages/Schedule'));
 const Analytics = lazy(() => import('@pages/Analytics'));
 const Settings = lazy(() => import('@pages/Settings'));
+const Planner = lazy(() => import('@pages/Planner'));
+const Focus = lazy(() => import('@pages/Focus'));
+const SearchPage = lazy(() => import('@pages/Search'));
 
-// Lazy load pages - AI Tools
+// AI tools
 const AIInsights = lazy(() => import('@pages/AI/AIInsights'));
 const AIChat = lazy(() => import('@pages/AI/AIChat'));
 const PredictiveScheduler = lazy(() => import('@pages/AI/PredictiveScheduler'));
 const MeetingAssistant = lazy(() => import('@pages/AI/MeetingAssistant'));
 
-// Lazy load pages - Gamification
+// Gamification
 const Leaderboard = lazy(() => import('@pages/Gamification/Leaderboard'));
 const Achievements = lazy(() => import('@pages/Gamification/Achievements'));
 const Challenges = lazy(() => import('@pages/Gamification/Challenges'));
 const Rewards = lazy(() => import('@pages/Gamification/Rewards'));
 
-// Lazy load pages - Analytics
+// Analytics sub-pages
 const PerformanceAnalytics = lazy(() => import('@pages/Analytics/Performance'));
-const TimeTracking = lazy(() => import('@pages/Analytics/TimeTracking'));
+const TimeTrackingPage = lazy(() => import('@pages/Analytics/TimeTracking'));
 const ProductivityAnalytics = lazy(() => import('@pages/Analytics/Productivity'));
 
-// Lazy load pages - Auth
+// Auth
 const Login = lazy(() => import('@pages/Auth/Login'));
 const Register = lazy(() => import('@pages/Auth/Register'));
 const BiometricSetup = lazy(() => import('@pages/Auth/BiometricSetup'));
 
-// Lazy load pages - Settings
+// Settings sub-pages
 const SettingsIntegrations = lazy(() => import('@pages/Settings/Integrations'));
 const SettingsNotifications = lazy(() => import('@pages/Settings/Notifications'));
 const SettingsSecurity = lazy(() => import('@pages/Settings/Security'));
 const SettingsAccessibility = lazy(() => import('@pages/Settings/Accessibility'));
 
-// Lazy load pages - Collaboration
+// Collaboration
 const TeamWorkspace = lazy(() => import('@pages/Collaboration/TeamWorkspace'));
 const Projects = lazy(() => import('@pages/Collaboration/Projects'));
 const Meetings = lazy(() => import('@pages/Collaboration/Meetings'));
 
-// Lazy load pages - Onboarding
-const SplashScreen = lazy(() => import('@pages/Onboarding/SplashScreen'));
+// Onboarding
 const Welcome = lazy(() => import('@pages/Onboarding/Welcome'));
 const SetupWizard = lazy(() => import('@pages/Onboarding/SetupWizard'));
 const Tour = lazy(() => import('@pages/Onboarding/Tour'));
 
-// Lazy load pages - Error
+// Error pages
 const NotFound = lazy(() => import('@pages/Error/404'));
 const ServerError = lazy(() => import('@pages/Error/500'));
 const Offline = lazy(() => import('@pages/Error/Offline'));
 
-// Loading fallback component
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
+    <LoadingSpinner size="lg" />
+    <p className="text-sm text-content-muted">Loading…</p>
+  </div>
+);
+
+const FullScreenLoader = () => (
+  <div className="app-shell flex min-h-screen items-center justify-center">
     <div className="text-center">
-      <LoadingSpinner size="lg" />
-      <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+      <LoadingSpinner size="xl" />
+      <p className="mt-4 text-sm font-medium text-content-muted">Setting things up…</p>
     </div>
   </div>
 );
 
-// Protected Route Component
+/** Requires an authenticated user; remembers where they were headed. */
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
-  if (loading) {
-    return <PageLoader />;
-  }
-
-  return user ? children : <Navigate to="/login" replace />;
+  if (loading) return <FullScreenLoader />;
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  return children;
 };
 
-// Public Route Component (redirect if logged in)
-const PublicRoute = ({ children }) => {
+/** Keeps signed-in users out of /login and /register. */
+const PublicOnlyRoute = ({ children }) => {
   const { user, loading } = useAuth();
-
-  if (loading) {
-    return <PageLoader />;
-  }
-
-  return !user ? children : <Navigate to="/" replace />;
+  if (loading) return <FullScreenLoader />;
+  return user ? <Navigate to="/dashboard" replace /> : children;
 };
 
-// Network status indicator
+/** Scrolls to top on every navigation for the app shell. */
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
 const NetworkStatus = () => {
-  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
+  const [isOnline, setIsOnline] = React.useState(
+    typeof navigator === 'undefined' ? true : navigator.onLine
+  );
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
-
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
@@ -121,160 +139,104 @@ const NetworkStatus = () => {
   if (isOnline) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2">
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-      </svg>
-      <span className="font-medium">You're offline</span>
+    <div className="fixed bottom-24 left-1/2 z-[90] flex -translate-x-1/2 items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-800 shadow-lift dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-200">
+      <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+      You are offline — changes are saved locally
     </div>
   );
 };
 
-// Main App Component
 function AppContent() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          {/* Onboarding Routes - Always available */}
-          <Route path="/welcome" element={<Welcome />} />
-          <Route path="/setup" element={<SetupWizard />} />
-          <Route path="/tour" element={<Tour />} />
+    <Suspense fallback={<FullScreenLoader />}>
+      <ScrollToTop />
+      <Routes>
+        {/* ================= PUBLIC MARKETING (SPA) ================= */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+        </Route>
 
-          {/* Public Routes */}
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PublicRoute>
-                <Register />
-              </PublicRoute>
-            }
-          />
+        {/* ================= AUTH ================= */}
+        <Route
+          path="/login"
+          element={
+            <PublicOnlyRoute>
+              <Login />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicOnlyRoute>
+              <Register />
+            </PublicOnlyRoute>
+          }
+        />
 
-          {/* Auth Routes */}
-          <Route
-            path="/biometric-setup"
-            element={
-              <ProtectedRoute>
-                <BiometricSetup />
-              </ProtectedRoute>
-            }
-          />
+        {/* ================= ONBOARDING (public) ================= */}
+        <Route path="/welcome" element={<Welcome />} />
+        <Route path="/setup" element={<SetupWizard />} />
+        <Route path="/tour" element={<Tour />} />
 
-          {/* Protected Routes - Layout with Outlet */}
-          <Route path="/" element={
+        {/* ================= APP SHELL (protected) ================= */}
+        <Route
+          element={
             <ProtectedRoute>
               <Layout />
             </ProtectedRoute>
-          }>
-            <Route index element={<Dashboard />} />
-            <Route path="tasks" element={<Tasks />} />
-            <Route path="emails" element={<Emails />} />
-            <Route path="contacts" element={<Contacts />} />
-            <Route path="schedule" element={<Schedule />} />
-            <Route path="analytics" element={<Analytics />} />
+          }
+        >
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/tasks" element={<Tasks />} />
+          <Route path="/schedule" element={<Schedule />} />
+          <Route path="/emails" element={<Emails />} />
+          <Route path="/contacts" element={<Contacts />} />
+          <Route path="/planner" element={<Planner />} />
+          <Route path="/focus" element={<Focus />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/analytics/performance" element={<PerformanceAnalytics />} />
+          <Route path="/analytics/time-tracking" element={<TimeTrackingPage />} />
+          <Route path="/analytics/productivity" element={<ProductivityAnalytics />} />
 
-            {/* Analytics Sub-routes */}
-            <Route path="analytics/performance" element={<PerformanceAnalytics />} />
-            <Route path="analytics/time-tracking" element={<TimeTracking />} />
-            <Route path="analytics/productivity" element={<ProductivityAnalytics />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/settings/integrations" element={<SettingsIntegrations />} />
+          <Route path="/settings/notifications" element={<SettingsNotifications />} />
+          <Route path="/settings/security" element={<SettingsSecurity />} />
+          <Route path="/settings/accessibility" element={<SettingsAccessibility />} />
 
-            {/* Settings Routes */}
-            <Route path="settings" element={<Settings />} />
-            <Route path="settings/integrations" element={<SettingsIntegrations />} />
-            <Route path="settings/notifications" element={<SettingsNotifications />} />
-            <Route path="settings/security" element={<SettingsSecurity />} />
-            <Route path="settings/accessibility" element={<SettingsAccessibility />} />
+          <Route path="/collaboration" element={<TeamWorkspace />} />
+          <Route path="/collaboration/projects" element={<Projects />} />
+          <Route path="/collaboration/meetings" element={<Meetings />} />
 
-            {/* Collaboration Routes */}
-            <Route path="collaboration" element={<TeamWorkspace />} />
-            <Route path="collaboration/workspace" element={<TeamWorkspace />} />
-            <Route path="collaboration/projects" element={<Projects />} />
-            <Route path="collaboration/meetings" element={<Meetings />} />
+          <Route path="/ai/insights" element={<AIInsights />} />
+          <Route path="/ai/chat" element={<AIChat />} />
+          <Route path="/ai/scheduler" element={<PredictiveScheduler />} />
+          <Route path="/ai/meeting-assistant" element={<MeetingAssistant />} />
+          {/* Short aliases used by the sidebar / command palette */}
+          <Route path="/ai-insights" element={<AIInsights />} />
+          <Route path="/ai-chat" element={<AIChat />} />
+          <Route path="/predictive-scheduler" element={<PredictiveScheduler />} />
+          <Route path="/meeting-assistant" element={<MeetingAssistant />} />
 
-            {/* AI Routes */}
-            <Route path="ai/insights" element={<AIInsights />} />
-            <Route path="ai/chat" element={<AIChat />} />
-            <Route path="ai/scheduler" element={<PredictiveScheduler />} />
-            <Route path="ai/meeting-assistant" element={<MeetingAssistant />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/achievements" element={<Achievements />} />
+          <Route path="/challenges" element={<Challenges />} />
+          <Route path="/rewards" element={<Rewards />} />
 
-            {/* AI Routes - Hyphenated versions for sidebar compatibility */}
-            <Route path="ai-insights" element={<AIInsights />} />
-            <Route path="ai-chat" element={<AIChat />} />
-            <Route path="predictive-scheduler" element={<PredictiveScheduler />} />
-            <Route path="meeting-assistant" element={<MeetingAssistant />} />
+          <Route path="/biometric-setup" element={<BiometricSetup />} />
+        </Route>
 
-            {/* Gamification Routes */}
-            <Route path="gamification/leaderboard" element={<Leaderboard />} />
-            <Route path="gamification/achievements" element={<Achievements />} />
-            <Route path="gamification/challenges" element={<Challenges />} />
-            <Route path="gamification/rewards" element={<Rewards />} />
-
-            {/* Gamification Routes - Hyphenated versions for sidebar compatibility */}
-            <Route path="leaderboard" element={<Leaderboard />} />
-            <Route path="achievements" element={<Achievements />} />
-            <Route path="challenges" element={<Challenges />} />
-            <Route path="rewards" element={<Rewards />} />
-          </Route>
-
-          {/* Error Routes */}
-          <Route path="/offline" element={<Offline />} />
-          <Route path="/error" element={<ServerError />} />
-
-          {/* 404 Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-
-      {/* Network Status Indicator */}
-      <NetworkStatus />
-
-      {/* Toast Notifications */}
-      <Toaster
-        position="top-right"
-        reverseOrder={false}
-        gutter={8}
-        containerClassName=""
-        containerStyle={{}}
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#363636',
-            color: '#fff',
-            borderRadius: '10px',
-            padding: '16px',
-          },
-          success: {
-            duration: 3000,
-            iconTheme: {
-              primary: '#22c55e',
-              secondary: '#fff',
-            },
-          },
-          error: {
-            duration: 5000,
-            iconTheme: {
-              primary: '#ef4444',
-              secondary: '#fff',
-            },
-          },
-          loading: {
-            iconTheme: {
-              primary: '#6366f1',
-              secondary: '#fff',
-            },
-          },
-        }}
-      />
-    </div>
+        {/* ================= ERRORS ================= */}
+        <Route path="/offline" element={<Offline />} />
+        <Route path="/error" element={<ServerError />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 }
 
@@ -290,6 +252,17 @@ function App() {
                   <OfflineProvider>
                     <PerformanceProvider>
                       <AppContent />
+                      <NetworkStatus />
+                      <Toaster
+                        position="top-right"
+                        gutter={8}
+                        toastOptions={{
+                          duration: 4000,
+                          className: 'toast-root',
+                          success: { duration: 3000 },
+                          error: { duration: 5000 },
+                        }}
+                      />
                     </PerformanceProvider>
                   </OfflineProvider>
                 </NotificationProvider>

@@ -61,7 +61,7 @@ const ServerError = ({ error, resetError }) => {
             <FaRedo className="mr-2" /> Try Again
           </button>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             className="flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             <FaHome className="mr-2" /> Go Home

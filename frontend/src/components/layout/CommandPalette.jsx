@@ -1,129 +1,193 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FaSearch, FaTasks, FaCalendarAlt, FaUser, FaCog, FaKeyboard, FaPlus, FaEnvelope, FaMoon, FaSun } from 'react-icons/fa';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  FaSearch,
+  FaArrowRight,
+  FaMoon,
+  FaSun,
+  FaSignOutAlt,
+  FaLightbulb,
+  FaWindowClose,
+} from 'react-icons/fa';
+import { SEARCH_ENTRIES } from './navConfig';
+import { useTheme } from '@contexts/ThemeContext';
+import { useAuth } from '@contexts/AuthContext';
 
-const CommandPalette = ({ isOpen, onClose, onCommand }) => {
+const CommandPalette = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef(null);
+  const navigate = useNavigate();
+  const { isDark, toggleTheme } = useTheme();
+  const { logout } = useAuth();
 
-  const commands = [
-    { id: 'new-task', label: 'Create new task', icon: FaPlus, shortcut: 'Ctrl+N', category: 'Tasks' },
-    { id: 'search-tasks', label: 'Search tasks', icon: FaTasks, shortcut: 'Ctrl+F', category: 'Tasks' },
-    { id: 'new-event', label: 'Create new event', icon: FaCalendarAlt, shortcut: 'Ctrl+E', category: 'Calendar' },
-    { id: 'view-calendar', label: 'Open calendar', icon: FaCalendarAlt, shortcut: 'Ctrl+K', category: 'Calendar' },
-    { id: 'compose-email', label: 'Compose email', icon: FaEnvelope, shortcut: 'Ctrl+M', category: 'Email' },
-    { id: 'view-contacts', label: 'View contacts', icon: FaUser, shortcut: 'Ctrl+U', category: 'Contacts' },
-    { id: 'toggle-theme', label: 'Toggle dark mode', icon: FaMoon, shortcut: 'Ctrl+D', category: 'Settings' },
-    { id: 'open-settings', label: 'Open settings', icon: FaCog, shortcut: 'Ctrl+,', category: 'Settings' },
-    { id: 'keyboard-shortcuts', label: 'Keyboard shortcuts', icon: FaKeyboard, shortcut: '?', category: 'Help' },
-  ];
-
-  const filteredCommands = commands.filter(cmd =>
-    cmd.label.toLowerCase().includes(query.toLowerCase()) ||
-    cmd.category.toLowerCase().includes(query.toLowerCase())
+  const actions = useMemo(
+    () => [
+      {
+        type: 'action',
+        label: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+        icon: isDark ? FaSun : FaMoon,
+        hint: 'Appearance',
+        run: toggleTheme,
+        keywords: 'theme dark light appearance',
+      },
+      {
+        type: 'action',
+        label: 'Sign out',
+        icon: FaSignOutAlt,
+        hint: 'Account',
+        run: () => logout({ redirect: true }),
+        keywords: 'logout exit account',
+      },
+    ],
+    [isDark, toggleTheme, logout]
   );
 
-  const groupedCommands = filteredCommands.reduce((acc, cmd) => {
-    if (!acc[cmd.category]) acc[cmd.category] = [];
-    acc[cmd.category].push(cmd);
-    return acc;
-  }, {});
+  const results = useMemo(() => {
+    const pool = [...actions, ...SEARCH_ENTRIES];
+    const term = query.trim().toLowerCase();
+    if (!term) return pool.slice(0, 9);
+    return pool
+      .filter((entry) => `${entry.label} ${entry.hint} ${entry.keywords || ''}`.toLowerCase().includes(term))
+      .slice(0, 9);
+  }, [actions, query]);
 
   useEffect(() => {
     if (isOpen) {
-      inputRef.current?.focus();
       setQuery('');
-      setSelectedIndex(0);
+      setActiveIndex(0);
+      const id = window.setTimeout(() => inputRef.current?.focus(), 40);
+      return () => window.clearTimeout(id);
     }
+    return undefined;
   }, [isOpen]);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (!isOpen) return;
-      
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedIndex(i => Math.min(i + 1, filteredCommands.length - 1));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedIndex(i => Math.max(i - 1, 0));
-      } else if (e.key === 'Enter' && filteredCommands[selectedIndex]) {
-        onCommand?.(filteredCommands[selectedIndex]);
+    setActiveIndex(0);
+  }, [query]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
         onClose();
-      } else if (e.key === 'Escape') {
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setActiveIndex((index) => Math.min(index + 1, results.length - 1));
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setActiveIndex((index) => Math.max(index - 1, 0));
+      } else if (event.key === 'Enter') {
+        event.preventDefault();
+        const entry = results[activeIndex];
+        if (!entry) return;
         onClose();
+        if (entry.run) entry.run();
+        else if (entry.to) navigate(entry.to);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, filteredCommands, selectedIndex, onCommand, onClose]);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, results, activeIndex, navigate, onClose]);
 
   if (!isOpen) return null;
 
-  let flatIndex = 0;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      
-      <div className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
-        {/* Search Input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <FaSearch className="text-gray-400" />
+    <div className="fixed inset-0 z-[95] flex items-start justify-center px-4 pt-[12vh]" role="dialog" aria-modal="true" aria-label="Command palette">
+      <div className="fixed inset-0 bg-neutral-950/55 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
+
+      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-line bg-surface-raised shadow-lift animate-fade-up">
+        <div className="flex items-center gap-3 border-b border-line px-4 py-3">
+          <FaSearch size={13} className="shrink-0 text-content-subtle" />
           <input
             ref={inputRef}
-            type="text"
-            placeholder="Type a command or search..."
             value={query}
-            onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
-            className="flex-1 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400"
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search pages, actions, settings…"
+            className="flex-1 bg-transparent text-sm text-content placeholder:text-content-subtle focus:outline-none"
+            aria-label="Search"
           />
-          <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-500 text-xs rounded">ESC</kbd>
+          <button
+            type="button"
+            onClick={onClose}
+            className="kbd"
+            aria-label="Close search"
+          >
+            esc
+          </button>
         </div>
 
-        {/* Commands List */}
-        <div className="max-h-80 overflow-y-auto p-2">
-          {Object.keys(groupedCommands).length === 0 ? (
-            <p className="text-center text-gray-500 py-8">No commands found</p>
-          ) : (
-            Object.entries(groupedCommands).map(([category, cmds]) => (
-              <div key={category} className="mb-2">
-                <p className="text-xs font-medium text-gray-500 px-3 py-1">{category}</p>
-                {cmds.map((cmd) => {
-                  const currentIndex = flatIndex++;
-                  return (
-                    <button
-                      key={cmd.id}
-                      onClick={() => { onCommand?.(cmd); onClose(); }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
-                        currentIndex === selectedIndex
-                          ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                          : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <cmd.icon className={currentIndex === selectedIndex ? 'text-primary-600' : 'text-gray-400'} />
-                        <span className="text-sm text-gray-900 dark:text-white">{cmd.label}</span>
-                      </div>
-                      <kbd className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 text-xs rounded">
-                        {cmd.shortcut}
-                      </kbd>
-                    </button>
-                  );
-                })}
-              </div>
-            ))
+        <ul className="max-h-[50vh] overflow-y-auto p-2">
+          {results.length === 0 && (
+            <li className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+              <FaLightbulb className="text-amber-400" size={18} />
+              <p className="text-sm font-medium text-content">No matches for “{query}”</p>
+              <p className="text-xs text-content-muted">
+                Try “task”, “calendar”, “theme” or “settings”.
+              </p>
+            </li>
           )}
-        </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-xs text-gray-500">
-          <div className="flex items-center gap-4">
-            <span><kbd>↑↓</kbd> Navigate</span>
-            <span><kbd>↵</kbd> Select</span>
-          </div>
-          <span>Press <kbd>Ctrl+K</kbd> to open</span>
+          {results.map((entry, index) => (
+            <li key={`${entry.type}-${entry.label}`}>
+              <button
+                type="button"
+                onMouseEnter={() => setActiveIndex(index)}
+                onClick={() => {
+                  onClose();
+                  if (entry.run) entry.run();
+                  else if (entry.to) navigate(entry.to);
+                }}
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${
+                  index === activeIndex ? 'bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-200' : 'text-content-muted hover:bg-gray-100 dark:hover:bg-white/5'
+                }`}
+              >
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-sunken text-xs">
+                  <entry.icon size={12} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium text-content">{entry.label}</span>
+                  <span className="block truncate text-[0.7rem] text-content-subtle">
+                    {entry.type === 'action' ? 'Action' : entry.hint}
+                  </span>
+                </span>
+                {entry.type === 'page' ? (
+                  <FaArrowRight size={10} className="shrink-0 opacity-50" />
+                ) : (
+                  <FaWindowClose size={10} className="shrink-0 opacity-0" />
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            navigate(`/search?q=${encodeURIComponent(query)}`);
+          }}
+          className="flex w-full items-center justify-center gap-1.5 border-t border-line bg-surface-sunken px-4 py-2 text-[0.7rem] font-semibold text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10"
+        >
+          Search all my data for “{query || '…'}” <FaArrowRight size={8} />
+        </button>
+
+        <div className="flex items-center justify-between border-t border-line bg-surface-sunken px-4 py-2 text-[0.68rem] text-content-subtle">
+          <span className="flex items-center gap-1.5">
+            <span className="kbd">↑</span>
+            <span className="kbd">↓</span>
+            navigate
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="kbd">↵</span>
+            open
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="kbd">esc</span>
+            close
+          </span>
         </div>
       </div>
     </div>
@@ -131,4 +195,3 @@ const CommandPalette = ({ isOpen, onClose, onCommand }) => {
 };
 
 export default CommandPalette;
-

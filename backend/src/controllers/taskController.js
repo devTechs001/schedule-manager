@@ -1,6 +1,5 @@
 import Task from '../models/Task.js';
 import { asyncHandler } from '../utils/helpers.js';
-import { io } from '../server.js';
 
 // @desc    Get all tasks
 // @route   GET /api/tasks
@@ -68,8 +67,7 @@ export const createTask = asyncHandler(async (req, res) => {
   const task = await Task.create(req.body);
 
   // Emit socket event
-  const io = req.app.get('io');
-  io.to(`user-${req.user.id}`).emit('task:created', task);
+  req.app.get('io')?.to(`user-${req.user.id}`).emit('task:created', task);
 
   res.status(201).json({
     success: true,
@@ -100,8 +98,7 @@ export const updateTask = asyncHandler(async (req, res) => {
   });
 
   // Emit socket event
-  const io = req.app.get('io');
-  io.to(`user-${req.user.id}`).emit('task:updated', task);
+  req.app.get('io')?.to(`user-${req.user.id}`).emit('task:updated', task);
 
   res.json({
     success: true,
@@ -129,8 +126,7 @@ export const deleteTask = asyncHandler(async (req, res) => {
   await task.deleteOne();
 
   // Emit socket event
-  const io = req.app.get('io');
-  io.to(`user-${req.user.id}`).emit('task:deleted', req.params.id);
+  req.app.get('io')?.to(`user-${req.user.id}`).emit('task:deleted', req.params.id);
 
   res.json({
     success: true,

@@ -7,11 +7,13 @@ import {
   deleteEvent,
 } from '../controllers/scheduleController.js';
 import { protect } from '../middleware/auth.js';
+import { requireDatabase } from '../utils/database.js';
 import { validateEvent } from '../middleware/validation.js';
 
 const router = express.Router();
 
 router.use(protect);
+router.use(requireDatabase);
 
 router.route('/')
   .get(getEvents)

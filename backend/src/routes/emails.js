@@ -8,11 +8,13 @@ import {
   deleteEmail,
 } from '../controllers/emailController.js';
 import { protect } from '../middleware/auth.js';
+import { requireDatabase } from '../utils/database.js';
 import { validateEmail } from '../middleware/validation.js';
 
 const router = express.Router();
 
 router.use(protect);
+router.use(requireDatabase);
 
 router.get('/', getEmails);
 router.post('/send', validateEmail, sendEmailMessage);

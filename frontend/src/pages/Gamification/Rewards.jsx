@@ -26,4 +26,4 @@ const RewardsPage = () => {
   );
 };
 
-export default Rewards;
+export default RewardsPage;

@@ -25,7 +25,10 @@ const config = {
 
   // JWT Configuration
   jwt: {
-    secret: process.env.JWT_SECRET || 'your-default-secret-key-change-in-production',
+    secret:
+      process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 16
+        ? process.env.JWT_SECRET
+        : 'dev-only-insecure-secret-change-me-0123456789',
     expiresIn: process.env.JWT_EXPIRE || '7d',
   },
 

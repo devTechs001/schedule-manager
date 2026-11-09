@@ -7,11 +7,13 @@ import {
   deleteContact,
 } from '../controllers/contactController.js';
 import { protect } from '../middleware/auth.js';
+import { requireDatabase } from '../utils/database.js';
 import { validateContact } from '../middleware/validation.js';
 
 const router = express.Router();
 
 router.use(protect);
+router.use(requireDatabase);
 
 router.route('/')
   .get(getContacts)

@@ -26,4 +26,4 @@ const PredictiveSchedulerPage = () => {
   );
 };
 
-export default PredictiveScheduler;
+export default PredictiveSchedulerPage;

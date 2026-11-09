@@ -26,4 +26,4 @@ const MeetingAssistantPage = () => {
   );
 };
 
-export default MeetingAssistant;
+export default MeetingAssistantPage;

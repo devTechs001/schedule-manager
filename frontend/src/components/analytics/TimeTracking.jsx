@@ -1,52 +1,81 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { useTheme } from '@contexts/ThemeContext';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const TimeTracking = ({ timeData }) => {
-  const data = {
-    labels: timeData.labels,
-    datasets: [
-      {
-        data: timeData.values,
-        backgroundColor: [
-          'rgba(99, 102, 241, 0.8)',
-          'rgba(34, 197, 94, 0.8)',
-          'rgba(245, 158, 11, 0.8)',
-          'rgba(239, 68, 68, 0.8)',
-          'rgba(139, 92, 246, 0.8)',
-        ],
-        borderColor: [
-          'rgb(99, 102, 241)',
-          'rgb(34, 197, 94)',
-          'rgb(245, 158, 11)',
-          'rgb(239, 68, 68)',
-          'rgb(139, 92, 246)',
-        ],
-        borderWidth: 2,
-      },
-    ],
-  };
+const PALETTE = ['#6366f1', '#f59e0b', '#10b981', '#f43f5e', '#38bdf8', '#8b5cf6'];
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom',
+const TimeTracking = ({ timeData }) => {
+  const { isDark } = useTheme();
+  const textColor = isDark ? '#a5b4c7' : '#64748b';
+  const values = timeData?.values || [];
+  const total = values.reduce((sum, value) => sum + (Number(value) || 0), 0);
+
+  const data = useMemo(
+    () => ({
+      labels: timeData?.labels || [],
+      datasets: [
+        {
+          data: values,
+          backgroundColor: PALETTE.map((color) => `${color}cc`),
+          borderColor: PALETTE,
+          borderWidth: 1,
+          hoverOffset: 6,
+        },
+      ],
+    }),
+    [timeData, values]
+  );
+
+  const options = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '68%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: textColor,
+            boxWidth: 7,
+            boxHeight: 7,
+            usePointStyle: true,
+            pointStyle: 'circle',
+            padding: 12,
+            font: { size: 9, family: 'Inter' },
+          },
+        },
+        title: { display: false },
+        tooltip: {
+          backgroundColor: isDark ? '#111a2e' : '#0f172a',
+          padding: 10,
+          cornerRadius: 8,
+          bodyFont: { size: 11, family: 'Inter' },
+        },
       },
-      title: {
-        display: true,
-        text: 'Time Distribution',
-      },
-    },
-  };
+    }),
+    [isDark, textColor]
+  );
+
+  if (total === 0) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-1.5 text-center">
+        <p className="text-sm font-medium text-content">Nothing to chart yet</p>
+        <p className="max-w-[15rem] text-xs text-content-muted">
+          Add a few tasks and the distribution will appear here.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-      <div style={{ height: '300px' }}>
-        <Doughnut data={data} options={options} />
+    <div className="relative h-full">
+      <Doughnut data={data} options={options} />
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-12">
+        <p className="font-display text-xl font-bold text-content">{total}</p>
+        <p className="text-[0.62rem] uppercase tracking-[0.1em] text-content-subtle">items</p>
       </div>
     </div>
   );

@@ -38,8 +38,8 @@ const Accessibility = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="space-y-5">
+      <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-2">

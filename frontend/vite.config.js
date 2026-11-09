@@ -69,7 +69,6 @@ export default defineConfig({
       '@assets': resolve(__dirname, './src/assets'),
       '@components': resolve(__dirname, './src/components'),
       '@contexts': resolve(__dirname, './src/contexts'),
-      '@context': resolve(__dirname, './src/context'),
       '@hooks': resolve(__dirname, './src/hooks'),
       '@pages': resolve(__dirname, './src/pages'),
       '@services': resolve(__dirname, './src/services'),
@@ -81,6 +80,16 @@ export default defineConfig({
     postcss: './postcss.config.js',
   },
   server: {
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: false,
+    // Live-preview / sandbox hosts (e.g. *.e2b.app) are proxied to this dev
+    // server, so they must not be rejected by the host allow-list.
+    allowedHosts: true,
+    hmr: {
+      protocol: process.env.VITE_HMR_PROTOCOL || undefined,
+      clientPort: process.env.VITE_HMR_PORT ? Number(process.env.VITE_HMR_PORT) : undefined,
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:5000',

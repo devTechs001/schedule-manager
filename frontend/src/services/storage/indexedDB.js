@@ -71,4 +71,5 @@ export const indexedDBService = {
   },
 };
 
+export { db };
 export default db;

@@ -5,8 +5,9 @@ import authConfig from '../config/auth.js';
 
 // Generate JWT Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, authConfig.jwtSecret, {
-    expiresIn: authConfig.jwtExpire,
+  const secret = authConfig.jwtSecret || process.env.JWT_SECRET || 'dev-only-insecure-secret-change-me-0123456789';
+  return jwt.sign({ id }, secret, {
+    expiresIn: authConfig.jwtExpire || '7d',
   });
 };
 

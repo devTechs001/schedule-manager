@@ -1,324 +1,498 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import {
+  FaUser,
+  FaBell,
+  FaPalette,
+  FaShieldAlt,
+  FaSave,
+  FaPlug,
+  FaUniversalAccess,
+  FaChevronRight,
+  FaCheck,
+  FaMoon,
+  FaSun,
+  FaDesktop,
+  FaEye,
+} from 'react-icons/fa';
 import { useAuth } from '@contexts/AuthContext';
 import { useTheme } from '@contexts/ThemeContext';
-import Card from '@components/ui/Card';
 import Input from '@components/ui/Input';
-import Button from '@components/ui/Button';
-import { FaUser, FaBell, FaPalette, FaShieldAlt, FaSave, FaPlug, FaUniversalAccess, FaChevronRight } from 'react-icons/fa';
-import toast from 'react-hot-toast';
+import Toggle from '@components/ui/Toggle';
+
+const TABS = [
+  { id: 'profile', label: 'Profile', icon: FaUser },
+  { id: 'appearance', label: 'Appearance', icon: FaPalette },
+  { id: 'notifications', label: 'Notifications', icon: FaBell },
+  { id: 'privacy', label: 'Privacy', icon: FaShieldAlt },
+];
+
+const LINKS = [
+  { path: '/settings/integrations', label: 'Integrations', icon: FaPlug, description: 'Connect calendar, email and Slack' },
+  { path: '/settings/notifications', label: 'Advanced notifications', icon: FaBell, description: 'Reminders, channels and quiet hours' },
+  { path: '/settings/security', label: 'Security', icon: FaShieldAlt, description: 'Password, sessions and audit log' },
+  { path: '/settings/accessibility', label: 'Accessibility', icon: FaUniversalAccess, description: 'Contrast, motion and focus aids' },
+];
 
 const Settings = () => {
-  const navigate = useNavigate();
-  const { user, updateProfile } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { user, updateProfile, changePassword } = useAuth();
+  const {
+    theme,
+    isDark,
+    accent,
+    density,
+    themes,
+    accents,
+    setTheme,
+    setAccent,
+    setDensity,
+    reducedMotion,
+    setReducedMotion,
+    toggleTheme,
+  } = useTheme();
+
   const [activeTab, setActiveTab] = useState('profile');
-  const [formData, setFormData] = useState({
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
   });
-
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: true,
-    taskReminders: true,
-    emailDigest: false,
-  });
-
-  const [privacy, setPrivacy] = useState({
-    shareData: false,
-    analyticsEnabled: true,
-  });
-
-  const tabs = [
-    { id: 'profile', label: 'Profile', icon: FaUser },
-    { id: 'notifications', label: 'Notifications', icon: FaBell },
-    { id: 'appearance', label: 'Appearance', icon: FaPalette },
-    { id: 'privacy', label: 'Privacy', icon: FaShieldAlt },
-  ];
-
-  // Quick links to detailed settings pages
-  const settingsLinks = [
-    { path: '/settings/integrations', label: 'Integrations', icon: FaPlug, description: 'Connect third-party apps' },
-    { path: '/settings/notifications', label: 'Advanced Notifications', icon: FaBell, description: 'Detailed notification settings' },
-    { path: '/settings/security', label: 'Security', icon: FaShieldAlt, description: 'Password, 2FA, and sessions' },
-    { path: '/settings/accessibility', label: 'Accessibility', icon: FaUniversalAccess, description: 'Customize your experience' },
-  ];
-
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault();
+  const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirm: '' });
+  const [notifications, setNotifications] = useState(() => {
     try {
-      await updateProfile(formData);
-      toast.success('Profile updated successfully');
+      return (
+        JSON.parse(localStorage.getItem('notifications')) || {
+          email: true,
+          push: true,
+          taskReminders: true,
+          weeklyDigest: false,
+        }
+      );
+    } catch {
+      return { email: true, push: true, taskReminders: true, weeklyDigest: false };
+    }
+  });
+  const [privacy, setPrivacy] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('privacy')) || { shareData: false, analyticsEnabled: true };
+    } catch {
+      return { shareData: false, analyticsEnabled: true };
+    }
+  });
+
+  useEffect(() => {
+    document.title = 'Settings — SchedAI';
+  }, []);
+
+  useEffect(() => {
+    setForm({
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+    });
+  }, [user]);
+
+  const handleProfile = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      await updateProfile(form);
+      toast.success('Profile updated');
     } catch (error) {
-      toast.error('Failed to update profile');
+      toast.error(error.message || 'Could not update profile');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleNotificationUpdate = () => {
+  const handlePassword = async (event) => {
+    event.preventDefault();
+    if (passwords.newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
+    if (passwords.newPassword !== passwords.confirm) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    setSaving(true);
+    try {
+      await changePassword(passwords.currentPassword, passwords.newPassword);
+      toast.success('Password changed');
+      setPasswords({ currentPassword: '', newPassword: '', confirm: '' });
+    } catch (error) {
+      toast.error(error.message || 'Could not change password');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveNotifications = () => {
     localStorage.setItem('notifications', JSON.stringify(notifications));
     toast.success('Notification preferences saved');
   };
 
-  const handlePrivacyUpdate = () => {
+  const savePrivacy = () => {
     localStorage.setItem('privacy', JSON.stringify(privacy));
     toast.success('Privacy settings saved');
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Manage your account settings and preferences
-        </p>
+    <div className="space-y-5">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Settings</h1>
+          <p className="page-subtitle">Make SchedAI behave the way you like.</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Tabs Sidebar */}
-        <div className="col-span-12 md:col-span-3">
-          <Card>
-            <div className="space-y-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`
-                    w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
-                    ${activeTab === tab.id
-                      ? 'bg-primary-600 text-white'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }
-                  `}
-                >
-                  <tab.icon size={18} />
-                  <span className="font-medium">{tab.label}</span>
-                </button>
-              ))}
-            </div>
-          </Card>
-        </div>
+      <div className="grid gap-5 lg:grid-cols-[15rem_1fr]">
+        {/* Tabs */}
+        <aside className="space-y-3 lg:sticky lg:top-24 lg:self-start">
+          <div className="card p-2">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                  activeTab === tab.id
+                    ? 'bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-200'
+                    : 'text-content-muted hover:bg-gray-100 dark:hover:bg-white/5'
+                }`}
+              >
+                <tab.icon size={12} /> {tab.label}
+              </button>
+            ))}
+          </div>
 
-        {/* Content */}
-        <div className="col-span-12 md:col-span-9">
-          {/* Profile Tab */}
+          <div className="card p-2">
+            {LINKS.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className="group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors hover:bg-gray-100 dark:hover:bg-white/5"
+              >
+                <link.icon size={11} className="mt-1 shrink-0 text-content-subtle" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-xs font-semibold text-content">{link.label}</span>
+                  <span className="block truncate text-[0.65rem] text-content-subtle">{link.description}</span>
+                </span>
+                <FaChevronRight size={8} className="mt-1 shrink-0 text-content-subtle transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            ))}
+          </div>
+        </aside>
+
+        {/* Panels */}
+        <div className="space-y-5">
           {activeTab === 'profile' && (
-            <Card title="Profile Information">
-              <form onSubmit={handleProfileUpdate} className="space-y-4">
-                <Input
-                  label="Full Name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="John Doe"
-                />
-                <Input
-                  label="Email Address"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="john@example.com"
-                />
-                <Input
-                  label="Phone Number"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="+1 234 567 8900"
-                />
-                <Button type="submit" variant="primary" icon={<FaSave />}>
-                  Save Changes
-                </Button>
-              </form>
-            </Card>
-          )}
-
-          {/* Notifications Tab */}
-          {activeTab === 'notifications' && (
-            <Card title="Notification Preferences">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Email Notifications</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Receive email notifications for important updates
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifications.email}
-                      onChange={(e) => setNotifications({ ...notifications, email: e.target.checked })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                  </label>
+            <>
+              <div className="card">
+                <div className="border-b border-line px-5 py-4">
+                  <h2 className="text-base font-semibold text-content">Profile</h2>
+                  <p className="text-sm text-content-muted">This is how you appear across the app.</p>
                 </div>
-
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Push Notifications</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Receive push notifications in your browser
-                    </p>
+                <form onSubmit={handleProfile} className="space-y-4 p-5">
+                  <div className="flex items-center gap-4">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-gradient text-base font-bold text-white">
+                      {(form.name || 'You')
+                        .split(' ')
+                        .map((part) => part[0])
+                        .slice(0, 2)
+                        .join('')
+                        .toUpperCase()}
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-content">{form.name || 'Your name'}</p>
+                      <p className="text-xs text-content-subtle">{form.email || 'you@example.com'}</p>
+                      {user?.role && <span className="badge badge-accent mt-1.5 capitalize">{user.role}</span>}
+                    </div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifications.push}
-                      onChange={(e) => setNotifications({ ...notifications, push: e.target.checked })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                  </label>
-                </div>
 
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Task Reminders</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Get reminded about upcoming tasks
-                    </p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Input label="Full name" name="name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
+                    <Input label="Email" type="email" name="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required />
+                    <Input label="Phone" type="tel" name="phone" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="+254 …" />
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifications.taskReminders}
-                      onChange={(e) => setNotifications({ ...notifications, taskReminders: e.target.checked })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                  </label>
-                </div>
 
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Daily Email Digest</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Receive a daily summary of your tasks
-                    </p>
+                  <div className="flex justify-end border-t border-line pt-4">
+                    <button type="submit" className="btn btn-primary" disabled={saving}>
+                      <FaSave size={11} /> {saving ? 'Saving…' : 'Save changes'}
+                    </button>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifications.emailDigest}
-                      onChange={(e) => setNotifications({ ...notifications, emailDigest: e.target.checked })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                  </label>
-                </div>
-
-                <Button variant="primary" icon={<FaSave />} onClick={handleNotificationUpdate}>
-                  Save Preferences
-                </Button>
+                </form>
               </div>
-            </Card>
+
+              <div className="card">
+                <div className="border-b border-line px-5 py-4">
+                  <h2 className="text-base font-semibold text-content">Password</h2>
+                  <p className="text-sm text-content-muted">Use at least 8 characters with a number.</p>
+                </div>
+                <form onSubmit={handlePassword} className="space-y-4 p-5">
+                  <Input
+                    label="Current password"
+                    type="password"
+                    value={passwords.currentPassword}
+                    onChange={(event) => setPasswords({ ...passwords, currentPassword: event.target.value })}
+                    required
+                    autoComplete="current-password"
+                  />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Input
+                      label="New password"
+                      type="password"
+                      value={passwords.newPassword}
+                      onChange={(event) => setPasswords({ ...passwords, newPassword: event.target.value })}
+                      required
+                      autoComplete="new-password"
+                    />
+                    <Input
+                      label="Confirm new password"
+                      type="password"
+                      value={passwords.confirm}
+                      onChange={(event) => setPasswords({ ...passwords, confirm: event.target.value })}
+                      required
+                      autoComplete="new-password"
+                    />
+                  </div>
+                  <div className="flex justify-end border-t border-line pt-4">
+                    <button type="submit" className="btn btn-outline" disabled={saving}>
+                      Update password
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </>
           )}
 
-          {/* Appearance Tab */}
           {activeTab === 'appearance' && (
-            <Card title="Appearance Settings">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Theme</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Current theme: {theme === 'dark' ? 'Dark' : 'Light'}
-                    </p>
-                  </div>
-                  <Button variant="primary" onClick={toggleTheme}>
-                    Toggle Theme
-                  </Button>
+            <div className="space-y-5">
+              <div className="card">
+                <div className="border-b border-line px-5 py-4">
+                  <h2 className="text-base font-semibold text-content">Appearance</h2>
+                  <p className="text-sm text-content-muted">
+                    Changes apply instantly and are remembered on this device.
+                  </p>
                 </div>
 
-                <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <p className="font-medium text-gray-900 dark:text-white mb-3">Color Scheme</p>
-                  <div className="grid grid-cols-4 gap-3">
-                    {['blue', 'purple', 'green', 'orange'].map((color) => (
-                      <button
-                        key={color}
-                        className={`h-12 rounded-lg bg-${color}-600 hover:ring-4 hover:ring-${color}-200 transition-all`}
-                      />
-                    ))}
+                <div className="space-y-6 p-5">
+                  {/* Mode */}
+                  <div>
+                    <p className="label">Mode</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'light', label: 'Light', icon: FaSun },
+                        { id: 'dark', label: 'Dark', icon: FaMoon },
+                        { id: 'system', label: 'System', icon: FaDesktop },
+                      ].map((mode) => {
+                        const active = mode.id === 'system' ? false : mode.id === theme || (mode.id === 'light' && !isDark);
+                        return (
+                          <button
+                            key={mode.id}
+                            type="button"
+                            onClick={() => (mode.id === 'system' ? setTheme('system') : setTheme(mode.id))}
+                            className={`flex flex-col items-center gap-1.5 rounded-xl border px-3 py-3 text-xs font-semibold transition-colors ${
+                              active
+                                ? 'border-primary-400 bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-200'
+                                : 'border-line text-content-muted hover:border-primary-300'
+                            }`}
+                          >
+                            <mode.icon size={14} />
+                            {mode.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <button type="button" onClick={toggleTheme} className="btn btn-ghost btn-sm mt-2 px-0">
+                      Toggle dark mode
+                    </button>
+                  </div>
+
+                  {/* Themes */}
+                  <div>
+                    <p className="label">Theme</p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {themes.map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => setTheme(option.id)}
+                          className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors ${
+                            theme === option.id
+                              ? 'border-primary-400 bg-primary-50/60 dark:bg-primary-500/10'
+                              : 'border-line hover:border-primary-300'
+                          }`}
+                        >
+                          <span
+                            className="h-8 w-8 shrink-0 rounded-lg border border-line"
+                            style={{
+                              background: `linear-gradient(135deg, ${option.swatch[0]} 0 50%, ${option.swatch[1]} 50% 100%)`,
+                            }}
+                          />
+                          <span className="flex-1 text-xs font-semibold text-content">{option.label}</span>
+                          {theme === option.id && <FaCheck className="text-primary-600" size={11} />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Accent */}
+                  <div>
+                    <p className="label">Accent colour</p>
+                    <div className="flex flex-wrap gap-2.5">
+                      {accents.map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => setAccent(option.id)}
+                          aria-label={option.label}
+                          aria-pressed={accent === option.id}
+                          className={`flex h-9 w-9 items-center justify-center rounded-full transition-transform hover:scale-110 ${
+                            accent === option.id ? 'ring-2 ring-offset-2 ring-offset-surface-raised' : ''
+                          }`}
+                          style={{ backgroundColor: option.color, '--tw-ring-color': option.color }}
+                        >
+                          {accent === option.id && <FaCheck size={11} className="text-white" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Density */}
+                  <div className="flex items-center justify-between rounded-xl border border-line px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium text-content">Compact density</p>
+                      <p className="text-xs text-content-muted">Fit more on screen with tighter spacing.</p>
+                    </div>
+                    <Toggle
+                      checked={density === 'compact'}
+                      onChange={(next) => setDensity(next ? 'compact' : 'comfortable')}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-xl border border-line px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium text-content">Reduce motion</p>
+                      <p className="text-xs text-content-muted">Disable floating and transition animations.</p>
+                    </div>
+                    <Toggle checked={reducedMotion} onChange={setReducedMotion} />
                   </div>
                 </div>
               </div>
-            </Card>
+
+              {/* Preview */}
+              <div className="card overflow-hidden">
+                <div className="border-b border-line px-5 py-4">
+                  <h2 className="flex items-center gap-2 text-base font-semibold text-content">
+                    <FaEye size={12} /> Preview
+                  </h2>
+                </div>
+                <div className="space-y-3 p-5">
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" className="btn btn-primary btn-sm">Primary action</button>
+                    <button type="button" className="btn btn-outline btn-sm">Secondary</button>
+                    <button type="button" className="btn btn-ghost btn-sm">Ghost</button>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    <div className="stat-card">
+                      <p className="text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-content-subtle">Stat</p>
+                      <p className="mt-1 font-display text-xl font-bold text-content">128</p>
+                    </div>
+                    <div className="stat-card">
+                      <p className="text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-content-subtle">Stat</p>
+                      <p className="mt-1 font-display text-xl font-bold text-content">94%</p>
+                    </div>
+                    <div className="stat-card">
+                      <p className="text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-content-subtle">Stat</p>
+                      <p className="mt-1 font-display text-xl font-bold text-content">7h</p>
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-accent-gradient p-4 text-white">
+                    <p className="text-sm font-semibold">Accent gradient</p>
+                    <p className="text-xs text-white/80">Used for CTAs, avatars and highlights.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
 
-          {/* Privacy Tab */}
+          {activeTab === 'notifications' && (
+            <div className="card">
+              <div className="border-b border-line px-5 py-4">
+                <h2 className="text-base font-semibold text-content">Notifications</h2>
+                <p className="text-sm text-content-muted">Choose what reaches you and where.</p>
+              </div>
+              <div className="space-y-3 p-5">
+                {[
+                  { key: 'email', title: 'Email notifications', body: 'Important updates and mentions in your inbox.' },
+                  { key: 'push', title: 'Push notifications', body: 'Browser and device alerts when something needs you.' },
+                  { key: 'taskReminders', title: 'Task reminders', body: 'A nudge before tasks fall due.' },
+                  { key: 'weeklyDigest', title: 'Weekly digest', body: 'A Monday summary of the week ahead.' },
+                ].map((item) => (
+                  <div key={item.key} className="flex items-center justify-between gap-4 rounded-xl border border-line px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium text-content">{item.title}</p>
+                      <p className="text-xs text-content-muted">{item.body}</p>
+                    </div>
+                    <Toggle
+                      checked={Boolean(notifications[item.key])}
+                      onChange={(next) => setNotifications({ ...notifications, [item.key]: next })}
+                    />
+                  </div>
+                ))}
+                <div className="flex justify-end border-t border-line pt-4">
+                  <button type="button" onClick={saveNotifications} className="btn btn-primary">
+                    <FaSave size={11} /> Save preferences
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'privacy' && (
-            <Card title="Privacy & Security">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Share Usage Data</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Help us improve by sharing anonymous usage data
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={privacy.shareData}
-                      onChange={(e) => setPrivacy({ ...privacy, shareData: e.target.checked })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                  </label>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Analytics</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Enable analytics to track your productivity
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={privacy.analyticsEnabled}
-                      onChange={(e) => setPrivacy({ ...privacy, analyticsEnabled: e.target.checked })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-                  </label>
-                </div>
-
-                <Button variant="primary" icon={<FaSave />} onClick={handlePrivacyUpdate}>
-                  Save Settings
-                </Button>
+            <div className="card">
+              <div className="border-b border-line px-5 py-4">
+                <h2 className="text-base font-semibold text-content">Privacy</h2>
+                <p className="text-sm text-content-muted">You control what leaves this device.</p>
               </div>
-            </Card>
+              <div className="space-y-3 p-5">
+                <div className="flex items-center justify-between gap-4 rounded-xl border border-line px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium text-content">Share anonymous usage data</p>
+                    <p className="text-xs text-content-muted">Helps us spot crashes and slow pages.</p>
+                  </div>
+                  <Toggle checked={Boolean(privacy.shareData)} onChange={(next) => setPrivacy({ ...privacy, shareData: next })} />
+                </div>
+                <div className="flex items-center justify-between gap-4 rounded-xl border border-line px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium text-content">Analytics on this device</p>
+                    <p className="text-xs text-content-muted">Keep local analytics so your dashboard has history.</p>
+                  </div>
+                  <Toggle checked={Boolean(privacy.analyticsEnabled)} onChange={(next) => setPrivacy({ ...privacy, analyticsEnabled: next })} />
+                </div>
+
+                <div className="rounded-xl border border-line bg-surface-sunken/60 p-4">
+                  <p className="text-sm font-semibold text-content">Your data</p>
+                  <p className="mt-1 text-xs text-content-muted">
+                    Export or delete everything connected to your account at any time.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link to="/settings/security" className="btn btn-outline btn-sm">Security centre</Link>
+                    <Link to="/contact" className="btn btn-ghost btn-sm">Request deletion</Link>
+                  </div>
+                </div>
+
+                <div className="flex justify-end border-t border-line pt-4">
+                  <button type="button" onClick={savePrivacy} className="btn btn-primary">
+                    <FaSave size={11} /> Save settings
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
-        </div>
-      </div>
-
-      {/* Quick Links to Detailed Settings */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">More Settings</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {settingsLinks.map((link) => (
-            <button
-              key={link.path}
-              onClick={() => navigate(link.path)}
-              className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-500 dark:hover:border-primary-500 hover:shadow-md transition-all group"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
-                  <link.icon className="text-primary-600 dark:text-primary-400" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-gray-900 dark:text-white">{link.label}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{link.description}</p>
-                </div>
-              </div>
-              <FaChevronRight className="text-gray-400 group-hover:text-primary-500 transition-colors" />
-            </button>
-          ))}
         </div>
       </div>
     </div>

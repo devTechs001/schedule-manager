@@ -5,9 +5,9 @@ const NotFound = () => {
   const navigate = useNavigate();
 
   const suggestions = [
-    { path: '/', label: 'Dashboard', description: 'Go to your main dashboard' },
+    { path: '/dashboard', label: 'Dashboard', description: 'Go to your main dashboard' },
     { path: '/tasks', label: 'Tasks', description: 'View your task list' },
-    { path: '/calendar', label: 'Calendar', description: 'Check your schedule' },
+    { path: '/schedule', label: 'Schedule', description: 'Check your schedule' },
     { path: '/settings', label: 'Settings', description: 'Manage your preferences' },
   ];
 
@@ -45,7 +45,7 @@ const NotFound = () => {
             <FaArrowLeft className="mr-2" /> Go Back
           </button>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             className="flex items-center px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors"
           >
             <FaHome className="mr-2" /> Home
