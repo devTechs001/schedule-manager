@@ -184,7 +184,7 @@ const Header = ({ onMenuClick, onOpenSearch, breadcrumb }) => {
     .toUpperCase();
 
   return (
-    <header className="sticky top-0 z-[65] flex h-[var(--header-h)] items-center gap-3 border-b border-line bg-surface/85 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+    <header className="app-header sticky top-0 z-[65] flex h-[var(--header-h)] items-center gap-3 border-b border-line bg-surface/85 backdrop-blur-xl sm:px-6 lg:px-8">
       {/* Mobile menu */}
       <button
         type="button"
@@ -263,8 +263,12 @@ const Header = ({ onMenuClick, onOpenSearch, breadcrumb }) => {
             aria-label="Account menu"
             aria-expanded={menuOpen}
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-gradient text-[0.65rem] font-bold text-white">
-              {initials}
+            <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-accent-gradient text-[0.65rem] font-bold text-white">
+              {user?.avatar ? (
+                <img src={user.avatar} alt="" className="h-full w-full object-cover" />
+              ) : (
+                initials
+              )}
             </span>
             <span className="hidden max-w-[9rem] truncate text-xs font-semibold text-content md:block">
               {user?.name?.split(' ')[0] || 'Guest'}

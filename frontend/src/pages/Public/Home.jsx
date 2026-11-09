@@ -20,6 +20,7 @@ import {
 } from 'react-icons/fa';
 import ProductPreview from '@components/public/ProductPreview';
 import DemoLoginButton from '@components/public/DemoLoginButton';
+import { DEMO_ENABLED } from '@utils/features';
 
 const FEATURES = [
   {
@@ -181,7 +182,10 @@ const Home = () => {
                   Start free
                   <FaArrowRight className="transition-transform group-hover:translate-x-0.5" size={13} />
                 </Link>
-                <DemoLoginButton variant="outline" size="lg" label="Try the live demo" />
+                {/* Dev-only CTA; omitted entirely from production bundles. */}
+                {DEMO_ENABLED && (
+                  <DemoLoginButton variant="outline" size="lg" label="Try the live demo" />
+                )}
               </div>
 
               <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-content-subtle">

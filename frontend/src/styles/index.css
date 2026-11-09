@@ -316,17 +316,57 @@
 @layer components {
   /* Layout shells ------------------------------------------------------- */
   .app-shell {
+    /* dvh tracks the *visible* viewport, so mobile browser chrome collapsing
+       doesn't leave a 100vh-tall gap under the content. vh stays as fallback. */
     min-height: 100vh;
+    min-height: 100dvh;
     background:
       radial-gradient(1100px 520px at 8% -8%, rgb(var(--accent-500) / 0.10), transparent 60%),
       radial-gradient(900px 420px at 96% 0%, rgb(var(--secondary-500) / 0.09), transparent 55%),
       rgb(var(--surface-sunken));
   }
 
+  /*
+   * Mobile-first content gutter.
+   * The horizontal padding steps up with the breakpoint, and the bottom padding
+   * clears the fixed bottom navigation *plus* the device safe area — otherwise
+   * the last row of a list is unreachable behind the tab bar on a notched phone.
+   */
   .app-main {
-    @apply px-4 sm:px-6 lg:px-8 py-6 lg:py-8;
+    @apply px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8;
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
     margin-left: 0;
     transition: margin-left 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @media (min-width: 1024px) {
+    /* Desktop owns its own gutter; no tab bar to clear. */
+    .app-main { padding-bottom: 2rem; }
+  }
+
+  /*
+   * Sticky header on a notched device. In landscape the notch eats the left
+   * edge, so the header must respect the inset.
+   *
+   * `!important` is deliberate: the header also carries Tailwind's px-* and
+   * sm:px-6 utilities, which land later in the cascade and would otherwise
+   * overwrite these padding declarations.
+   */
+  .app-header {
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    padding-left: max(1rem, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(1rem, env(safe-area-inset-right, 0px)) !important;
+  }
+  @media (min-width: 640px) {
+    .app-header {
+      padding-left: max(1.5rem, env(safe-area-inset-left, 0px)) !important;
+      padding-right: max(1.5rem, env(safe-area-inset-right, 0px)) !important;
+    }
+  }
+  @media (min-width: 1024px) {
+    .app-header {
+      padding-left: max(2rem, env(safe-area-inset-left, 0px)) !important;
+      padding-right: max(2rem, env(safe-area-inset-right, 0px)) !important;
+    }
   }
   @media (min-width: 1024px) {
     #app-content { margin-left: var(--sidebar-w); }

@@ -5,6 +5,7 @@ import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowRight, FaGoogle, FaGithub
 import { useAuth } from '@contexts/AuthContext';
 import AuthShell from './AuthShell';
 import { useDemoLogin } from '@components/public/DemoLoginButton';
+import { DEMO_ENABLED } from '@utils/features';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -153,15 +154,22 @@ const Login = () => {
         </button>
       </div>
 
-      <button
-        type="button"
-        onClick={startDemo}
-        disabled={demoLoading}
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line bg-surface-sunken/60 px-3 py-2.5 text-[0.72rem] font-semibold text-content transition-colors hover:border-primary-300"
-      >
-        <FaBolt className="text-primary-500" size={11} />
-        {demoLoading ? 'Preparing a demo board…' : 'Explore instantly with a demo account'}
-      </button>
+      {/*
+        Demo entry point — development builds only. `DEMO_ENABLED` is a static
+        false in production, so the whole block (and its strings) is stripped at
+        build time rather than merely hidden at runtime.
+      */}
+      {DEMO_ENABLED && (
+        <button
+          type="button"
+          onClick={startDemo}
+          disabled={demoLoading}
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line bg-surface-sunken/60 px-3 py-2.5 text-[0.72rem] font-semibold text-content transition-colors hover:border-primary-300"
+        >
+          <FaBolt className="text-primary-500" size={11} />
+          {demoLoading ? 'Preparing a demo board…' : 'Explore instantly with a demo account'}
+        </button>
+      )}
     </AuthShell>
   );
 };
