@@ -108,6 +108,13 @@ jobs:
           VITE_API_URL: http://localhost:5000/api
           VITE_WS_URL: http://localhost:5000
 
+      # Loads the real production bundle in a DOM and asserts the app actually
+      # mounts and clears the splash. Catches the "frozen loading screen" class
+      # of bug, which a passing `vite build` cannot see.
+      - name: Boot check (production bundle)
+        working-directory: ./frontend
+        run: pnpm run boot
+
   # Build and Push Docker Images
   build-and-push:
     needs: [backend-test, frontend-test]

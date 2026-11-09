@@ -160,6 +160,71 @@ const dismissBootSplash = () => {
 };
 
 /**
+ * Stale-chunk recovery.
+ *
+ * After a deploy the service worker can hand the browser an old HTML shell that
+ * references chunk filenames which no longer exist. Lazy importing such a chunk
+ * throws "Failed to fetch dynamically imported module", and because App sits
+ * behind <Suspense fallback={<FullScreenLoader/>}> the user sees a spinner that
+ * never resolves — indistinguishable from a frozen splash.
+ *
+ * The fix: detect that specific failure once and reload into a fresh shell.
+ * A short-lived marker prevents a reload loop if the failure is not stale-cache
+ * related (e.g. offline).
+ */
+const installStaleChunkRecovery = () => {
+  if (typeof window === 'undefined') return;
+
+  const KEY = 'schedai:chunk-reload';
+  const isChunkError = (message) =>
+    /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|ChunkLoadError/i.test(
+      String(message || '')
+    );
+
+  const recover = (message) => {
+    if (!isChunkError(message)) return;
+
+    let last = 0;
+    try {
+      last = Number(window.sessionStorage.getItem(KEY) || 0);
+    } catch {
+      /* storage blocked */
+    }
+
+    // Only auto-reload once per minute; beyond that show the recovery UI.
+    if (Date.now() - last < 60_000) {
+      console.warn('[boot] chunk load failed again — offering manual recovery');
+      if (typeof window.__bootShowRecovery === 'function') {
+        window.__bootShowRecovery(
+          'A required file failed to load. Clear the cache and reload.'
+        );
+      } else {
+        document.getElementById('boot-recovery')?.removeAttribute('hidden');
+      }
+      return;
+    }
+
+    try {
+      window.sessionStorage.setItem(KEY, String(Date.now()));
+    } catch {
+      /* ignore */
+    }
+    console.info('[boot] stale chunk detected — reloading for a fresh build');
+    window.location.reload();
+  };
+
+  window.addEventListener('unhandledrejection', (event) => {
+    recover(event.reason?.message || event.reason);
+  });
+
+  window.addEventListener('error', (event) => {
+    recover(event.message);
+  });
+};
+
+installStaleChunkRecovery();
+
+/**
  * GitHub Pages fallback. public/404.html rewrites a deep link into
  * `?redirect=/the/original/path`; restore it here, before the router mounts,
  * so the history entry is correct on the very first render.
@@ -181,22 +246,55 @@ const restoreRedirectedPath = () => {
 restoreRedirectedPath();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  </React.StrictMode>
-);
 
-// Double rAF: the first frame has been scheduled, the second guarantees the
-// root has painted something before the splash goes away.
-requestAnimationFrame(() => {
-  requestAnimationFrame(dismissBootSplash);
-});
+// If rendering throws synchronously, the splash must still be dismissible so
+// the error boundary (not the loader) is what the user sees.
+try {
+  root.render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </React.StrictMode>
+  );
+} catch (error) {
+  console.error('[boot] render failed', error);
+  document.getElementById('boot-splash')?.classList.add('boot--leaving');
+}
 
-// Safety net — never let a stalled boundary leave the splash up forever.
-setTimeout(dismissBootSplash, 12000);
+/**
+ * Dismiss the boot splash without depending on animation frames.
+ *
+ * A backgrounded tab (or one where rAF is throttled) may never fire a frame, so
+ * gating on rAF alone can strand the splash. A timeout plus a readyState check
+ * covers every case.
+ */
+const scheduleBootDismiss = () => {
+  if (typeof window === 'undefined') return;
+
+  const run = () => {
+    try {
+      dismissBootSplash();
+    } catch (error) {
+      // Never let the teardown throw — the splash must go regardless.
+      console.error('[boot] splash teardown failed', error);
+      document.getElementById('boot-splash')?.remove();
+    }
+    window.__bootRecovered?.();
+  };
+
+  // Fire once the document is parsed and React has had a turn to mount.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(run, 0), { once: true });
+  } else {
+    setTimeout(run, 0);
+  }
+
+  // Safety net: whatever happens above, never leave users staring at the splash.
+  setTimeout(run, 6000);
+};
+
+scheduleBootDismiss();
 
 // Log app version (helpful for debugging)
 console.log(

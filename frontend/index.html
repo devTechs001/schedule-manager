@@ -223,6 +223,62 @@
       .boot__skeleton i:nth-child(2) { width: 78%; animation-delay: 0.15s; }
       .boot__skeleton i:nth-child(3) { width: 56%; animation-delay: 0.3s; }
 
+      /* Standalone overlay: survives splash dismissal and covers any view. */
+      .boot__recovery {
+        position: fixed;
+        left: 50%;
+        bottom: 1.5rem;
+        transform: translateX(-50%);
+        z-index: 2147483000;
+        width: min(24rem, calc(100vw - 2rem));
+        padding: 0.95rem;
+        border-radius: 0.9rem;
+        border: 1px solid var(--boot-line, rgba(15, 23, 42, 0.14));
+        background: var(--boot-bg, #ffffff);
+        color: var(--boot-ink, #0f172a);
+        box-shadow: 0 18px 40px -12px rgba(15, 23, 42, 0.28);
+        text-align: center;
+      }
+      .boot__recovery[hidden] { display: none; }
+      .boot__recovery-text {
+        margin: 0 0 0.7rem;
+        font-size: 0.78rem;
+        font-weight: 500;
+        line-height: 1.45;
+        color: inherit;
+      }
+      .boot__recovery-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .boot__btn {
+        appearance: none;
+        border: 1px solid currentColor;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        font-size: 0.74rem;
+        font-weight: 600;
+        padding: 0.45rem 0.85rem;
+        border-radius: 0.6rem;
+        cursor: pointer;
+        transition: opacity 0.2s ease;
+      }
+      .boot__btn:hover { opacity: 0.75; }
+      .boot__btn--primary {
+        border-color: transparent;
+        background: linear-gradient(100deg, #6366f1, #8b5cf6);
+        color: #fff;
+      }
+      .boot__recovery-hint {
+        margin: 0.6rem 0 0;
+        font-size: 0.65rem;
+        line-height: 1.4;
+        opacity: 0.7;
+      }
+
       @keyframes boot-rise {
         from { opacity: 0; transform: translateY(14px); }
         to { opacity: 1; transform: none; }
@@ -313,7 +369,30 @@
         <div class="boot__skeleton" aria-hidden="true">
           <i></i><i></i><i></i>
         </div>
+
       </div>
+    </div>
+
+    <!--
+      Recovery overlay. Lives OUTSIDE #boot-splash so it still works after the
+      splash is gone — a lazy route chunk can fail at any point, not just during
+      the first paint. Hidden until something actually goes wrong.
+    -->
+    <div class="boot__recovery" id="boot-recovery" role="alert" hidden>
+      <p class="boot__recovery-text" id="boot-recovery-text">
+        This is taking longer than usual.
+      </p>
+      <div class="boot__recovery-actions">
+        <button type="button" class="boot__btn boot__btn--primary" id="boot-reload">
+          Reload
+        </button>
+        <button type="button" class="boot__btn" id="boot-reset">
+          Clear cache &amp; reload
+        </button>
+      </div>
+      <p class="boot__recovery-hint">
+        Clearing the cache fixes a stale offline copy after an update.
+      </p>
     </div>
 
     <!-- App Root -->
@@ -322,15 +401,93 @@
     <!-- Main Script -->
     <script type="module" src="/src/main.jsx"></script>
 
-    <!-- Fallback: if the bundle never executes, say so instead of spinning forever -->
+    <!--
+      Boot watchdog.
+      Runs as plain inline script so it works even when the bundle fails to
+      load at all (stale service-worker cache, blocked chunk, syntax error in a
+      lazy route, offline). Without this the splash spins forever and the user
+      has no way out.
+    -->
     <script>
-      window.__bootStart = Date.now();
-      setTimeout(function () {
-        var status = document.getElementById('boot-status');
-        if (status && document.getElementById('boot-splash')) {
-          status.textContent = 'Still loading — check your connection…';
+      (function () {
+        window.__bootStart = Date.now();
+        window.__bootDone = false;
+
+        var statusEl = document.getElementById('boot-status');
+        var recovery = document.getElementById('boot-recovery');
+        var recoveryText = document.getElementById('boot-recovery-text');
+
+        function showRecovery(message) {
+          // Deliberately NOT gated on __bootDone: a lazy route chunk can fail
+          // long after boot, and the user still needs a way out.
+          if (statusEl && !window.__bootDone) statusEl.textContent = 'Something went wrong';
+          if (recoveryText && message) recoveryText.textContent = message;
+          if (recovery) recovery.hidden = false;
         }
-      }, 8000);
+
+        // Let the app reuse the overlay for post-boot chunk failures.
+        window.__bootShowRecovery = showRecovery;
+
+        // The bundle imports main.jsx and then calls dismissBootSplash().
+        // If that hasn't happened by now, the app is not going to boot.
+        var slowTimer = setTimeout(function () {
+          if (window.__bootDone) return;
+          if (statusEl) statusEl.textContent = 'Still loading — this is taking a while…';
+        }, 8000);
+
+        var failTimer = setTimeout(function () {
+          showRecovery(
+            'The app did not finish loading. This is usually a stale offline copy after an update.'
+          );
+        }, 20000);
+
+        window.__bootRecovered = function () {
+          clearTimeout(slowTimer);
+          clearTimeout(failTimer);
+          window.__bootDone = true;
+        };
+
+        // A missing chunk is the classic stale-cache symptom: report it at once
+        // rather than waiting for the full timeout.
+        window.addEventListener('error', function (event) {
+          var target = event.target;
+          if (target && target.tagName === 'SCRIPT') {
+            showRecovery('A required file failed to load. Clear the cache and reload.');
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function (event) {
+          var message = String((event.reason && event.reason.message) || event.reason || '');
+          if (/Failed to fetch dynamically imported module|Importing a module script failed|ChunkLoadError/i.test(message)) {
+            showRecovery('A required file failed to load. Clear the cache and reload.');
+          }
+        });
+
+        document.getElementById('boot-reload').addEventListener('click', function () {
+          window.location.reload();
+        });
+
+        document.getElementById('boot-reset').addEventListener('click', function () {
+          // Unregister service workers and drop caches so the next load pulls a
+          // fresh shell + chunks. Then hard-reload.
+          var done = function () {
+            if (window.caches && caches.keys) {
+              caches.keys().then(function (keys) {
+                return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+              }).then(function () { window.location.reload(); }, function () { window.location.reload(); });
+            } else {
+              window.location.reload();
+            }
+          };
+          if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+              Promise.all(regs.map(function (r) { return r.unregister(); })).then(done, done);
+            }, done);
+          } else {
+            done();
+          }
+        });
+      })();
     </script>
   </body>
 </html>

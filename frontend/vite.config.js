@@ -11,8 +11,24 @@ export default defineConfig({
       strategies: 'generateSW',
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webp}'],
+        // The HTML shell must never be served stale: it references hashed
+        // chunk names, and a cached shell + dropped chunks is exactly what
+        // leaves the app stuck on its loading screen after a deploy.
+        navigateFallback: '/index.html',
+        // Drop precaches from previous builds immediately.
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
+          {
+            // Hashed build output is immutable — cache-first is safe and fast.
+            urlPattern: /\/assets\/.*\.(?:js|css|woff2|webp|png|svg)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'app-static',
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           {
             urlPattern: /^https:\/\/(api\.|www\.)?your-api-domain\.com/,
             handler: 'NetworkFirst',
