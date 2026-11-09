@@ -67,16 +67,30 @@ const systemMode = () => {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 };
 
+/**
+ * The product ships dark by default.
+ *
+ * A first-time visitor (nothing in localStorage) lands on `dark`; we deliberately
+ * do NOT follow the OS preference, because the app's identity is the dark
+ * workspace and a light first impression contradicts the marketing pages.
+ * Anyone who has already chosen a theme keeps it — `theme-mode` wins.
+ */
+export const DEFAULT_THEME = 'dark';
+
 export const ThemeProvider = ({ children }) => {
   // A stored theme id wins; otherwise fall back to the legacy `theme` key so
   // users who toggled dark mode before this change keep their preference.
   const [theme, setThemeState] = useState(() => {
-    const legacy = read(STORAGE.theme, null);
-    if (legacy === 'light' || legacy === 'dark') {
-      const stored = read(STORAGE.mode, null);
-      return stored ? themeById(stored).id : legacy;
+    const stored = read(STORAGE.mode, null);
+    if (stored === 'system') return 'system'; // explicit opt-in, keep tracking the OS
+    if (stored) {
+      const legacy = read(STORAGE.theme, null);
+      if (legacy === 'light' || legacy === 'dark') return legacy;
+      return themeById(stored).id;
     }
-    return read(STORAGE.mode, systemMode() === 'dark' ? 'dark' : 'light');
+    const legacy = read(STORAGE.theme, null);
+    if (legacy === 'light' || legacy === 'dark') return legacy;
+    return DEFAULT_THEME;
   });
 
   const [accent, setAccentState] = useState(() => read(STORAGE.accent, 'indigo'));
@@ -174,6 +188,9 @@ export const ThemeProvider = ({ children }) => {
       // New API
       theme: resolvedTheme,
       themeId: resolvedTheme,
+      // The raw choice, which may be 'system'. Settings needs this to keep the
+      // System button selected; `theme` is already resolved to light/dark.
+      themeChoice: theme,
       mode,
       isDark: mode === 'dark',
       accent,
@@ -189,7 +206,7 @@ export const ThemeProvider = ({ children }) => {
       // Backwards compatible API
       toggleTheme,
     }),
-    [resolvedTheme, mode, accent, density, reducedMotion, setTheme, setAccent, setDensity, setReducedMotion, cycleAccent, toggleTheme]
+    [resolvedTheme, theme, mode, accent, density, reducedMotion, setTheme, setAccent, setDensity, setReducedMotion, cycleAccent, toggleTheme]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

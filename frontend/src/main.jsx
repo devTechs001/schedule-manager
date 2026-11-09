@@ -89,11 +89,23 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 // Notification permission is requested from Settings → Notifications, never
 // on page load. Unprompted permission dialogs are blocked by browsers anyway.
 
-// Initialize theme from localStorage or system preference
+// Initialize theme from localStorage. Dark is the product default — the OS
+// preference is only consulted when the user has explicitly chosen "system".
+// (index.html applies the same decision inline, before first paint, so this is
+// a fallback for the case where that script was blocked.)
 const initializeTheme = () => {
-  const savedTheme = localStorage.getItem('theme-mode') || localStorage.getItem('theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+  let savedTheme = null;
+  try {
+    savedTheme = localStorage.getItem('theme-mode') || localStorage.getItem('theme');
+  } catch {
+    /* storage blocked — fall through to the default */
+  }
+
+  if (savedTheme === 'system') {
+    savedTheme = window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  const theme = savedTheme || 'dark';
 
   if (theme === 'dark' || theme === 'midnight' || theme === 'nord') {
     document.documentElement.classList.add('dark');

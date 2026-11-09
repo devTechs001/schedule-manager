@@ -212,6 +212,27 @@ if (!/clear cache/i.test(htmlShell)) {
   problems.push('recovery panel has no cache-clearing affordance');
 }
 
+/*
+ * Dark is the product default. The jsdom above ran with EMPTY localStorage, so
+ * whatever is on <html> right now is what a first-time visitor actually gets.
+ * Assert the outcome, not the markup — the theme is applied by script.
+ */
+const rootEl = window.document.documentElement;
+const bootAttr = rootEl.getAttribute('data-boot');
+const hasDarkClass = rootEl.classList.contains('dark');
+
+if (!hasDarkClass || (bootAttr !== 'dark' && !/^(midnight|nord)$/.test(bootAttr || ''))) {
+  problems.push(
+    `first-time visitor is not dark (class="${rootEl.className}" data-boot="${bootAttr}")`
+  );
+} else {
+  report.push('default theme:dark ✓');
+}
+
+if (!/var DEFAULT_THEME = 'dark'/.test(htmlShell)) {
+  problems.push('inline theme bootstrap no longer defaults to dark');
+}
+
 if (!/cleanupOutdatedCaches/.test(swSource)) {
   problems.push('service worker does not clean outdated caches');
 } else {

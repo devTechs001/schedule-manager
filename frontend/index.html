@@ -46,29 +46,39 @@
          is no bright-white flash for dark-mode users. main.jsx removes it.
          ================================================================== -->
     <style>
+      /*
+        Splash palette. Dark is the default, so the base declarations below are
+        the dark ones — if the theme script never runs, the first paint is still
+        correct rather than a white flash. Light-ish themes override further down.
+      */
       :root {
-        --boot-bg: #f8fafc;
-        --boot-bg-2: #eef2ff;
-        --boot-ink: #0f172a;
-        --boot-muted: #64748b;
-        --boot-line: rgba(15, 23, 42, 0.08);
-        --boot-accent: #6366f1;
-        --boot-accent-2: #8b5cf6;
-      }
-
-      /* Dark theme variants (data-theme set by the inline script below) */
-      html[data-boot='dark'],
-      html[data-boot='midnight'],
-      html[data-boot='nord'] {
         --boot-bg: #0b1120;
         --boot-bg-2: #111c33;
         --boot-ink: #f1f5f9;
         --boot-muted: #94a3b8;
         --boot-line: rgba(255, 255, 255, 0.09);
+        --boot-accent: #6366f1;
+        --boot-accent-2: #8b5cf6;
+      }
+
+      html[data-boot='dark'],
+      html[data-boot='midnight'] {
+        --boot-bg: #0b1120;
+        --boot-bg-2: #111c33;
       }
       html[data-boot='nord'] {
         --boot-bg: #2e3440;
         --boot-bg-2: #3b4252;
+        --boot-ink: #eceff4;
+        --boot-muted: #a9b3c4;
+        --boot-line: rgba(255, 255, 255, 0.1);
+      }
+      html[data-boot='light'] {
+        --boot-bg: #f8fafc;
+        --boot-bg-2: #eef2ff;
+        --boot-ink: #0f172a;
+        --boot-muted: #64748b;
+        --boot-line: rgba(15, 23, 42, 0.08);
       }
       html[data-boot='sand'] {
         --boot-bg: #fdfbf7;
@@ -318,21 +328,37 @@
       }
     </style>
 
-    <!-- Apply the saved theme to the splash before first paint (no flash) -->
+    <!--
+      Apply the theme to <html> before first paint.
+      The product is dark by default, so this runs ahead of the bundle: without
+      it a first-time visitor paints a light shell for a frame before React
+      swaps the class in. Must stay inline and synchronous.
+    -->
     <script>
       (function () {
+        var DEFAULT_THEME = 'dark';
+        var KNOWN = { light: 'light', dark: 'dark', midnight: 'dark', nord: 'dark', sand: 'light' };
+
+        var theme = DEFAULT_THEME;
+        var accent = null;
         try {
-          var theme = localStorage.getItem('theme-mode') || localStorage.getItem('theme');
-          if (theme === 'dark' || theme === 'midnight' || theme === 'nord' || theme === 'sand' || theme === 'light') {
-            document.documentElement.setAttribute('data-boot', theme);
-          } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.setAttribute('data-boot', 'dark');
-          }
-          var accent = localStorage.getItem('theme-accent');
-          if (accent) document.documentElement.setAttribute('data-boot-accent', accent);
+          accent = localStorage.getItem('theme-accent');
+          var saved = localStorage.getItem('theme-mode') || localStorage.getItem('theme');
+          if (saved && KNOWN[saved]) theme = saved;
         } catch (e) {
-          /* storage blocked — keep the default light splash */
+          /* storage blocked — keep the dark default */
         }
+
+        var root = document.documentElement;
+        root.setAttribute('data-boot', theme);
+        root.setAttribute('data-theme', theme);
+        var isDark = KNOWN[theme] === 'dark';
+        // Set both explicitly so a re-run (or a prerendered shell) can never
+        // leave the opposite class behind.
+        root.classList.toggle('dark', isDark);
+        root.classList.toggle('light', !isDark);
+        root.style.colorScheme = isDark ? 'dark' : 'light';
+        if (accent) root.setAttribute('data-boot-accent', accent);
       })();
     </script>
 

@@ -50,6 +50,7 @@ const Settings = () => {
     reducedMotion,
     setReducedMotion,
     toggleTheme,
+    themeChoice,
   } = useTheme();
 
   const [activeTab, setActiveTab] = useState('profile');
@@ -288,7 +289,12 @@ const Settings = () => {
                         { id: 'dark', label: 'Dark', icon: FaMoon },
                         { id: 'system', label: 'System', icon: FaDesktop },
                       ].map((mode) => {
-                        const active = mode.id === 'system' ? false : mode.id === theme || (mode.id === 'light' && !isDark);
+                        // 'system' must be selectable and stay selected — the
+                        // resolved theme alone cannot tell you it was chosen.
+                        const active =
+                          mode.id === 'system'
+                            ? themeChoice === 'system'
+                            : themeChoice !== 'system' && theme === mode.id;
                         return (
                           <button
                             key={mode.id}
