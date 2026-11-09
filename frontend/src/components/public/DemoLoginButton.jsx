@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { FaBolt, FaArrowRight } from 'react-icons/fa';
 import client from '@services/api/client';
+import { appUrl } from '@utils/basePath';
 
 /**
  * One-click demo session. If the backend has no database (or demo mode is
@@ -34,7 +35,7 @@ export const useDemoLogin = () => {
       }
 
       // Full reload so AuthProvider picks the new token up cleanly.
-      window.location.assign('/dashboard');
+      window.location.assign(appUrl('/dashboard'));
       return true;
     } catch (error) {
       // Offline sandbox fallback — a flag is enough for AuthContext to

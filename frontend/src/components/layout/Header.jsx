@@ -28,9 +28,8 @@ const PAGE_TITLES = {
   '/ai-chat': 'AI chat',
   '/predictive-scheduler': 'Predictive planner',
   '/meeting-assistant': 'Meeting assistant',
-  '/collaboration': 'Team workspace',
+  '/collaboration': 'Team overview',
   '/collaboration/projects': 'Projects',
-  '/collaboration/meetings': 'Meetings',
   '/leaderboard': 'Leaderboard',
   '/achievements': 'Achievements',
   '/challenges': 'Challenges',
@@ -137,7 +136,7 @@ const Header = ({ onMenuClick, onOpenSearch, breadcrumb }) => {
           <Link to="/dashboard" className="flex items-center gap-1 hover:text-primary-600">
             <FaHome size={9} /> App
           </Link>
-          {parent && parent !== 'Workspace' && (
+          {parent && parent !== 'My work' && (
             <>
               <span aria-hidden="true">/</span>
               <span>{parent}</span>

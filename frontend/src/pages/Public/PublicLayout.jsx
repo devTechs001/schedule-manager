@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { appUrl } from '@utils/basePath';
 import { Outlet, useLocation, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import PublicNavbar from '@components/public/PublicNavbar';
@@ -25,7 +26,7 @@ const PublicLayout = () => {
     const next = new URLSearchParams(searchParams);
     next.delete('demo');
     setSearchParams(next, { replace: true });
-    window.location.assign('/dashboard');
+    window.location.assign(appUrl('/dashboard'));
   }, [searchParams, setSearchParams]);
 
   // Scroll to top on route change, or to an anchor when one is present

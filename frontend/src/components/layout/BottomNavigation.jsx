@@ -62,7 +62,7 @@ const BottomNavigation = () => {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/dashboard'}
+              end={item.to !== '/analytics'}
               className={({ isActive }) =>
                 `flex flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[0.6rem] font-medium transition-colors ${
                   isActive ? 'text-primary-600 dark:text-primary-300' : 'text-content-subtle'

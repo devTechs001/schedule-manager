@@ -15,6 +15,7 @@ import { PerformanceProvider } from '@contexts/PerformanceContext';
 // Layout
 import Layout from '@components/layout/Layout';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
+import { BASE_PATH } from '@utils/basePath';
 
 // Public / marketing (eager — this is the first paint for logged-out visitors)
 import Home from '@pages/Public/Home';
@@ -22,6 +23,8 @@ import PublicLayout from '@pages/Public/PublicLayout';
 const Features = lazy(() => import('@pages/Public/Features'));
 const About = lazy(() => import('@pages/Public/About'));
 const Contact = lazy(() => import('@pages/Public/Contact'));
+const Support = lazy(() => import('@pages/Support'));
+const Status = lazy(() => import('@pages/Status'));
 
 // Main app pages
 const Dashboard = lazy(() => import('@pages/Dashboard'));
@@ -66,7 +69,6 @@ const SettingsAccessibility = lazy(() => import('@pages/Settings/Accessibility')
 // Collaboration
 const TeamWorkspace = lazy(() => import('@pages/Collaboration/TeamWorkspace'));
 const Projects = lazy(() => import('@pages/Collaboration/Projects'));
-const Meetings = lazy(() => import('@pages/Collaboration/Meetings'));
 
 // Onboarding
 const Welcome = lazy(() => import('@pages/Onboarding/Welcome'));
@@ -159,6 +161,10 @@ function AppContent() {
           <Route path="/contact" element={<Contact />} />
         </Route>
 
+        {/* Help pages reachable from error states, so they must work signed-out */}
+        <Route path="/support" element={<Support />} />
+        <Route path="/status" element={<Status />} />
+
         {/* ================= AUTH ================= */}
         <Route
           path="/login"
@@ -211,7 +217,6 @@ function AppContent() {
 
           <Route path="/collaboration" element={<TeamWorkspace />} />
           <Route path="/collaboration/projects" element={<Projects />} />
-          <Route path="/collaboration/meetings" element={<Meetings />} />
 
           <Route path="/ai/insights" element={<AIInsights />} />
           <Route path="/ai/chat" element={<AIChat />} />
@@ -242,7 +247,7 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
+    <Router basename={BASE_PATH || undefined}>
       <ThemeProvider>
         <AuthProvider>
           <AppProvider>

@@ -1,5 +1,5 @@
 import { FaHome, FaSearch, FaArrowLeft } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const NotFound = () => {
   const navigate = useNavigate();
@@ -73,7 +73,7 @@ const NotFound = () => {
 
         {/* Footer */}
         <p className="mt-8 text-sm text-gray-500 dark:text-gray-500">
-          Need help? <a href="/support" className="text-blue-500 hover:underline">Contact Support</a>
+          Need help? <Link to="/support" className="text-blue-500 hover:underline">Visit support</Link>
         </p>
       </div>
     </div>

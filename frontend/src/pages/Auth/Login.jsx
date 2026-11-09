@@ -6,8 +6,6 @@ import { useAuth } from '@contexts/AuthContext';
 import AuthShell from './AuthShell';
 import { useDemoLogin } from '@components/public/DemoLoginButton';
 
-const DEMO = { email: 'devtechs842@gmail.com', password: 'AdminPass123!' };
-
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -44,11 +42,6 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDemo = () => {
-    setForm(DEMO);
-    toast.success('Demo credentials filled — press Sign in');
   };
 
   return (
@@ -168,14 +161,6 @@ const Login = () => {
       >
         <FaBolt className="text-primary-500" size={11} />
         {demoLoading ? 'Preparing a demo board…' : 'Explore instantly with a demo account'}
-      </button>
-
-      <button
-        type="button"
-        onClick={fillDemo}
-        className="mt-2 w-full px-3 py-1 text-center text-[0.65rem] text-content-subtle hover:text-content"
-      >
-        Or fill the seeded admin credentials (devtechs842@gmail.com / AdminPass123!)
       </button>
     </AuthShell>
   );

@@ -96,7 +96,7 @@ const Sidebar = ({ isOpen, onClose, collapsed = false, onToggleCollapse }) => {
                       <li key={item.to}>
                         <NavLink
                           to={item.to}
-                          end={item.to === '/dashboard'}
+                          end={item.to !== '/collaboration' && item.to !== '/analytics'}
                           onClick={handleNavigate}
                           title={collapsed ? item.label : undefined}
                           className={({ isActive }) =>

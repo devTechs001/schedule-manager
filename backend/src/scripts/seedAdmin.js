@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 import config from '../config/app.js';
@@ -13,15 +14,25 @@ const connectDB = async () => {
   }
 };
 
-// Seed admin user
+// Seed admin user.
+// Credentials come from the environment so nothing is baked into the repo:
+//   ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='a-strong-password' npm run seed:admin
+// A password is generated and printed once if ADMIN_PASSWORD is omitted.
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || null;
+
+const generatePassword = () => {
+  const bytes = crypto.randomBytes(12).toString('base64').replace(/[^A-Za-z0-9]/g, '');
+  // Guarantee the password policy (upper, lower, digit) is satisfied.
+  return `${bytes.slice(0, 12)}Aa1!`;
+};
+
 const seedAdmin = async () => {
   try {
     await connectDB();
 
     // Check if admin user already exists
-    const existingAdmin = await User.findOne({
-      email: 'devtechs842@gmail.com'
-    });
+    const existingAdmin = await User.findOne({ email: ADMIN_EMAIL });
 
     if (existingAdmin) {
       console.log('User already exists:', existingAdmin.email);
@@ -36,12 +47,14 @@ const seedAdmin = async () => {
         console.log('Updated user role to admin:', existingAdmin.email);
       }
 
-      // Reset password to default to ensure user can log in
-      const defaultPassword = 'AdminPass123!';
-      existingAdmin.password = defaultPassword; // Set raw password, let the middleware hash it
-      existingAdmin.markModified('password'); // Explicitly mark password as modified
-      updated = true;
-      console.log('Reset user password to default:', defaultPassword);
+      // Only rotate the password when one was explicitly supplied. Resetting it
+      // silently on every run would be a security hole.
+      if (ADMIN_PASSWORD) {
+        existingAdmin.password = ADMIN_PASSWORD; // raw — the model hashes it
+        existingAdmin.markModified('password');
+        updated = true;
+        console.log('Password updated from ADMIN_PASSWORD.');
+      }
 
       // Also ensure the name is set correctly
       if (existingAdmin.name !== 'Admin User') {
@@ -61,13 +74,19 @@ const seedAdmin = async () => {
     }
 
     // Create admin user
-    const defaultPassword = 'AdminPass123!';
+    const defaultPassword = ADMIN_PASSWORD || generatePassword();
+    if (!ADMIN_PASSWORD) {
+      console.log('No ADMIN_PASSWORD supplied — generated one:');
+      console.log(`  email:    ${ADMIN_EMAIL}`);
+      console.log(`  password: ${defaultPassword}`);
+      console.log('Copy it now; it is not stored anywhere.');
+    }
 
     // NOTE: the User model hashes the password in a pre-save hook. Passing an
     // already-hashed value here would hash it twice and make login impossible.
     const adminUser = await User.create({
       name: 'Admin User',
-      email: 'devtechs842@gmail.com',
+      email: ADMIN_EMAIL,
       password: defaultPassword,
       role: 'admin',
       isVerified: true,

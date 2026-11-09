@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import client from '../services/api/client';
+import { appUrl } from '@utils/basePath';
 
 const AuthContext = createContext(null);
 
@@ -53,7 +54,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
     if (options.redirect) {
-      window.location.assign('/login');
+      window.location.assign(appUrl('/login'));
     }
   }, []);
 

@@ -25,7 +25,7 @@ import {
 export const NAV_SECTIONS = [
   {
     id: 'workspace',
-    title: 'Workspace',
+    title: 'My work',
     items: [
       { to: '/dashboard', icon: FaHome, label: 'Dashboard', keywords: 'home overview today' },
       { to: '/tasks', icon: FaTasks, label: 'Tasks', keywords: 'todo backlog' },
@@ -52,9 +52,9 @@ export const NAV_SECTIONS = [
     title: 'Team',
     collapsible: true,
     items: [
-      { to: '/collaboration', icon: FaComments, label: 'Workspace', keywords: 'team collab' },
-      { to: '/collaboration/projects', icon: FaTasks, label: 'Projects', keywords: 'initiatives' },
-      { to: '/collaboration/meetings', icon: FaCalendarAlt, label: 'Meetings', keywords: 'calls sync' },
+      { to: '/collaboration', icon: FaComments, label: 'Team overview', keywords: 'workspace team collab' },
+      { to: '/collaboration/projects', icon: FaTasks, label: 'Projects', keywords: 'initiatives tags' },
+      { to: '/schedule', icon: FaCalendarAlt, label: 'Meetings', keywords: 'calls sync calendar' },
       { to: '/leaderboard', icon: FaStar, label: 'Leaderboard', keywords: 'gamification points' },
       { to: '/achievements', icon: FaStar, label: 'Achievements', keywords: 'badges gamification' },
     ],

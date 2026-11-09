@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FaExclamationTriangle, FaRedo, FaHome, FaBug, FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const ServerError = ({ error, resetError }) => {
   const navigate = useNavigate();
@@ -108,9 +108,9 @@ const ServerError = ({ error, resetError }) => {
         <div className="mt-8 flex items-center justify-center space-x-4 text-sm text-gray-500 dark:text-gray-500">
           <span>Error ID: {Date.now().toString(36)}</span>
           <span>•</span>
-          <a href="/status" className="text-blue-500 hover:underline">System Status</a>
+          <Link to="/status" className="text-blue-500 hover:underline">System Status</Link>
           <span>•</span>
-          <a href="/support" className="text-blue-500 hover:underline">Contact Support</a>
+          <Link to="/support" className="text-blue-500 hover:underline">Support</Link>
         </div>
       </div>
     </div>
