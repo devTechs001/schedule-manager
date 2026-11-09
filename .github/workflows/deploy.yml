@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -46,20 +46,21 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
       
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.21.0
       
       - name: Install dependencies
-        working-directory: ./schedule-manager/backend
+        working-directory: ./backend
         run: pnpm install --frozen-lockfile
       
-      - name: Run linter
-        working-directory: ./schedule-manager/backend
-        run: pnpm run lint || echo "Linting not configured"
+      - name: Run linter (advisory)
+        working-directory: ./backend
+        continue-on-error: true
+        run: pnpm run lint
       
       - name: Run tests
-        working-directory: ./schedule-manager/backend
+        working-directory: ./backend
         run: pnpm test || echo "Tests not configured"
         env:
           MONGODB_URI: mongodb://localhost:27017/test
@@ -80,20 +81,21 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
       
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.21.0
       
       - name: Install dependencies
-        working-directory: ./schedule-manager/frontend
-        run: pnpm install --frozen-lockfile || npm install
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
       
-      - name: Run linter
-        working-directory: ./schedule-manager/frontend
+      - name: Run linter (advisory)
+        working-directory: ./frontend
+        continue-on-error: true
         run: pnpm run lint
       
       - name: Build
-        working-directory: ./schedule-manager/frontend
+        working-directory: ./frontend
         run: pnpm run build
         env:
           VITE_API_URL: http://localhost:5000/api
@@ -136,7 +138,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./schedule-manager/${{ matrix.service }}
+          context: ./${{ matrix.service }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

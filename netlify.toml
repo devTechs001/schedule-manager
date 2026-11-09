@@ -4,7 +4,7 @@
   functions = "netlify/functions"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "22"
   NPM_FLAGS = "--version" # prevent npm from running in CI mode
   VITE_API_URL = "/api"
   VITE_ENABLE_AI_FEATURES = "false"

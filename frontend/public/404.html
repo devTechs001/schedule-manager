@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SchedAI</title>
+    <script>
+      // GitHub Pages has no server-side rewrite, so a direct hit on a client
+      // route (e.g. /schedule-manager/support) lands here instead of index.html.
+      // Re-encode the path as a query string and hand it to the SPA.
+      (function () {
+        var segments = window.location.pathname.split('/').filter(Boolean);
+        // Drop the repository name that project pages prefix onto every path.
+        if (segments.length && window.location.hostname.endsWith('github.io')) {
+          segments.shift();
+        }
+        var path = '/' + segments.join('/');
+        var search = window.location.search || '';
+        var hash = window.location.hash || '';
+
+        if (window.location.search.indexOf('redirect=') !== -1) {
+          // Already redirected once — avoid a loop.
+          window.location.replace(
+            '/' + (window.location.pathname.split('/').filter(Boolean)[0] || '') + '/'
+          );
+          return;
+        }
+
+        window.location.replace(
+          '/' +
+            (window.location.pathname.split('/').filter(Boolean)[0] || '') +
+            '/?redirect=' +
+            encodeURIComponent(path + search + hash)
+        );
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Loading SchedAI…</p>
+  </body>
+</html>

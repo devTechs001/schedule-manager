@@ -28,19 +28,22 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '22'
 
     - name: Install pnpm
-      run: npm install -g pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10.21.0
 
     - name: Install frontend dependencies
       working-directory: ./frontend
-      run: pnpm install
+      run: pnpm install --frozen-lockfile
 
     - name: Build frontend
       working-directory: ./frontend
       run: pnpm build
       env:
+        VITE_BASE_PATH: /${{ github.event.repository.name }}/
         VITE_API_URL: ${{ vars.VITE_API_URL || '/api' }}
         VITE_ENABLE_AI_FEATURES: ${{ vars.VITE_ENABLE_AI_FEATURES || 'false' }}
         VITE_ENABLE_NOTIFICATIONS: ${{ vars.VITE_ENABLE_NOTIFICATIONS || 'false' }}

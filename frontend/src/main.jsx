@@ -152,6 +152,27 @@ const dismissBootSplash = () => {
   setTimeout(remove, 700);
 };
 
+/**
+ * GitHub Pages fallback. public/404.html rewrites a deep link into
+ * `?redirect=/the/original/path`; restore it here, before the router mounts,
+ * so the history entry is correct on the very first render.
+ */
+const restoreRedirectedPath = () => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const target = params.get('redirect');
+    if (!target || !target.startsWith('/')) return;
+    params.delete('redirect');
+    const query = params.toString();
+    const next = `${target}${query ? `?${query}` : ''}`;
+    window.history.replaceState(null, '', next);
+  } catch {
+    /* malformed URL — let the router show the 404 page */
+  }
+};
+
+restoreRedirectedPath();
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
