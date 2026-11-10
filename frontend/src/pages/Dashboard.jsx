@@ -28,6 +28,8 @@ import Modal from '@components/ui/Modal';
 import TaskForm from '@components/tasks/TaskForm';
 import QuickAddTask from '@components/tasks/QuickAddTask';
 import FocusWidget from '@components/widgets/FocusWidget';
+import SmartAlerts from '@components/notification/SmartAlerts';
+import { useSmartAlerts } from '@hooks/useSmartAlerts';
 
 const greeting = () => {
   const hour = new Date().getHours();
@@ -92,6 +94,9 @@ const Dashboard = () => {
         .sort((a, b) => new Date(a.start) - new Date(b.start))[0],
     };
   }, [tasks, events, emails, now]);
+
+  // Alerts come from real due dates and event times, not a notification feed.
+  const alerts = useSmartAlerts(tasks, events);
 
   const focusTasks = useMemo(() => {
     const taskList = Array.isArray(tasks) ? tasks : [];
@@ -337,6 +342,9 @@ const Dashboard = () => {
 
         {/* Right column */}
         <div className="space-y-5">
+          {/* Derived alerts: overdue, due today, next event. */}
+          {alerts.length > 0 && <SmartAlerts alerts={alerts} />}
+
           {/* Quick focus session — the full timer lives on /focus. */}
           <FocusWidget compact />
 
