@@ -3,14 +3,19 @@ import { FaFolder, FaSync, FaCog, FaCheck, FaCloud, FaFile } from 'react-icons/f
 import { SiGoogledrive, SiDropbox, SiOnedrive } from 'react-icons/si';
 
 const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
-  const [connectedStorages, setConnectedStorages] = useState(['gdrive']);
+  // Nothing is connected until the user actually connects it. This used to
+  // default to ['gdrive'], so the UI reported a live integration that
+  // did not exist.
+  const [connectedStorages, setConnectedStorages] = useState([]);
   const [syncing, setSyncing] = useState(null);
   const [selectedFolders, setSelectedFolders] = useState(['Documents', 'Projects']);
 
   const storageProviders = [
-    { id: 'gdrive', name: 'Google Drive', icon: SiGoogledrive, color: 'yellow', files: 234, used: '2.5 GB' },
-    { id: 'dropbox', name: 'Dropbox', icon: SiDropbox, color: 'blue', files: 0, used: '0 GB' },
-    { id: 'onedrive', name: 'OneDrive', icon: SiOnedrive, color: 'blue', files: 0, used: '0 GB' },
+    // No file counts or storage figures — those used to read "234 files,
+    // 2.5 GB" for an account that had never been connected.
+    { id: 'gdrive', name: 'Google Drive', icon: SiGoogledrive, color: 'yellow' },
+    { id: 'dropbox', name: 'Dropbox', icon: SiDropbox, color: 'blue' },
+    { id: 'onedrive', name: 'OneDrive', icon: SiOnedrive, color: 'blue' },
   ];
 
   const folders = ['Documents', 'Projects', 'Shared', 'Archives', 'Templates'];

@@ -3,14 +3,19 @@ import { FaProjectDiagram, FaSync, FaCog, FaCheck, FaLink, FaUnlink } from 'reac
 import { SiAsana, SiJira, SiTrello, SiNotion } from 'react-icons/si';
 
 const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
-  const [connectedTools, setConnectedTools] = useState(['asana']);
+  // Nothing is connected until the user actually connects it. This used to
+  // default to ['asana'], so the UI reported a live integration that
+  // did not exist.
+  const [connectedTools, setConnectedTools] = useState([]);
   const [syncing, setSyncing] = useState(null);
 
   const projectTools = [
-    { id: 'asana', name: 'Asana', icon: SiAsana, color: 'pink', projects: 5, tasks: 127 },
-    { id: 'jira', name: 'Jira', icon: SiJira, color: 'blue', projects: 0, tasks: 0 },
-    { id: 'trello', name: 'Trello', icon: SiTrello, color: 'blue', projects: 0, tasks: 0 },
-    { id: 'notion', name: 'Notion', icon: SiNotion, color: 'gray', projects: 0, tasks: 0 },
+    // Counts removed: "5 projects, 127 tasks" was shown for an unconnected
+    // account. Real figures must come from the provider after a sync.
+    { id: 'asana', name: 'Asana', icon: SiAsana, color: 'pink' },
+    { id: 'jira', name: 'Jira', icon: SiJira, color: 'blue' },
+    { id: 'trello', name: 'Trello', icon: SiTrello, color: 'blue' },
+    { id: 'notion', name: 'Notion', icon: SiNotion, color: 'gray' },
   ];
 
   const handleConnect = async (toolId) => {
