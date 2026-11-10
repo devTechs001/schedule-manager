@@ -258,6 +258,21 @@ export const OfflineProvider = ({ children }) => {
   );
 };
 
+/**
+ * Null-safe variant, for screens that must render even when the provider is
+ * missing — error pages above all, since an offline page that itself throws is
+ * useless. Returns a queue-shaped default rather than throwing.
+ */
+export const useOfflineOptional = () => {
+  const context = useContext(OfflineContext);
+  return context || {
+    pendingActions: [],
+    queueSize: 0,
+    syncInProgress: false,
+    forceSync: async () => {},
+  };
+};
+
 export const useOffline = () => {
   const context = useContext(OfflineContext);
   if (!context) {

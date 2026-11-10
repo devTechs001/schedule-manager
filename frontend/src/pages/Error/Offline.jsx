@@ -1,19 +1,23 @@
 import { useState, useEffect } from 'react';
 import { FaWifi, FaSync, FaCloudDownloadAlt, FaTasks, FaCalendarAlt, FaCheck } from 'react-icons/fa';
+import { useOfflineOptional } from '@contexts/OfflineContext';
 
+/**
+ * Offline page.
+ *
+ * The "Pending Changes" list used to be two hardcoded rows — "New Task" and
+ * "Meeting Updated" — invented on every visit, whatever the user had actually
+ * queued. The app does have a real offline queue (OfflineContext, backed by
+ * IndexedDB), so this reads from that instead. "Sync Now" was a button with no
+ * handler; it now flushes the queue.
+ */
 const Offline = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [checking, setChecking] = useState(false);
-  const [pendingChanges, setPendingChanges] = useState([
-    { id: 1, type: 'task', action: 'create', title: 'New Task', timestamp: Date.now() - 300000 },
-    { id: 2, type: 'calendar', action: 'update', title: 'Meeting Updated', timestamp: Date.now() - 600000 },
-  ]);
+  const { pendingActions, queueSize, syncInProgress, forceSync } = useOfflineOptional();
 
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      // Auto-sync when back online
-    };
+    const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
@@ -38,7 +42,10 @@ const Offline = () => {
   };
 
   const formatTime = (timestamp) => {
-    const diff = Math.round((Date.now() - timestamp) / 60000);
+    const then = new Date(timestamp).getTime();
+    if (!Number.isFinite(then)) return '';
+    const diff = Math.round((Date.now() - then) / 60000);
+    if (diff < 0) return 'Just now';
     if (diff < 1) return 'Just now';
     if (diff === 1) return '1 minute ago';
     if (diff < 60) return `${diff} minutes ago`;
@@ -47,6 +54,12 @@ const Offline = () => {
 
   const getActionIcon = (type) => {
     return type === 'task' ? FaTasks : FaCalendarAlt;
+  };
+
+  const describeAction = (action) => {
+    const title = action?.data?.title || action?.title;
+    if (title) return title;
+    return action?.action ? `${action.type || 'Change'} ${action.action}` : 'Queued change';
   };
 
   return (
@@ -118,13 +131,13 @@ const Offline = () => {
         )}
 
         {/* Pending Changes */}
-        {pendingChanges.length > 0 && (
+        {pendingActions.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-              Pending Changes ({pendingChanges.length})
+              Pending Changes ({queueSize || pendingActions.length})
             </h2>
             <div className="space-y-3">
-              {pendingChanges.map((change) => {
+              {pendingActions.map((change) => {
                 const Icon = getActionIcon(change.type);
                 return (
                   <div
@@ -138,8 +151,8 @@ const Offline = () => {
                         <Icon className={change.type === 'task' ? 'text-blue-500' : 'text-purple-500'} />
                       </div>
                       <div className="text-left">
-                        <p className="font-medium text-gray-800 dark:text-white">{change.title}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{change.action}</p>
+                        <p className="font-medium text-gray-800 dark:text-white">{describeAction(change)}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{change.action || change.type}</p>
                       </div>
                     </div>
                     <span className="text-sm text-gray-400">{formatTime(change.timestamp)}</span>
@@ -148,17 +161,25 @@ const Offline = () => {
               })}
             </div>
             {isOnline && (
-              <button className="mt-4 w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium">
-                Sync Now
+              <button
+                onClick={() => forceSync()}
+                disabled={syncInProgress}
+                className="mt-4 w-full py-3 bg-blue-500 hover:bg-blue-600 disabled:opacity-60 text-white rounded-xl font-medium"
+              >
+                {syncInProgress ? 'Syncing…' : 'Sync Now'}
               </button>
             )}
           </div>
         )}
 
-        {/* Tips */}
-        <p className="mt-8 text-sm text-gray-500 dark:text-gray-500">
-          💡 Tip: Enable notifications to get alerted when you're back online
-        </p>
+        {pendingActions.length === 0 && (
+          <div className="rounded-2xl bg-white p-6 text-center shadow-lg dark:bg-gray-800">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Nothing is waiting to sync. Changes you make while offline appear here
+              and are sent once the connection returns.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

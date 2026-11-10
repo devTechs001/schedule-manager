@@ -5,6 +5,13 @@ import { Link, useNavigate } from 'react-router-dom';
 const ServerError = ({ error, resetError }) => {
   const navigate = useNavigate();
   const [showDetails, setShowDetails] = useState(false);
+  /*
+   * One reference per error, not per render. This used to be computed inline as
+   * `Date.now().toString(36)`, so it changed every time the page re-rendered —
+   * any reference a user quoted would not match what support saw.
+   */
+  const [errorRef] = useState(() => Date.now().toString(36).toUpperCase());
+  const [copied, setCopied] = useState(null);
 
   const handleRetry = () => {
     if (resetError) {
@@ -14,17 +21,32 @@ const ServerError = ({ error, resetError }) => {
     }
   };
 
-  const handleReportBug = () => {
-    // In a real app, this would open a bug report form or send to error tracking service
-    const errorInfo = {
-      message: error?.message || 'Unknown error',
-      stack: error?.stack,
-      timestamp: new Date().toISOString(),
-      url: window.location.href,
-      userAgent: navigator.userAgent,
-    };
-    console.log('Bug report:', errorInfo);
-    alert('Thank you! Your bug report has been submitted.');
+  /*
+   * There is no error-tracking service wired up, so nothing is submitted. This
+   * used to log to the console and then claim "Your bug report has been
+   * submitted." Instead it copies what a maintainer would need to the clipboard
+   * and says exactly that — a claim the app can keep.
+   */
+  const handleReportBug = async () => {
+    const errorInfo = [
+      `Reference: ${errorRef}`,
+      `Message: ${error?.message || 'Unknown error'}`,
+      `URL: ${window.location.href}`,
+      `Time: ${new Date().toISOString()}`,
+      `User agent: ${navigator.userAgent}`,
+      error?.stack ? `Stack: ${error.stack}` : null,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    try {
+      await navigator.clipboard.writeText(errorInfo);
+      setCopied(true);
+    } catch {
+      // Clipboard can be unavailable (insecure context, denied permission).
+      console.error(errorInfo);
+      setCopied(false);
+    }
   };
 
   return (
@@ -70,9 +92,17 @@ const ServerError = ({ error, resetError }) => {
             onClick={handleReportBug}
             className="flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            <FaBug className="mr-2" /> Report Bug
+            <FaBug className="mr-2" />
+            {copied === true ? 'Details copied' : copied === false ? 'Copy failed — see console' : 'Copy error details'}
           </button>
         </div>
+
+        {copied === true && (
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+            Include reference <span className="font-mono font-semibold">{errorRef}</span> when you
+            contact support.
+          </p>
+        )}
 
         {/* Error Details (collapsible) */}
         {error && (
@@ -106,7 +136,7 @@ const ServerError = ({ error, resetError }) => {
 
         {/* Status Info */}
         <div className="mt-8 flex items-center justify-center space-x-4 text-sm text-gray-500 dark:text-gray-500">
-          <span>Error ID: {Date.now().toString(36)}</span>
+          <span>Error reference: {errorRef}</span>
           <span>•</span>
           <Link to="/status" className="text-blue-500 hover:underline">System Status</Link>
           <span>•</span>
