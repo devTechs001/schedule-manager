@@ -14,8 +14,9 @@
     "test:ai": "node --test scripts/test-ai-parsing.mjs",
     "test:workspace": "node --test scripts/test-workspace-permissions.mjs",
     "test:validation": "node --test scripts/test-task-validation.mjs",
-    "test:unit": "node --test scripts/test-ai-parsing.mjs scripts/test-workspace-permissions.mjs scripts/test-task-validation.mjs scripts/test-jwt-secret.mjs",
-    "test:jwt": "node --test scripts/test-jwt-secret.mjs"
+    "test:unit": "node --test scripts/test-ai-parsing.mjs scripts/test-workspace-permissions.mjs scripts/test-task-validation.mjs scripts/test-jwt-secret.mjs scripts/test-dependency-hygiene.mjs",
+    "test:jwt": "node --test scripts/test-jwt-secret.mjs",
+    "test:hygiene": "node --test scripts/test-dependency-hygiene.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

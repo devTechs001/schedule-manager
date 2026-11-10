@@ -96,10 +96,19 @@ const BACKEND_DOC = '../backend/.env.example';
 
 const viteOwned = new Set(['VITE_BASE_PATH', 'VITE_HMR_PORT', 'VITE_HMR_PROTOCOL']);
 
+// Test scaffolding, not deployment configuration. PROD_TREE tells
+// backend/scripts/test-dependency-hygiene.mjs which pruned install tree to
+// resolve imports against; the server never reads it, so documenting it in
+// .env.example would be misleading. Exempted here rather than in src/ because
+// the rule this file enforces — every variable the *application* reads is
+// documented — should stay strict.
+const harnessOnly = new Set(['PROD_TREE']);
+
 const backendRead = keysIn(
   readAll(['../backend/src', '../backend/scripts']),
   /process\.env\.([A-Z0-9_]+)/g
 );
+for (const key of harnessOnly) backendRead.delete(key);
 
 const frontendRead = keysIn(
   [...readAll(['src']), ...readAll(['.'], /^\.\/vite\.config\.js$/)],

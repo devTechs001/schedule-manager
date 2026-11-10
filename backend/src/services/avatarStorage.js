@@ -13,8 +13,17 @@
  * be cached independently.
  */
 import mongoose from 'mongoose';
-import { GridFSBucket, ObjectId } from 'mongodb';
 import { logger } from '../utils/logger.js';
+
+// Mongoose re-exports these from the mongodb driver it already depends on, and
+// they are the *same* objects (`mongoose.mongo.GridFSBucket ===
+// require('mongodb').GridFSBucket`). Importing them from 'mongoose' rather than
+// 'mongodb' matters: under pnpm the driver is a transitive dependency and is
+// not hoisted, so a bare `from 'mongodb'` only resolved when a locally installed
+// tree happened to flatten it. It threw ERR_MODULE_NOT_FOUND on every Render
+// deploy, where the image installs with `pnpm install --prod --frozen-lockfile`.
+const { GridFSBucket } = mongoose.mongo;
+const { ObjectId } = mongoose.Types;
 
 const BUCKET_NAME = 'avatars';
 
