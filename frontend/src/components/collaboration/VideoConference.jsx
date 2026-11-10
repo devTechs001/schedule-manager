@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FaVideo, FaVideoSlash, FaMicrophone, FaMicrophoneSlash, FaDesktop, FaPhone, FaUsers, FaComments, FaExpand } from 'react-icons/fa';
 
 const VideoConference = ({ roomId, participants = [], onLeave }) => {
@@ -9,19 +9,22 @@ const VideoConference = ({ roomId, participants = [], onLeave }) => {
   const localVideoRef = useRef(null);
   const [stream, setStream] = useState(null);
 
-  useEffect(() => {
-    startLocalVideo();
-    return () => {
-      stream?.getTracks().forEach(track => track.stop());
-    };
-  }, []);
+  /*
+   * startLocalVideo was declared below this effect but called from inside it,
+   * which is a temporal-dead-zone ReferenceError on mount — the component
+   * could never render. The cleanup also closed over the initial `stream`
+   * (always null), so camera and microphone were never released; the ref
+   * below is the one the cleanup actually needs.
+   */
+  const streamRef = useRef(null);
 
-  const startLocalVideo = async () => {
+  const startLocalVideo = useCallback(async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true,
       });
+      streamRef.current = mediaStream;
       setStream(mediaStream);
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = mediaStream;
@@ -29,24 +32,31 @@ const VideoConference = ({ roomId, participants = [], onLeave }) => {
     } catch (error) {
       console.error('Error accessing media devices:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    startLocalVideo();
+    return () => {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, [startLocalVideo]);
 
   const toggleVideo = () => {
-    if (stream) {
-      stream.getVideoTracks().forEach(track => {
-        track.enabled = !track.enabled;
-      });
-      setIsVideoOn(!isVideoOn);
-    }
+    if (!stream) return;
+    const next = !isVideoOn;
+    stream.getVideoTracks().forEach((track) => {
+      track.enabled = next;
+    });
+    setIsVideoOn(next);
   };
 
   const toggleAudio = () => {
-    if (stream) {
-      stream.getAudioTracks().forEach(track => {
-        track.enabled = !track.enabled;
-      });
-      setIsAudioOn(!isAudioOn);
-    }
+    if (!stream) return;
+    const next = !isAudioOn;
+    stream.getAudioTracks().forEach((track) => {
+      track.enabled = next;
+    });
+    setIsAudioOn(next);
   };
 
   const toggleScreenShare = async () => {
