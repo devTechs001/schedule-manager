@@ -9,6 +9,7 @@ import {
   FaMapMarkerAlt,
   FaRedo,
 } from 'react-icons/fa';
+import { useState } from 'react';
 import { useWeather, describeWeatherError, CONDITION_LABELS, CONDITION_TONE } from '@hooks/useWeather';
 
 /**
@@ -29,9 +30,30 @@ const CONDITION_ICON = {
   stormy: FaExclamationTriangle,
 };
 
-const WeatherWidget = ({ unit = 'c', compact = false }) => {
-  const { weather, place, loading, error, reload } = useWeather(unit);
+const WeatherWidget = ({ unit = 'c', compact = false, autoLoad = true }) => {
+  /*
+   * On the dashboard the widget starts off. Requesting geolocation on load
+   * throws a browser permission prompt at people who just signed in, which is
+   * the wrong moment to ask — so the widget offers a button instead and only
+   * asks once the user clicks. The schedule page passes autoLoad.
+   */
+  const [requested, setRequested] = useState(autoLoad);
+  const { weather, place, loading, error, reload } = useWeather(unit, { enabled: requested });
   const unitLabel = unit === 'f' ? '°F' : '°C';
+
+  if (!requested) {
+    return (
+      <div className="card flex items-center justify-between gap-3 p-4">
+        <div className="flex items-center gap-2">
+          <FaCloud className="text-content-subtle" />
+          <p className="text-xs text-content-muted">Show the forecast for your location?</p>
+        </div>
+        <button type="button" onClick={() => setRequested(true)} className="btn btn-outline btn-sm shrink-0">
+          Show weather
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

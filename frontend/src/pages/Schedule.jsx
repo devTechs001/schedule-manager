@@ -186,7 +186,7 @@ const Schedule = () => {
       {events.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-2">
           <TrafficAware events={events} />
-          <WeatherIntegration events={events} />
+          <WeatherIntegration events={events} autoLoad />
         </div>
       )}
 

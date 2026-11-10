@@ -68,7 +68,12 @@ const getPosition = () =>
     );
   });
 
-export const useWeather = (unit = 'c') => {
+/**
+ * @param {'c'|'f'} unit
+ * @param {{ enabled?: boolean }} options  Set enabled=false to avoid prompting
+ *   for location until the user asks for weather.
+ */
+export const useWeather = (unit = 'c', { enabled = true } = {}) => {
   const [weather, setWeather] = useState(null);
   const [place, setPlace] = useState('');
   const [loading, setLoading] = useState(false);
@@ -139,10 +144,10 @@ export const useWeather = (unit = 'c') => {
   }, [unit]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (enabled) load();
+  }, [load, enabled]);
 
-  return { weather, place, loading, error, reload: load };
+  return { weather, place, loading, error, reload: load, enabled };
 };
 
 export const describeWeatherError = (error) => {

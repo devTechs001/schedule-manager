@@ -37,8 +37,8 @@ const CONDITION_ICON = {
   stormy: FaExclamationTriangle,
 };
 
-const WeatherIntegration = ({ events = [], onSuggestReschedule, unit = 'c' }) => {
-  const { weather, place, loading, error, reload } = useWeather(unit);
+const WeatherIntegration = ({ events = [], onSuggestReschedule, unit = 'c', autoLoad = true }) => {
+  const { weather, place, loading, error, reload } = useWeather(unit, { enabled: autoLoad });
   const unitLabel = unit === 'f' ? '°F' : '°C';
 
   // Which upcoming events fall on a day the forecast calls disruptive.

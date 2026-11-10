@@ -28,8 +28,10 @@ import Modal from '@components/ui/Modal';
 import TaskForm from '@components/tasks/TaskForm';
 import QuickAddTask from '@components/tasks/QuickAddTask';
 import FocusWidget from '@components/widgets/FocusWidget';
+import WeatherWidget from '@components/widgets/WeatherWidget';
 import SmartAlerts from '@components/notification/SmartAlerts';
 import { useSmartAlerts } from '@hooks/useSmartAlerts';
+import Confetti from '@components/ui/Confetti';
 
 const greeting = () => {
   const hour = new Date().getHours();
@@ -54,6 +56,19 @@ const Dashboard = () => {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [now, setNow] = useState(new Date());
+  const [celebrate, setCelebrate] = useState(false);
+
+  /*
+   * Completing a task is the one moment worth a small celebration. Only fires
+   * on completion (not un-completion), and only on the dashboard — the list
+   * pages stay quiet.
+   */
+  const handleToggleTask = async (id) => {
+    const task = (Array.isArray(tasks) ? tasks : []).find((item) => item._id === id);
+    const willComplete = task && task.status !== 'completed';
+    await toggleTask(id);
+    if (willComplete) setCelebrate(true);
+  };
 
   // Live clock for the "time" widget
   useEffect(() => {
@@ -262,6 +277,7 @@ const Dashboard = () => {
       <div className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
         {/* Focus list */}
         <div className="space-y-5">
+      <Confetti show={celebrate} onComplete={() => setCelebrate(false)} />
           <Card
             title="Today's focus"
             subtitle="Sorted by AI priority and deadline"
@@ -290,7 +306,7 @@ const Dashboard = () => {
                 loading={tasksLoading}
                 onEdit={(task) => { setEditingTask(task); setShowTaskModal(true); }}
                 onDelete={deleteTask}
-                onToggle={toggleTask}
+                onToggle={handleToggleTask}
                 onAdd={() => { setEditingTask(null); setShowTaskModal(true); }}
               />
             )}
@@ -344,6 +360,8 @@ const Dashboard = () => {
         <div className="space-y-5">
           {/* Derived alerts: overdue, due today, next event. */}
           {alerts.length > 0 && <SmartAlerts alerts={alerts} />}
+
+          <WeatherWidget autoLoad={false} />
 
           {/* Quick focus session — the full timer lives on /focus. */}
           <FocusWidget compact />
