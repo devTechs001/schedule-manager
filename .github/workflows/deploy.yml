@@ -86,7 +86,8 @@ jobs:
           cd /tmp/prod-boot
           pnpm install --prod --frozen-lockfile
           # Prove every import resolves in this pruned tree, then boot for real.
-          node --test "$GITHUB_WORKSPACE/backend/scripts/test-dependency-hygiene.mjs" --prod-tree=/tmp/prod-boot
+          PROD_TREE=/tmp/prod-boot \
+            node --test "$GITHUB_WORKSPACE/backend/scripts/test-dependency-hygiene.mjs"
           NODE_ENV=development PORT=5098 DB_RETRY=false \
             MONGODB_URI=mongodb://127.0.0.1:27099/ci \
             JWT_SECRET=ci-only-not-a-real-secret-0123456789abcdefghijklmn \

@@ -20,12 +20,15 @@
  *      check is what runs in CI where no such tree exists.
  *
  * Run: node --test scripts/test-dependency-hygiene.mjs
- *      node scripts/test-dependency-hygiene.mjs --prod-tree=/path/to/pruned/tree
+ *      PROD_TREE=/path/to/pruned/tree node --test scripts/test-dependency-hygiene.mjs
  *
- * The production tree is passed as an argument rather than an environment
- * variable on purpose: it is an input to this check, not something the
- * application reads. Putting it in the environment would make it look like a
- * deployment variable that belongs in .env.example.
+ * The production tree is supplied via PROD_TREE. It has to be an environment
+ * variable, not an argv flag: `node --test <file> --flag` does not forward the
+ * flag to the test file, so an argv-based switch reads as "not set" and the
+ * resolution check silently degrades to a no-op. PROD_TREE is deliberately not
+ * documented in .env.example — it is test scaffolding, not something the
+ * running application reads — and frontend/scripts/test-env-docs.mjs carries a
+ * matching exemption.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -128,10 +131,9 @@ test('the declared dependency tree covers what the code imports at runtime', () 
 });
 
 test('resolution is proven against a production install tree when one is given', () => {
-  // `--prod-tree=<dir>` runs this branch. It is the check that would have
-  // caught the Render failure directly.
-  const arg = process.argv.find((a) => a.startsWith('--prod-tree='));
-  const tree = arg ? arg.slice('--prod-tree='.length) : null;
+  // PROD_TREE=<dir> runs this branch. It is the check that would have caught
+  // the Render failure directly.
+  const tree = process.env.PROD_TREE;
   if (!tree) {
     // Nothing to do in CI; the static assertions above already ran.
     assert.ok(true);
