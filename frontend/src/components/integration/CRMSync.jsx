@@ -64,8 +64,8 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-lg bg-${crm.color}-100 dark:bg-${crm.color}-900/30 flex items-center justify-center`}>
-                    <crm.icon className={`text-${crm.color}-500 text-xl`} />
+                  <div className={`w-12 h-12 rounded-lg bg-surface-sunken flex items-center justify-center`}>
+                    <crm.icon className={`text-content-muted text-xl`} />
                   </div>
                   <div>
                     <h4 className="font-medium text-content">{crm.name}</h4>
@@ -125,7 +125,7 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
               <button
                 onClick={() => setMappings(prev => ({ ...prev, [key]: !prev[key] }))}
                 className={`w-10 h-6 rounded-full transition-colors ${
-                  value ? 'bg-primary-600' : 'bg-surface-sunken bg-surface-sunken'
+                  value ? 'bg-primary-600' : 'bg-surface-sunken'
                 }`}
               >
                 <div className={`w-4 h-4 bg-surface rounded-full shadow transform transition-transform ${

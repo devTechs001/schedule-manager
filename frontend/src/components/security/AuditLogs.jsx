@@ -125,8 +125,8 @@ const AuditLogs = ({ logs: initialLogs = [], onExport }) => {
                 <tr key={log.id} className="border-b border-line">
                   <td className="py-3">
                     <div className="flex items-center gap-2">
-                      <div className={`w-8 h-8 rounded-full bg-${color}-100 dark:bg-${color}-900/30 flex items-center justify-center`}>
-                        <ActionIcon className={`text-${color}-600 text-xs`} />
+                      <div className={`w-8 h-8 rounded-full bg-surface-sunken flex items-center justify-center`}>
+                        <ActionIcon className={`text-content-muted text-xs`} />
                       </div>
                       <span className="capitalize text-content">{log.action}</span>
                     </div>

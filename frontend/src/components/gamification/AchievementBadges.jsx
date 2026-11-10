@@ -39,11 +39,11 @@ const AchievementBadges = ({ achievements = [], onViewDetails }) => {
           >
             <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
               achievement.earned
-                ? `bg-${achievement.color}-100 dark:bg-${achievement.color}-900/50`
+                ? `bg-surface-sunken`
                 : 'bg-gray-200 dark:bg-gray-600'
             }`}>
               <achievement.icon className={`text-xl ${
-                achievement.earned ? `text-${achievement.color}-500` : 'text-gray-400'
+                achievement.earned ? `text-content-muted` : 'text-gray-400'
               }`} />
             </div>
             <h4 className={`font-medium text-sm ${

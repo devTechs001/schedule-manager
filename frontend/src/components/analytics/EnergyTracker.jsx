@@ -81,11 +81,11 @@ const EnergyTracker = ({ onLog }) => {
               onClick={() => setCurrentEnergy(level.value)}
               className={`flex-1 p-3 rounded-lg flex flex-col items-center transition-all ${
                 currentEnergy === level.value
-                  ? `bg-${level.color}-100 dark:bg-${level.color}-900/30 ring-2 ring-${level.color}-500`
+                  ? `bg-surface-sunken ring-2 ring-line`
                   : 'bg-surface-sunken hover:bg-surface-sunken hover:bg-surface-sunken'
               }`}
             >
-              <level.icon className={`text-${level.color}-500 text-xl mb-1`} />
+              <level.icon className={`text-content-muted text-xl mb-1`} />
               <span className="text-xs text-content-muted">{level.label}</span>
             </button>
           ))}
@@ -118,7 +118,7 @@ const EnergyTracker = ({ onLog }) => {
               return (
                 <div key={entry.id} className="flex items-center justify-between p-2 bg-surface-sunken rounded">
                   <div className="flex items-center gap-2">
-                    <info.icon className={`text-${info.color}-500`} />
+                    <info.icon className={`text-content-muted`} />
                     <span className="text-content">{info.label}</span>
                     {entry.notes && (
                       <span className="text-sm text-content-muted">- {entry.notes}</span>

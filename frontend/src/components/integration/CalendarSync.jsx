@@ -60,8 +60,8 @@ const CalendarSync = ({ onConnect, onDisconnect, onSync }) => {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-lg bg-${calendar.color}-100 dark:bg-${calendar.color}-900/30 flex items-center justify-center`}>
-                    <calendar.icon className={`text-${calendar.color}-500 text-xl`} />
+                  <div className={`w-12 h-12 rounded-lg bg-surface-sunken flex items-center justify-center`}>
+                    <calendar.icon className={`text-content-muted text-xl`} />
                   </div>
                   <div>
                     <h4 className="font-medium text-content">{calendar.name}</h4>

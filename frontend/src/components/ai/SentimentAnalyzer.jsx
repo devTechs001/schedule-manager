@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { FaSmile, FaMeh, FaFrown, FaChartBar, FaSpinner } from 'react-icons/fa';
 
+/** Static tone classes — Tailwind cannot generate `text-${x}-600`. */
+const SENTIMENT_TONE = {
+  positive: 'text-emerald-600 dark:text-emerald-400',
+  negative: 'text-rose-600 dark:text-rose-400',
+  neutral: 'text-content-muted',
+};
+
+
 const SentimentAnalyzer = ({ onAnalyze }) => {
   const [text, setText] = useState('');
   const [result, setResult] = useState(null);
@@ -88,7 +96,7 @@ const SentimentAnalyzer = ({ onAnalyze }) => {
             <div className="flex items-center justify-center gap-4 p-6 bg-surface-sunken rounded-lg">
               {getSentimentIcon()}
               <div>
-                <p className={`text-2xl font-bold text-${getSentimentColor()}-600 capitalize`}>
+                <p className={`text-2xl font-bold capitalize ${SENTIMENT_TONE[getSentimentColor()] || "text-content"}`}>
                   {result.sentiment}
                 </p>
                 <p className="text-sm text-content-muted">
@@ -120,7 +128,7 @@ const SentimentAnalyzer = ({ onAnalyze }) => {
             <div className="p-4 bg-surface-sunken rounded-lg">
               <div className="flex items-center justify-between">
                 <span className="text-content-muted">Sentiment Score</span>
-                <span className={`text-xl font-bold text-${getSentimentColor()}-600`}>
+                <span className={`text-xl font-bold ${SENTIMENT_TONE[getSentimentColor()] || "text-content"}`}>
                   {result.score}/100
                 </span>
               </div>

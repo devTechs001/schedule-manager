@@ -133,7 +133,7 @@ const HabitFormation = ({ habits: initialHabits = [], onUpdate }) => {
                       className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs transition-all ${
                         isCompleted
                           ? 'bg-green-500 text-white'
-                          : 'bg-surface-sunken bg-surface-sunken text-content-muted'
+                          : 'bg-surface-sunken text-content-muted'
                       } ${isToday ? 'ring-2 ring-primary-500 cursor-pointer' : 'cursor-default opacity-75'}`}
                     >
                       {isCompleted ? <FaCheck /> : day.getDate()}

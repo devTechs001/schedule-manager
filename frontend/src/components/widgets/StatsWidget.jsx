@@ -61,7 +61,7 @@ const StatsWidget = ({
           return (
             <div
               key={stat.id}
-              className="p-4 rounded-lg bg-surface-sunken bg-surface-sunken/50 hover:bg-surface-sunken transition-colors"
+              className="p-4 rounded-lg bg-surface-sunken/50 hover:bg-surface-sunken transition-colors"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClasses[stat.color]}`}>
@@ -84,7 +84,7 @@ const StatsWidget = ({
       </div>
 
       {/* Mini Chart Placeholder */}
-      <div className="mt-6 p-4 bg-surface-sunken bg-surface-sunken/50 rounded-lg">
+      <div className="mt-6 p-4 bg-surface-sunken/50 rounded-lg">
         <div className="flex items-end justify-between h-20 gap-1">
           {[40, 65, 45, 80, 55, 90, 70].map((height, i) => (
             <div

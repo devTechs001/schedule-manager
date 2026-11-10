@@ -70,8 +70,8 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-lg bg-${storage.color}-100 dark:bg-${storage.color}-900/30 flex items-center justify-center`}>
-                    <storage.icon className={`text-${storage.color}-600 text-xl`} />
+                  <div className={`w-12 h-12 rounded-lg bg-surface-sunken flex items-center justify-center`}>
+                    <storage.icon className={`text-content-muted text-xl`} />
                   </div>
                   <div>
                     <h4 className="font-medium text-content">{storage.name}</h4>

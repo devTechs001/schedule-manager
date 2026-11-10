@@ -128,7 +128,7 @@ const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
                     <span className="text-xs text-content-muted">Workload:</span>
                     <div className="w-16 h-2 bg-surface-sunken rounded-full overflow-hidden">
                       <div
-                        className={`h-full bg-${workloadColor}-500`}
+                        className={`h-full bg-surface-sunken`}
                         style={{ width: `${member.workload}%` }}
                       />
                     </div>

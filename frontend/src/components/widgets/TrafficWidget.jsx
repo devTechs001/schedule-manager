@@ -66,7 +66,7 @@ const TrafficWidget = ({
               <p className="font-bold text-content">{bestRoute?.duration} min</p>
             </div>
           </div>
-          <span className={`px-2 py-1 rounded-full text-xs bg-${getTrafficColor(bestRoute?.traffic)}-100 text-${getTrafficColor(bestRoute?.traffic)}-700`}>
+          <span className={`px-2 py-1 rounded-full text-xs bg-surface-sunken text-content-muted`}>
             {bestRoute?.traffic}
           </span>
         </div>
@@ -124,7 +124,7 @@ const TrafficWidget = ({
                 <span>via {route.via}</span>
                 <div className="flex items-center gap-2">
                   <span>{route.distance}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs bg-${color}-100 text-${color}-700 capitalize`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs bg-surface-sunken text-content-muted capitalize`}>
                     {route.traffic}
                   </span>
                 </div>

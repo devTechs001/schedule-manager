@@ -66,11 +66,11 @@ const PermissionManager = ({ roles: initialRoles = [], onUpdate, onCreateRole })
               className={`w-full p-3 rounded-lg text-left transition-colors ${
                 selectedRole?.id === role.id
                   ? 'bg-primary-100 dark:bg-primary-900/30 border-2 border-primary-500'
-                  : 'bg-surface-sunken bg-surface-sunken border-2 border-transparent'
+                  : 'bg-surface-sunken border-2 border-transparent'
               }`}
             >
               <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full bg-${role.color}-500`} />
+                <div className={`w-3 h-3 rounded-full bg-surface-sunken`} />
                 <span className="font-medium text-content">{role.name}</span>
               </div>
               <div className="flex items-center gap-2 mt-1 text-xs text-content-muted">
@@ -114,7 +114,7 @@ const PermissionManager = ({ roles: initialRoles = [], onUpdate, onCreateRole })
                         className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
                           hasPermission
                             ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                            : 'bg-surface-sunken bg-surface-sunken text-content-muted'
+                            : 'bg-surface-sunken text-content-muted'
                         } ${editMode ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
                       >
                         <span className="text-sm">{perm.name}</span>

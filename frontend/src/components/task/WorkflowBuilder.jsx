@@ -107,9 +107,9 @@ const WorkflowBuilder = ({ workflow: initialWorkflow = null, onSave, onRun }) =>
                 {index > 0 && (
                   <div className="absolute left-6 -top-3 w-0.5 h-3 bg-surface-sunken" />
                 )}
-                <div className={`flex items-center gap-4 p-4 rounded-lg border-2 border-${color}-200 dark:border-${color}-700 bg-${color}-50 dark:bg-${color}-900/20`}>
-                  <div className={`w-10 h-10 rounded-full bg-${color}-100 dark:bg-${color}-900/50 flex items-center justify-center`}>
-                    <StepIcon className={`text-${color}-600`} />
+                <div className="flex items-center gap-4 rounded-lg border-2 border-line bg-surface-sunken p-4">
+                  <div className={`w-10 h-10 rounded-full bg-surface-sunken flex items-center justify-center`}>
+                    <StepIcon className={`text-content-muted`} />
                   </div>
                   <div className="flex-1">
                     <span className="text-sm font-medium text-content capitalize">
@@ -151,7 +151,7 @@ const WorkflowBuilder = ({ workflow: initialWorkflow = null, onSave, onRun }) =>
             <button
               key={stepType.type}
               onClick={() => addStep(stepType.type)}
-              className={`flex items-center gap-2 px-3 py-2 bg-${stepType.color}-100 dark:bg-${stepType.color}-900/30 text-${stepType.color}-700 dark:text-${stepType.color}-300 rounded-lg text-sm hover:opacity-80`}
+              className={`flex items-center gap-2 px-3 py-2 bg-surface-sunken text-content-muted text-content-muted rounded-lg text-sm hover:opacity-80`}
             >
               <FaPlus className="text-xs" />
               <stepType.icon />

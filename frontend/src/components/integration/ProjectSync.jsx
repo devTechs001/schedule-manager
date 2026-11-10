@@ -59,8 +59,8 @@ const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
               }`}
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className={`w-10 h-10 rounded-lg bg-${tool.color}-100 dark:bg-${tool.color}-900/30 flex items-center justify-center`}>
-                  <tool.icon className={`text-${tool.color}-500 text-lg`} />
+                <div className={`w-10 h-10 rounded-lg bg-surface-sunken flex items-center justify-center`}>
+                  <tool.icon className={`text-content-muted text-lg`} />
                 </div>
                 <div className="flex-1">
                   <h4 className="font-medium text-content">{tool.name}</h4>

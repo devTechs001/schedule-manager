@@ -57,7 +57,7 @@ const RelationshipMap = ({ contacts = [], relationships = [], onAddRelationship 
         {relationshipTypes.map((type) => (
           <span
             key={type.value}
-            className={`px-2 py-1 text-xs rounded-full bg-${type.color}-100 dark:bg-${type.color}-900/30 text-${type.color}-700 dark:text-${type.color}-300`}
+            className={`px-2 py-1 text-xs rounded-full bg-surface-sunken text-content-muted text-content-muted`}
           >
             {type.label}
           </span>
@@ -113,10 +113,10 @@ const RelationshipMap = ({ contacts = [], relationships = [], onAddRelationship 
                   if (!other) return null;
                   return (
                     <div key={i} className="flex items-center gap-3 p-2 bg-surface rounded">
-                      <FaLink className={`text-${getRelationshipColor(rel.type)}-500`} />
+                      <FaLink className={`text-content-muted`} />
                       <div className="flex-1">
                         <p className="text-sm text-content">{other.name}</p>
-                        <span className={`text-xs text-${getRelationshipColor(rel.type)}-600 capitalize`}>
+                        <span className={`text-xs text-content-muted capitalize`}>
                           {rel.type}
                         </span>
                       </div>

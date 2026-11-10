@@ -92,7 +92,7 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
             className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
               selectedIds.includes(task.id)
                 ? 'bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-300 dark:border-primary-700'
-                : 'bg-surface-sunken bg-surface-sunken border-2 border-transparent'
+                : 'bg-surface-sunken border-2 border-transparent'
             }`}
           >
             <input
@@ -104,7 +104,7 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
             <div className="flex-1">
               <p className="text-sm font-medium text-content">{task.title}</p>
               <div className="flex items-center gap-2 mt-1">
-                <span className={`px-2 py-0.5 text-xs rounded-full bg-${getPriorityColor(task.priority)}-100 text-${getPriorityColor(task.priority)}-700`}>
+                <span className={`px-2 py-0.5 text-xs rounded-full bg-surface-sunken text-content-muted`}>
                   {task.priority}
                 </span>
                 <span className="text-xs text-content-muted">
@@ -127,8 +127,8 @@ const BulkOperations = ({ tasks: initialTasks = [], onApply, onCancel }) => {
                 onClick={() => { setOperation(op); setOperationValue(''); }}
                 className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
                   operation?.id === op.id
-                    ? `bg-${op.color}-100 dark:bg-${op.color}-900/30 text-${op.color}-700 dark:text-${op.color}-300 border-2 border-${op.color}-300`
-                    : 'bg-surface-sunken bg-surface-sunken text-content border-2 border-transparent'
+                    ? `bg-surface-sunken text-content-muted text-content-muted border-2 border-line`
+                    : 'bg-surface-sunken text-content border-2 border-transparent'
                 }`}
               >
                 <op.icon />

@@ -63,7 +63,7 @@ const DistractionTracker = ({ onLog }) => {
       <div className="grid grid-cols-5 gap-2 mb-4">
         {categories.map(cat => (
           <div key={cat.value} className="text-center p-2 bg-surface-sunken rounded">
-            <p className={`text-xl font-bold text-${cat.color}-500`}>
+            <p className={`text-xl font-bold text-content-muted`}>
               {stats.byCategory[cat.value] || 0}
             </p>
             <p className="text-xs text-content-muted">{cat.label}</p>
@@ -109,7 +109,7 @@ const DistractionTracker = ({ onLog }) => {
               className="flex items-center justify-between p-3 bg-surface-sunken rounded-lg"
             >
               <div className="flex items-center gap-3">
-                <span className={`w-2 h-2 rounded-full bg-${getCategoryColor(d.category)}-500`} />
+                <span className={`w-2 h-2 rounded-full bg-surface-sunken`} />
                 <div>
                   <p className="text-content">{d.text}</p>
                   <p className="text-xs text-content-muted">

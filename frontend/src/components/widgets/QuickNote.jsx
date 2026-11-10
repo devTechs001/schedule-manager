@@ -172,7 +172,7 @@ const QuickNote = ({
                       <button
                         key={color}
                         onClick={() => handleColorChange(note.id, color)}
-                        className={`w-6 h-6 rounded-full bg-${color}-400 hover:scale-110 transition-transform`}
+                        className={`w-6 h-6 rounded-full bg-surface-sunken hover:scale-110 transition-transform`}
                       />
                     ))}
                   </div>

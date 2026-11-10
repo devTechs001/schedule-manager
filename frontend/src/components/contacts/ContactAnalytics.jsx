@@ -53,7 +53,7 @@ const ContactAnalytics = ({ contact, interactions = [] }) => {
       <div className="grid grid-cols-3 gap-4 mb-6">
         {interactionTypes.map((item) => (
           <div key={item.type} className="p-4 bg-surface-sunken rounded-lg text-center">
-            <item.icon className={`mx-auto text-${item.color}-500 text-xl mb-2`} />
+            <item.icon className={`mx-auto text-content-muted text-xl mb-2`} />
             <p className="text-2xl font-bold text-content">{item.count}</p>
             <p className="text-sm text-content-muted capitalize">{item.type}s</p>
           </div>
@@ -94,8 +94,8 @@ const ContactAnalytics = ({ contact, interactions = [] }) => {
               const typeInfo = interactionTypes.find(t => t.type === interaction.type);
               return (
                 <div key={i} className="flex items-center gap-3 p-2 hover:bg-surface-sunken rounded">
-                  <div className={`p-2 rounded-lg bg-${typeInfo?.color || 'gray'}-100 dark:bg-${typeInfo?.color || 'gray'}-900/30`}>
-                    {typeInfo?.icon ? <typeInfo.icon className={`text-${typeInfo.color}-500`} /> : null}
+                  <div className={`p-2 rounded-lg bg-surface-sunken`}>
+                    {typeInfo?.icon ? <typeInfo.icon className={`text-content-muted`} /> : null}
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-content">{interaction.subject || interaction.type}</p>

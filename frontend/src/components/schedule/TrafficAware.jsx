@@ -95,7 +95,7 @@ const TrafficAware = ({ events = [], onUpdateDeparture }) => {
                       <span>Starts at {formatTime(event.time)}</span>
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium bg-${trafficColor}-100 dark:bg-${trafficColor}-900/30 text-${trafficColor}-700 dark:text-${trafficColor}-300 capitalize`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium bg-surface-sunken text-content-muted text-content-muted capitalize`}>
                     {traffic.trafficLevel} traffic
                   </span>
                 </div>

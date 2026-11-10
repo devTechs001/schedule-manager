@@ -98,7 +98,7 @@ const Tour = () => {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
           <div className="grid md:grid-cols-2">
             {/* Illustration Side */}
-            <div className={`bg-${slide.color}-500 p-12 flex items-center justify-center`}>
+            <div className={`bg-surface-sunken p-12 flex items-center justify-center`}>
               <div className="text-center">
                 <div className="w-24 h-24 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <slide.icon className="text-5xl text-white" />
@@ -146,7 +146,7 @@ const Tour = () => {
                     onClick={() => setCurrentSlide(index)}
                     className={`w-3 h-3 rounded-full transition-colors ${
                       index === currentSlide
-                        ? `bg-${slide.color}-500`
+                        ? `bg-surface-sunken`
                         : 'bg-gray-200 dark:bg-gray-600'
                     }`}
                   />
@@ -165,7 +165,7 @@ const Tour = () => {
                 </button>
                 <button
                   onClick={nextSlide}
-                  className={`flex items-center px-6 py-3 bg-${slide.color}-500 hover:bg-${slide.color}-600 text-white font-medium rounded-xl`}
+                  className={`flex items-center px-6 py-3 bg-surface-sunken hover:bg-surface-sunken text-white font-medium rounded-xl`}
                 >
                   {slide.isLast ? 'Get Started' : 'Next'} <FaChevronRight className="ml-2" />
                 </button>

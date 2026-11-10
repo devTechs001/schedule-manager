@@ -126,7 +126,7 @@ const WeatherIntegration = ({ events = [], location = 'New York', onSuggestResch
                 <p className="text-xs text-content-muted mb-1">
                   {i === 0 ? 'Today' : new Date(day.date).toLocaleDateString('en', { weekday: 'short' })}
                 </p>
-                <WeatherIcon className={`mx-auto text-${color}-500 text-xl mb-1`} />
+                <WeatherIcon className={`mx-auto text-content-muted text-xl mb-1`} />
                 <p className="text-sm font-medium text-content">{day.high}°</p>
                 <p className="text-xs text-content-muted">{day.low}°</p>
               </div>
@@ -163,7 +163,7 @@ const WeatherIntegration = ({ events = [], location = 'New York', onSuggestResch
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <WeatherIcon className={`text-${getWeatherColor(eventWeather.condition)}-500`} />
+                    <WeatherIcon className={`text-content-muted`} />
                     <span className="text-sm text-content-muted">{eventWeather.high}°F</span>
                   </div>
                 </div>

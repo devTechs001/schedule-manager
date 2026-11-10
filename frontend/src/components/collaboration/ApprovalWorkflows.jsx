@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import { FaClipboardCheck, FaCheck, FaTimes, FaClock, FaUser, FaArrowRight } from 'react-icons/fa';
 
+/** Static tone classes — Tailwind cannot generate `bg-${x}-100`. */
+const STATUS_TONE = {
+  pending: 'bg-amber-50 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300',
+  approved: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300',
+  rejected: 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300',
+  draft: 'bg-surface-sunken text-content-muted',
+};
+
+
 const ApprovalWorkflows = ({ workflows: initialWorkflows = [], onApprove, onReject }) => {
   const [workflows, setWorkflows] = useState(initialWorkflows);
   const [filter, setFilter] = useState('pending');
@@ -79,7 +88,7 @@ const ApprovalWorkflows = ({ workflows: initialWorkflows = [], onApprove, onReje
                     {workflow.description}
                   </p>
                 </div>
-                <span className={`px-2 py-1 text-xs rounded-full bg-${getStatusColor(workflow.status)}-100 text-${getStatusColor(workflow.status)}-700 capitalize`}>
+                <span className={`rounded-full px-2 py-1 text-xs font-semibold capitalize ${STATUS_TONE[workflow.status] || "bg-surface-sunken text-content-muted"}`}>
                   {workflow.status}
                 </span>
               </div>

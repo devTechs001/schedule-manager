@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import { FaInbox, FaEnvelope, FaSlack, FaComment, FaStar, FaArchive, FaTrash, FaFilter } from 'react-icons/fa';
 
+/** Static tone classes — Tailwind cannot generate `bg-${x}-100`. */
+const SOURCE_TONE = {
+  email: 'bg-sky-50 text-sky-600 dark:bg-sky-400/15 dark:text-sky-300',
+  slack: 'bg-violet-50 text-violet-600 dark:bg-violet-400/15 dark:text-violet-300',
+  teams: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-300',
+  default: 'bg-surface-sunken text-content-muted',
+};
+
+
 const UnifiedInbox = ({ messages = [], onSelect, onArchive, onDelete }) => {
   const [selectedMessages, setSelectedMessages] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -97,7 +106,7 @@ const UnifiedInbox = ({ messages = [], onSelect, onArchive, onDelete }) => {
                 onChange={(e) => { e.stopPropagation(); toggleSelect(message.id); }}
                 className="mt-1"
               />
-              <div className={`p-2 rounded-lg bg-${getSourceColor(message.source)}-100 dark:bg-${getSourceColor(message.source)}-900/30 text-${getSourceColor(message.source)}-600`}>
+              <div className={`rounded-lg p-2 ${SOURCE_TONE[message.source] || "bg-surface-sunken text-content-muted"}`}>
                 {getSourceIcon(message.source)}
               </div>
               <div className="flex-1 min-w-0">

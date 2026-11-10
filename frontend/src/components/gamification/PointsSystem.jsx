@@ -72,7 +72,7 @@ const PointsSystem = ({ points = 0, history = [], onRedeem }) => {
       <div className="grid grid-cols-3 gap-4 mb-6">
         {pointCategories.map((cat) => (
           <div key={cat.label} className="p-4 bg-surface-sunken rounded-lg text-center">
-            <cat.icon className={`mx-auto text-${cat.color}-500 text-xl mb-2`} />
+            <cat.icon className={`mx-auto text-content-muted text-xl mb-2`} />
             <p className="text-lg font-bold text-content">{cat.points}</p>
             <p className="text-xs text-content-muted">{cat.label}</p>
           </div>

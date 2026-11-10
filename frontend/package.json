@@ -13,9 +13,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vite-node scripts/test-reminders.mjs && vite-node scripts/test-appointments.mjs && vite-node scripts/test-snapshot.mjs && node scripts/test-notes.mjs && node scripts/test-goals.mjs",
+    "test": "vite-node scripts/test-reminders.mjs && vite-node scripts/test-appointments.mjs && vite-node scripts/test-snapshot.mjs && node scripts/test-notes.mjs && node scripts/test-goals.mjs && node scripts/test-conflicts.mjs",
     "test:ssr": "vite-node scripts/ssr-smoke.jsx",
-    "check": "vite-node scripts/modcheck.mjs && vite-node scripts/test-reminders.mjs && vite-node scripts/test-appointments.mjs && vite-node scripts/test-snapshot.mjs && vite-node scripts/ssr-smoke.jsx && node scripts/test-notes.mjs && node scripts/test-goals.mjs",
+    "check": "vite-node scripts/modcheck.mjs && vite-node scripts/test-reminders.mjs && vite-node scripts/test-appointments.mjs && vite-node scripts/test-snapshot.mjs && vite-node scripts/ssr-smoke.jsx && node scripts/test-notes.mjs && node scripts/test-goals.mjs && node scripts/test-conflicts.mjs",
     "boot": "node scripts/boot-check.mjs"
   },
   "dependencies": {

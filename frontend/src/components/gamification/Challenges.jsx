@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import { FaFlag, FaTrophy, FaClock, FaUsers, FaCheck, FaPlay } from 'react-icons/fa';
 
+/** Static tone classes — Tailwind cannot generate `bg-${x}-100`. */
+const CHALLENGE_TONE = {
+  active: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300',
+  upcoming: 'bg-sky-50 text-sky-700 dark:bg-sky-400/15 dark:text-sky-300',
+  completed: 'bg-surface-sunken text-content-muted',
+  expired: 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300',
+};
+
+
 const Challenges = ({ challenges: initialChallenges = [], onJoin, onComplete }) => {
   const [filter, setFilter] = useState('active');
 
@@ -77,7 +86,7 @@ const Challenges = ({ challenges: initialChallenges = [], onJoin, onComplete }) 
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <h4 className="font-medium text-gray-900 dark:text-white">{challenge.title}</h4>
-                    <span className={`px-2 py-0.5 text-xs rounded-full bg-${getStatusColor(challenge.status)}-100 dark:bg-${getStatusColor(challenge.status)}-900/30 text-${getStatusColor(challenge.status)}-700 dark:text-${getStatusColor(challenge.status)}-300 capitalize`}>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${CHALLENGE_TONE[challenge.status] || "bg-surface-sunken text-content-muted"}`}>
                       {challenge.status}
                     </span>
                     {challenge.type === 'team' && (

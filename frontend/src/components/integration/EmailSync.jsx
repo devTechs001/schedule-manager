@@ -68,8 +68,8 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-lg bg-${provider.color}-100 dark:bg-${provider.color}-900/30 flex items-center justify-center`}>
-                    <provider.icon className={`text-${provider.color}-500 text-xl`} />
+                  <div className={`w-12 h-12 rounded-lg bg-surface-sunken flex items-center justify-center`}>
+                    <provider.icon className={`text-content-muted text-xl`} />
                   </div>
                   <div>
                     <h4 className="font-medium text-content">{provider.name}</h4>
@@ -135,7 +135,7 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
               className={`px-3 py-1 rounded-full text-sm capitalize ${
                 syncFolders.includes(folder)
                   ? 'bg-primary-600 text-white'
-                  : 'bg-surface-sunken bg-surface-sunken text-content'
+                  : 'bg-surface-sunken text-content'
               }`}
             >
               {folder}
