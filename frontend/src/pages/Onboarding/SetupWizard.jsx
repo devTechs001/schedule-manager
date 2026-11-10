@@ -1,7 +1,27 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { FaUser, FaBriefcase, FaCalendarAlt, FaBell, FaCheck, FaArrowRight, FaArrowLeft } from 'react-icons/fa';
+import { useAuth } from '@contexts/AuthContext';
 
+/**
+ * Setup wizard.
+ *
+ * This page used to end in `onComplete?.(formData)` against a prop nothing ever
+ * passed — the route renders `<SetupWizard />` bare — so pressing "Complete
+ * Setup" silently threw away everything the user had typed and left them on the
+ * same screen. It also collected work hours, work days, a role and notification
+ * toggles that no part of the app reads.
+ *
+ * What is real and now saved: the name, written to the signed-in profile. What
+ * is not: work hours, work days and notification delivery. Those steps say so
+ * in place rather than pretending, and the completion message tells the user
+ * exactly what was stored.
+ */
 const SetupWizard = ({ onComplete }) => {
+  const navigate = useNavigate();
+  const { user, updateProfile } = useAuth();
+  const [saving, setSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
@@ -37,11 +57,41 @@ const SetupWizard = ({ onComplete }) => {
     }));
   };
 
+  const finish = async () => {
+    const name = formData.name.trim();
+    let savedName = false;
+
+    if (name && user) {
+      setSaving(true);
+      try {
+        await updateProfile({ name });
+        savedName = true;
+      } catch (error) {
+        toast.error(`Could not save your name: ${error.message}`);
+        setSaving(false);
+        return;
+      }
+      setSaving(false);
+    }
+
+    onComplete?.(formData);
+
+    if (savedName) {
+      toast.success('Name saved to your profile. Work hours and notifications are not applied yet.');
+    } else if (!user) {
+      toast('Sign in to save these details to a profile.');
+    } else {
+      toast('Nothing to save — no name was entered.');
+    }
+
+    navigate(user ? '/dashboard' : '/login');
+  };
+
   const nextStep = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
-      onComplete?.(formData);
+      finish();
     }
   };
 
@@ -115,6 +165,10 @@ const SetupWizard = ({ onComplete }) => {
 
           {currentStep === 1 && (
             <div className="space-y-6">
+              <p className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200">
+                Not saved yet. SchedAI does not use working hours when placing
+                tasks or events, so these values would be collected and ignored.
+              </p>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Work Hours</label>
                 <div className="flex items-center space-x-4">
@@ -169,6 +223,11 @@ const SetupWizard = ({ onComplete }) => {
 
           {currentStep === 3 && (
             <div className="space-y-4">
+              <p className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200">
+                Not available on this deployment. These toggles do not enable
+                email, push or reminder delivery — turn on browser notifications
+                in Settings for the one channel that exists.
+              </p>
               {[
                 { key: 'email', label: 'Email Notifications', desc: 'Get updates via email' },
                 { key: 'push', label: 'Push Notifications', desc: 'Receive instant alerts' },
@@ -205,9 +264,11 @@ const SetupWizard = ({ onComplete }) => {
           </button>
           <button
             onClick={nextStep}
-            className="flex items-center px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl"
+            disabled={saving}
+            className="flex items-center px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:opacity-60 text-white font-medium rounded-xl"
           >
-            {currentStep === steps.length - 1 ? 'Complete Setup' : 'Continue'} <FaArrowRight className="ml-2" />
+            {saving ? 'Saving…' : currentStep === steps.length - 1 ? 'Complete Setup' : 'Continue'}{' '}
+            {!saving && <FaArrowRight className="ml-2" />}
           </button>
         </div>
       </div>

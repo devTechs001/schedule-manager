@@ -44,7 +44,6 @@ const Settings = () => {
   const { user, updateProfile, changePassword } = useAuth();
   const {
     theme,
-    isDark,
     accent,
     density,
     themes,
@@ -76,6 +75,16 @@ const Settings = () => {
   const [notifyPermission, setNotifyPermission] = useState(() =>
     typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
   );
+  /*
+   * The server keeps preferences.notifications on the user document, so these
+   * are worth writing even though nothing delivers them yet.
+   */
+  const [notificationPrefs, setNotificationPrefs] = useState(() => ({
+    email: user?.preferences?.notifications?.email ?? true,
+    push: user?.preferences?.notifications?.push ?? true,
+    taskReminders: user?.preferences?.notifications?.taskReminders ?? true,
+  }));
+  const [savingPrefs, setSavingPrefs] = useState(false);
   const [privacy, setPrivacy] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('privacy')) || { shareData: false, analyticsEnabled: true };
@@ -128,6 +137,18 @@ const Settings = () => {
       toast.error(error.message || 'Could not change password');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveNotificationPrefs = async () => {
+    setSavingPrefs(true);
+    try {
+      await updateProfile({ preferences: { notifications: notificationPrefs } });
+      toast.success('Notification preferences saved to your profile');
+    } catch (error) {
+      toast.error(`Could not save preferences: ${error.message}`);
+    } finally {
+      setSavingPrefs(false);
     }
   };
 
@@ -460,15 +481,43 @@ const Settings = () => {
                   </p>
                 )}
 
-                <div className="rounded-xl border border-line bg-surface-sunken px-4 py-3">
-                  <p className="text-sm font-medium text-content">Email, push and digests</p>
-                  <p className="mt-1 text-xs text-content-muted">
-                    Not available on this deployment. Nothing sends email, delivers a
-                    web push, or compiles a weekly digest yet, so there are no
-                    preferences to set — the options that used to sit here were saved
-                    and then ignored by every part of the app.
-                  </p>
-                </div>
+                {user && (
+                  <div className="rounded-xl border border-line px-4 py-3">
+                    <p className="text-sm font-medium text-content">Email, push and digests</p>
+                    <p className="mt-1 text-xs text-content-muted">
+                      Stored with your profile, but nothing sends them yet — there is
+                      no mailer, no web-push subscription and no digest job. They are
+                      kept so the server has your preference if delivery is added.
+                    </p>
+                    <div className="mt-3 space-y-2">
+                      {[
+                        { key: 'email', label: 'Email' },
+                        { key: 'push', label: 'Push' },
+                        { key: 'taskReminders', label: 'Task reminders' },
+                      ].map((pref) => (
+                        <div key={pref.key} className="flex items-center justify-between gap-4">
+                          <span className="text-xs text-content">{pref.label}</span>
+                          <Toggle
+                            checked={Boolean(notificationPrefs[pref.key])}
+                            onChange={(next) =>
+                              setNotificationPrefs({ ...notificationPrefs, [pref.key]: next })
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={saveNotificationPrefs}
+                        disabled={savingPrefs}
+                        className="btn btn-outline btn-sm disabled:opacity-60"
+                      >
+                        <FaSave size={9} /> {savingPrefs ? 'Saving…' : 'Save to profile'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
