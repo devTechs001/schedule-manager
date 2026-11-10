@@ -9,8 +9,6 @@ permissions:
   contents: read
   pages: write
   id-token: write
-  # Needed so the guard step can ask whether a Pages site exists yet.
-  administration: read
 
 concurrency:
   group: "pages"
@@ -72,9 +70,14 @@ jobs:
     - name: Check whether GitHub Pages is enabled
       id: pages_check
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        if gh api "repos/${{ github.repository }}/pages" >/dev/null 2>&1; then
+        status=$(curl -s -o /dev/null -w '%{http_code}' \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          "https://api.github.com/repos/${{ github.repository }}/pages")
+        echo "Pages API responded $status"
+        if [ "$status" = "200" ]; then
           echo "enabled=true" >> "$GITHUB_OUTPUT"
           echo "Pages site found — proceeding with deploy."
         else
@@ -83,7 +86,7 @@ jobs:
             echo "### GitHub Pages is not enabled"
             echo ""
             echo "The frontend built successfully, but there is no Pages site for this repository,"
-            echo "so the deploy was skipped."
+            echo "so the deploy was skipped. (Pages API returned \`$status\`.)"
             echo ""
             echo "To publish the app: **Settings → Pages → Source: GitHub Actions**, then re-run this workflow."
           } >> "$GITHUB_STEP_SUMMARY"
