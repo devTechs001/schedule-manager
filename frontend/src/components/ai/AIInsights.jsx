@@ -2,7 +2,22 @@ import React from 'react';
 import { FaLightbulb, FaChartLine, FaClock, FaExclamationTriangle } from 'react-icons/fa';
 import Card from '@components/ui/Card';
 
+/**
+ * AIInsights — renders a list of insight objects.
+ *
+ * Deliberately not mounted: the AI Insights page (pages/AI/AIInsights.jsx)
+ * renders its own richer layout from the same data, so mounting this too would
+ * show the same insights twice.
+ *
+ * The `insights` prop is normalised here because it arrived in two different
+ * shapes depending on the caller: an array from the protected endpoint, an
+ * `{ success, data }` envelope from the public one. The aiAPI service now
+ * unwraps, but this guard stays so a bad caller degrades to an empty state
+ * rather than throwing on `.map` of a non-array.
+ */
 const AIInsights = ({ insights }) => {
+  const list = Array.isArray(insights) ? insights : Array.isArray(insights?.data) ? insights.data : [];
+
   const iconMap = {
     productivity: FaChartLine,
     time: FaClock,
@@ -24,7 +39,7 @@ const AIInsights = ({ insights }) => {
         AI Insights
       </h3>
 
-      {insights.length === 0 ? (
+      {list.length === 0 ? (
         <Card>
           <p className="text-gray-500 dark:text-gray-400 text-center py-8">
             No insights available yet. Keep using the app to get personalized recommendations!
@@ -32,7 +47,7 @@ const AIInsights = ({ insights }) => {
         </Card>
       ) : (
         <div className="space-y-3">
-          {insights.map((insight, index) => {
+          {list.map((insight, index) => {
             const Icon = iconMap[insight.type] || FaLightbulb;
             const colorClass = colorMap[insight.type] || 'text-gray-600';
 
