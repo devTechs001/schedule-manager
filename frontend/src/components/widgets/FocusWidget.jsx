@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FaBrain, FaPlay, FaPause, FaRedo, FaCog, FaCheck, FaCoffee } from 'react-icons/fa';
 
 const FocusWidget = ({ 
@@ -16,17 +16,38 @@ const FocusWidget = ({
   const [showSettings, setShowSettings] = useState(false);
   const intervalRef = useRef(null);
 
+  /*
+   * handleComplete was previously declared *below* this effect and called from
+   * inside it. In a const-arrow function that is a temporal-dead-zone error the
+   * first time the clock hits zero, which would unmount the whole app (there is
+   * no error boundary above this widget). It is now declared first and wrapped
+   * in useCallback so the dependency list is honest.
+   */
+  const handleComplete = useCallback(() => {
+    setIsRunning(false);
+    if (!isBreak) {
+      setSessions((count) => count + 1);
+      setIsBreak(true);
+      setTimeLeft(breakDuration * 60);
+      onComplete?.({ type: 'focus' });
+    } else {
+      setIsBreak(false);
+      setTimeLeft(duration * 60);
+      onComplete?.({ type: 'break' });
+    }
+  }, [isBreak, breakDuration, duration, onComplete]);
+
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
       intervalRef.current = setInterval(() => {
-        setTimeLeft(t => t - 1);
+        setTimeLeft((t) => t - 1);
       }, 1000);
-    } else if (timeLeft === 0) {
+    } else if (timeLeft === 0 && isRunning) {
       handleComplete();
     }
 
     return () => clearInterval(intervalRef.current);
-  }, [isRunning, timeLeft]);
+  }, [isRunning, timeLeft, handleComplete]);
 
   const handleStart = () => {
     setIsRunning(true);
@@ -42,19 +63,7 @@ const FocusWidget = ({
     setTimeLeft(isBreak ? breakDuration * 60 : duration * 60);
   };
 
-  const handleComplete = () => {
-    setIsRunning(false);
-    if (!isBreak) {
-      setSessions(s => s + 1);
-      setIsBreak(true);
-      setTimeLeft(breakDuration * 60);
-      onComplete?.({ type: 'focus', sessions: sessions + 1 });
-    } else {
-      setIsBreak(false);
-      setTimeLeft(duration * 60);
-      onComplete?.({ type: 'break' });
-    }
-  };
+
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);

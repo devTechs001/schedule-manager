@@ -27,6 +27,7 @@ import EmptyState from '@components/ui/EmptyState';
 import Modal from '@components/ui/Modal';
 import TaskForm from '@components/tasks/TaskForm';
 import QuickAddTask from '@components/tasks/QuickAddTask';
+import FocusWidget from '@components/widgets/FocusWidget';
 
 const greeting = () => {
   const hour = new Date().getHours();
@@ -336,6 +337,9 @@ const Dashboard = () => {
 
         {/* Right column */}
         <div className="space-y-5">
+          {/* Quick focus session — the full timer lives on /focus. */}
+          <FocusWidget compact />
+
           {/* Upcoming */}
           <Card
             title="Up next"
