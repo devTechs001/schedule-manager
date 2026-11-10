@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { FaWifi, FaSync, FaCloudDownloadAlt, FaTasks, FaCalendarAlt, FaCheck } from 'react-icons/fa';
 import { useOfflineOptional } from '@contexts/OfflineContext';
+import config from '../../config/app';
+
+/**
+ * `/health` lives at the API root, not under the `/api` prefix. Derive it from
+ * the configured base so a deployment that sets VITE_API_URL to an absolute
+ * origin still points at the right host.
+ */
+const HEALTH_ENDPOINT = `${String(config.apiUrl || '/api').replace(/\/$/, '').replace(/\/api$/, '')}/health`;
 
 /**
  * Offline page.
@@ -29,10 +37,16 @@ const Offline = () => {
     };
   }, []);
 
+  /**
+   * The health route is mounted at the server root (`/health`), not under
+   * `/api` — see Status.jsx, which has always called the right one. This used
+   * to fetch `/api/health`, which is a 404, so the check reported "offline"
+   * every single time, even on a healthy connection.
+   */
   const checkConnection = async () => {
     setChecking(true);
     try {
-      const response = await fetch('/api/health', { method: 'HEAD', cache: 'no-cache' });
+      const response = await fetch(HEALTH_ENDPOINT, { method: 'HEAD', cache: 'no-cache' });
       setIsOnline(response.ok);
     } catch {
       setIsOnline(false);
