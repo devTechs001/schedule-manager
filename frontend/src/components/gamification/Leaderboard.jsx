@@ -1,32 +1,37 @@
-import React, { useState } from 'react';
-import { FaTrophy, FaMedal, FaCrown, FaArrowUp, FaArrowDown, FaMinus } from 'react-icons/fa';
+import React from 'react';
+import { FaTrophy, FaMedal, FaCrown, FaUserFriends } from 'react-icons/fa';
 
-const Leaderboard = ({ users = [], currentUserId, period = 'weekly' }) => {
-  const [selectedPeriod, setSelectedPeriod] = useState(period);
-
-  const defaultUsers = [
-    { id: 1, name: 'Alex Johnson', avatar: 'A', points: 2450, tasksCompleted: 48, change: 2 },
-    { id: 2, name: 'Sarah Williams', avatar: 'S', points: 2280, tasksCompleted: 45, change: -1 },
-    { id: 3, name: 'Mike Chen', avatar: 'M', points: 2150, tasksCompleted: 42, change: 1 },
-    { id: 4, name: 'Emily Davis', avatar: 'E', points: 1980, tasksCompleted: 38, change: 0 },
-    { id: 5, name: 'You', avatar: 'Y', points: 1850, tasksCompleted: 35, change: 3, isCurrentUser: true },
-    { id: 6, name: 'James Wilson', avatar: 'J', points: 1720, tasksCompleted: 33, change: -2 },
-    { id: 7, name: 'Lisa Brown', avatar: 'L', points: 1650, tasksCompleted: 31, change: 1 },
-  ];
-
-  const allUsers = users.length > 0 ? users : defaultUsers;
+/**
+ * Leaderboard — real standings only.
+ *
+ * This component used to ship a `defaultUsers` array of seven people who do not
+ * exist (Alex Johnson, Sarah Williams, Mike Chen …) with invented scores, deltas
+ * and task counts, and rendered it whenever no real users were passed in. Since
+ * the page passed none, every visitor to /leaderboard saw a table of strangers
+ * ranked above them.
+ *
+ * There is no scores table on the server. What does exist is the signed-in
+ * user's own score, derived from tasks they actually completed (see usePoints).
+ * So the leaderboard is built from an explicit `entries` list — rows that carry
+ * real numbers — and shows an honest empty state when nobody has a score yet.
+ *
+ * Dropped along with the fake users:
+ *   - the daily/weekly/monthly/all-time tabs, which changed nothing: the score
+ *     is cumulative over all completed tasks, so a "daily" tab would have shown
+ *     the same number.
+ *   - the up/down "change" column, which implied a comparison to a previous
+ *     period that was never recorded.
+ */
+const Leaderboard = ({ entries = [], subtitle = 'Derived from tasks you have actually completed.' }) => {
+  const rows = (Array.isArray(entries) ? entries : []).filter(
+    (entry) => entry && Number.isFinite(entry.points)
+  );
 
   const getRankIcon = (rank) => {
     if (rank === 1) return <FaCrown className="text-yellow-500" />;
     if (rank === 2) return <FaMedal className="text-gray-400" />;
     if (rank === 3) return <FaMedal className="text-amber-600" />;
     return <span className="text-gray-500 font-medium">{rank}</span>;
-  };
-
-  const getChangeIcon = (change) => {
-    if (change > 0) return <FaArrowUp className="text-green-500" />;
-    if (change < 0) return <FaArrowDown className="text-red-500" />;
-    return <FaMinus className="text-gray-400" />;
   };
 
   const getRankBgColor = (rank, isCurrentUser) => {
@@ -37,93 +42,94 @@ const Leaderboard = ({ users = [], currentUserId, period = 'weekly' }) => {
     return '';
   };
 
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <FaTrophy className="text-yellow-500 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Leaderboard</h3>
-        </div>
-        <div className="flex gap-1">
-          {['daily', 'weekly', 'monthly', 'all-time'].map((p) => (
-            <button
-              key={p}
-              onClick={() => setSelectedPeriod(p)}
-              className={`px-3 py-1 rounded text-sm capitalize ${
-                selectedPeriod === p
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-              }`}
-            >
-              {p.replace('-', ' ')}
-            </button>
-          ))}
-        </div>
+  if (rows.length === 0) {
+    return (
+      <div className="card p-8 text-center">
+        <FaTrophy className="mx-auto mb-3 text-2xl text-content-subtle" />
+        <p className="font-semibold text-content">No scores yet</p>
+        <p className="mx-auto mt-1 max-w-md text-sm text-content-muted">
+          Complete a task and your score appears here. Scores are worked out from
+          your own completed tasks — the app does not record scores for anyone
+          else, so there is nobody to rank you against.
+        </p>
       </div>
+    );
+  }
 
-      {/* Top 3 Podium */}
-      <div className="flex justify-center items-end gap-4 mb-8">
-        {allUsers.slice(0, 3).map((user, i) => {
-          const order = [1, 0, 2][i];
-          const heights = ['h-24', 'h-32', 'h-20'];
-          const sortedUser = allUsers[order];
-          return (
-            <div key={sortedUser.id} className="text-center">
-              <div className={`w-14 h-14 mx-auto rounded-full ${
-                order === 0 ? 'bg-yellow-500 ring-4 ring-yellow-300' :
-                order === 1 ? 'bg-gray-400' : 'bg-amber-600'
-              } flex items-center justify-center text-white text-xl font-bold mb-2`}>
-                {sortedUser.avatar}
+  const podium = rows.slice(0, 3);
+
+  return (
+    <div className="card p-6">
+      <div className="mb-1 flex items-center gap-3">
+        <FaTrophy className="text-xl text-yellow-500" />
+        <h3 className="text-lg font-semibold text-content">Standings</h3>
+      </div>
+      <p className="mb-6 text-sm text-content-muted">{subtitle}</p>
+
+      {podium.length > 0 && (
+        <div className="mb-8 flex items-end justify-center gap-4">
+          {podium.map((entry, index) => (
+            <div key={entry.id ?? entry.name} className="text-center">
+              <div
+                className={`mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full text-xl font-bold text-white ${
+                  index === 0
+                    ? 'bg-yellow-500 ring-4 ring-yellow-300'
+                    : index === 1
+                      ? 'bg-gray-400'
+                      : 'bg-amber-600'
+                }`}
+              >
+                {entry.avatar || (entry.name || '?').charAt(0).toUpperCase()}
               </div>
-              <p className="font-medium text-gray-900 dark:text-white text-sm">{sortedUser.name}</p>
-              <p className="text-xs text-gray-500">{sortedUser.points.toLocaleString()} pts</p>
-              <div className={`mt-2 ${heights[order]} w-20 ${
-                order === 0 ? 'bg-yellow-400' : order === 1 ? 'bg-gray-300' : 'bg-amber-500'
-              } rounded-t-lg flex items-center justify-center text-white font-bold`}>
-                #{order + 1}
+              <p className="text-sm font-medium text-content">{entry.name}</p>
+              <p className="text-xs text-content-muted">{entry.points.toLocaleString()} pts</p>
+              <div
+                className={`mt-2 flex w-20 items-center justify-center rounded-t-lg font-bold text-white ${
+                  index === 0 ? 'h-32 bg-yellow-400' : index === 1 ? 'h-24 bg-gray-300' : 'h-20 bg-amber-500'
+                }`}
+              >
+                #{index + 1}
               </div>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* Full Leaderboard */}
       <div className="space-y-2">
-        {allUsers.map((user, index) => (
+        {rows.map((entry, index) => (
           <div
-            key={user.id}
-            className={`flex items-center gap-4 p-3 rounded-lg ${getRankBgColor(index + 1, user.isCurrentUser)}`}
+            key={entry.id ?? entry.name}
+            className={`flex items-center gap-4 rounded-lg p-3 ${getRankBgColor(index + 1, entry.isCurrentUser)}`}
           >
-            <div className="w-8 flex justify-center">{getRankIcon(index + 1)}</div>
-            <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-medium">
-              {user.avatar}
+            <div className="flex w-8 justify-center">{getRankIcon(index + 1)}</div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-500 font-medium text-white">
+              {entry.avatar || (entry.name || '?').charAt(0).toUpperCase()}
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <span className={`font-medium ${
-                  user.isCurrentUser ? 'text-primary-600' : 'text-gray-900 dark:text-white'
-                }`}>
-                  {user.name}
+                <span className={`font-medium ${entry.isCurrentUser ? 'text-primary-600' : 'text-content'}`}>
+                  {entry.name}
                 </span>
-                {user.isCurrentUser && (
-                  <span className="text-xs px-2 py-0.5 bg-primary-600 text-white rounded-full">You</span>
+                {entry.isCurrentUser && (
+                  <span className="rounded-full bg-primary-600 px-2 py-0.5 text-xs text-white">You</span>
                 )}
               </div>
-              <span className="text-sm text-gray-500">{user.tasksCompleted} tasks</span>
+              <span className="text-sm text-content-muted">
+                {entry.tasksCompleted ?? 0} tasks completed
+              </span>
             </div>
-            <div className="text-right">
-              <p className="font-bold text-gray-900 dark:text-white">{user.points.toLocaleString()}</p>
-              <div className="flex items-center justify-end gap-1">
-                {getChangeIcon(user.change)}
-                <span className="text-xs text-gray-500">{Math.abs(user.change) || '-'}</span>
-              </div>
-            </div>
+            <p className="font-bold text-content">{entry.points.toLocaleString()}</p>
           </div>
         ))}
       </div>
+
+      <p className="mt-4 flex items-start gap-2 text-xs text-content-muted">
+        <FaUserFriends className="mt-0.5 shrink-0" />
+        Team scores need a server that records them; until then this shows only
+        scores that really exist.
+      </p>
     </div>
   );
 };
 
 export default Leaderboard;
-
