@@ -15,18 +15,22 @@ import {
   FaSun,
   FaDesktop,
   FaEye,
+  FaCommentAlt,
 } from 'react-icons/fa';
 import { useAuth } from '@contexts/AuthContext';
 import { useTheme } from '@contexts/ThemeContext';
 import Input from '@components/ui/Input';
 import ProfileCard from '@components/profile/ProfileCard';
 import Toggle from '@components/ui/Toggle';
+import FeedbackForm from '@components/feedback/FeedbackForm';
+import client from '@services/api/client';
 
 const TABS = [
   { id: 'profile', label: 'Profile', icon: FaUser },
   { id: 'appearance', label: 'Appearance', icon: FaPalette },
   { id: 'notifications', label: 'Notifications', icon: FaBell },
   { id: 'privacy', label: 'Privacy', icon: FaShieldAlt },
+  { id: 'feedback', label: 'Feedback', icon: FaCommentAlt },
 ];
 
 const LINKS = [
@@ -444,6 +448,46 @@ const Settings = () => {
                     <FaSave size={11} /> Save preferences
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'feedback' && (
+            <div className="card">
+              <div className="border-b border-line px-5 py-4">
+                <h2 className="text-base font-semibold text-content">Send feedback</h2>
+                <p className="text-sm text-content-muted">
+                  Goes straight to the maintainers, attached to your account.
+                </p>
+              </div>
+              <div className="p-5">
+                <FeedbackForm
+                  onSubmit={async (data) => {
+                    /*
+                     * POST /api/feedback stores { rating, category, message }
+                     * against the signed-in user. The previous version of this
+                     * flow only had a form with no submit target.
+                     */
+                    if (!data.rating) {
+                      toast.error('Pick a star rating first');
+                      return;
+                    }
+                    if (!data.message.trim()) {
+                      toast.error('Add a short message');
+                      return;
+                    }
+                    try {
+                      await client.post('/feedback', {
+                        rating: data.rating,
+                        category: data.category,
+                        message: data.message.trim(),
+                      });
+                      toast.success('Thanks — feedback received');
+                    } catch (error) {
+                      toast.error(error.message || 'Could not send feedback');
+                    }
+                  }}
+                />
               </div>
             </div>
           )}
