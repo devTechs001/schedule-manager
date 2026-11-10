@@ -64,7 +64,7 @@ const Planner = () => {
   const [planning, setPlanning] = useState(false);
 
   const { tasks, createTask, updateTask, toggleTask, deleteTask } = useTasks();
-  const { events, createEvent, updateEvent, deleteEvent } = useSchedule();
+  const { events, createEvent } = useSchedule();
 
   useEffect(() => {
     document.title = 'Planner — SchedAI';

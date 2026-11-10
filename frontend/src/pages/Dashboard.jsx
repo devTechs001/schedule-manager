@@ -51,7 +51,7 @@ const TONE_BY_TYPE = {
 const Dashboard = () => {
   const { user } = useAuth();
   const { tasks, loading: tasksLoading, createTask, updateTask, deleteTask, toggleTask } = useTasks();
-  const { events, loading: eventsLoading } = useSchedule();
+  const { events } = useSchedule();
   const { emails, loading: emailsLoading } = useEmails();
 
   const [showTaskModal, setShowTaskModal] = useState(false);

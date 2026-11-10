@@ -34,7 +34,7 @@ const readSessions = () => {
 };
 
 const Focus = () => {
-  const { tasks, updateTask, toggleTask } = useTasks();
+  const { tasks, toggleTask } = useTasks();
   const [modeId, setModeId] = useState('focus');
   const [remaining, setRemaining] = useState(25 * 60);
   const [running, setRunning] = useState(false);
