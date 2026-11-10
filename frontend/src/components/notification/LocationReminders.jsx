@@ -5,20 +5,10 @@ const LocationReminders = ({ reminders: initialReminders = [], locations: initia
   const [showCreate, setShowCreate] = useState(false);
   const [newReminder, setNewReminder] = useState({ location: '', task: '', trigger: 'arrive' });
 
-  const defaultLocations = [
-    { id: 1, name: 'Home', address: '123 Home Street', icon: FaHome, lat: 40.7128, lng: -74.006 },
-    { id: 2, name: 'Office', address: '456 Work Avenue', icon: FaBuilding, lat: 40.7580, lng: -73.9855 },
-    { id: 3, name: 'Grocery Store', address: '789 Market Blvd', icon: FaStore, lat: 40.7489, lng: -73.9680 },
-  ];
 
-  const defaultReminders = [
-    { id: 1, location: 'Office', task: 'Check in with team', trigger: 'arrive', active: true },
-    { id: 2, location: 'Home', task: 'Review tomorrow\'s schedule', trigger: 'arrive', active: true },
-    { id: 3, location: 'Grocery Store', task: 'Buy milk and bread', trigger: 'arrive', active: false },
-  ];
 
-  const [locations] = useState(initialLocations.length > 0 ? initialLocations : defaultLocations);
-  const [reminders, setReminders] = useState(initialReminders.length > 0 ? initialReminders : defaultReminders);
+  const [locations] = useState(initialLocations);
+  const [reminders, setReminders] = useState(initialReminders);
 
   const handleCreate = () => {
     if (!newReminder.location || !newReminder.task) return;
@@ -51,11 +41,11 @@ const LocationReminders = ({ reminders: initialReminders = [], locations: initia
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaMapMarkerAlt className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Location Reminders</h3>
+          <h3 className="text-lg font-semibold text-content">Location Reminders</h3>
         </div>
         <button
           onClick={() => setShowCreate(!showCreate)}
@@ -67,18 +57,18 @@ const LocationReminders = ({ reminders: initialReminders = [], locations: initia
 
       {/* Saved Locations */}
       <div className="mb-6">
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Saved Locations</h4>
+        <h4 className="text-sm font-medium text-content mb-3">Saved Locations</h4>
         <div className="flex gap-2 overflow-x-auto pb-2">
           {locations.map((loc) => (
             <div
               key={loc.id}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg whitespace-nowrap"
+              className="flex items-center gap-2 px-4 py-2 bg-surface-sunken rounded-lg whitespace-nowrap"
             >
               <loc.icon className="text-primary-600" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">{loc.name}</span>
+              <span className="text-sm text-content">{loc.name}</span>
             </div>
           ))}
-          <button className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 hover:border-primary-400 hover:text-primary-600">
+          <button className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-line rounded-lg text-content-muted hover:border-primary-400 hover:text-primary-600">
             <FaPlus className="text-xs" /> Add
           </button>
         </div>
@@ -89,11 +79,11 @@ const LocationReminders = ({ reminders: initialReminders = [], locations: initia
         <div className="mb-6 p-4 border-2 border-dashed border-primary-300 dark:border-primary-700 rounded-lg">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
+              <label className="block text-sm font-medium text-content mb-1">Location</label>
               <select
                 value={newReminder.location}
                 onChange={(e) => setNewReminder({ ...newReminder, location: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                className="w-full px-4 py-2 border rounded-lg bg-surface-sunken border-line"
               >
                 <option value="">Select location</option>
                 {locations.map((loc) => (
@@ -102,17 +92,17 @@ const LocationReminders = ({ reminders: initialReminders = [], locations: initia
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Remind me to</label>
+              <label className="block text-sm font-medium text-content mb-1">Remind me to</label>
               <input
                 type="text"
                 placeholder="e.g., Buy groceries"
                 value={newReminder.task}
                 onChange={(e) => setNewReminder({ ...newReminder, task: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                className="w-full px-4 py-2 border rounded-lg bg-surface-sunken border-line"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Trigger when I</label>
+              <label className="block text-sm font-medium text-content mb-1">Trigger when I</label>
               <div className="flex gap-2">
                 {['arrive', 'leave'].map((t) => (
                   <button
@@ -121,7 +111,7 @@ const LocationReminders = ({ reminders: initialReminders = [], locations: initia
                     className={`flex-1 py-2 rounded-lg capitalize ${
                       newReminder.trigger === t
                         ? 'bg-primary-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                        : 'bg-surface-sunken text-content'
                     }`}
                   >
                     {t}
@@ -143,7 +133,7 @@ const LocationReminders = ({ reminders: initialReminders = [], locations: initia
       {/* Reminders List */}
       <div className="space-y-3">
         {reminders.length === 0 ? (
-          <p className="text-center text-gray-500 py-8">No location reminders set</p>
+          <p className="text-center text-content-muted py-8">No location reminders set</p>
         ) : (
           reminders.map((reminder) => {
             const LocationIcon = getLocationIcon(reminder.location);
@@ -153,7 +143,7 @@ const LocationReminders = ({ reminders: initialReminders = [], locations: initia
                 className={`p-4 rounded-lg border-2 ${
                   reminder.active
                     ? 'border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20'
-                    : 'border-gray-200 dark:border-gray-700 opacity-60'
+                    : 'border-line opacity-60'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -162,8 +152,8 @@ const LocationReminders = ({ reminders: initialReminders = [], locations: initia
                       <LocationIcon className="text-primary-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">{reminder.task}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="font-medium text-content">{reminder.task}</p>
+                      <p className="text-sm text-content-muted">
                         When I {reminder.trigger} <span className="font-medium">{reminder.location}</span>
                       </p>
                     </div>
@@ -171,7 +161,7 @@ const LocationReminders = ({ reminders: initialReminders = [], locations: initia
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleToggle(reminder.id)}
-                      className={reminder.active ? 'text-green-500' : 'text-gray-400'}
+                      className={reminder.active ? 'text-green-500' : 'text-content-subtle'}
                     >
                       {reminder.active ? <FaToggleOn className="text-2xl" /> : <FaToggleOff className="text-2xl" />}
                     </button>

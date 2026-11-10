@@ -32,23 +32,23 @@ const RelationshipMap = ({ contacts = [], relationships = [], onAddRelationship 
   );
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaProjectDiagram className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Relationship Map</h3>
+          <h3 className="text-lg font-semibold text-content">Relationship Map</h3>
         </div>
       </div>
 
       {/* Search */}
       <div className="relative mb-4">
-        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-content-subtle" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search contacts..."
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full pl-10 pr-4 py-2 border border-line rounded-lg bg-white bg-surface-sunken text-content"
         />
       </div>
 
@@ -57,7 +57,7 @@ const RelationshipMap = ({ contacts = [], relationships = [], onAddRelationship 
         {relationshipTypes.map((type) => (
           <span
             key={type.value}
-            className={`px-2 py-1 text-xs rounded-full bg-${type.color}-100 dark:bg-${type.color}-900/30 text-${type.color}-700 dark:text-${type.color}-300`}
+            className={`px-2 py-1 text-xs rounded-full bg-surface-sunken text-content-muted text-content-muted`}
           >
             {type.label}
           </span>
@@ -74,17 +74,17 @@ const RelationshipMap = ({ contacts = [], relationships = [], onAddRelationship 
               className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
                 selectedContact?.id === contact.id
                   ? 'bg-primary-100 dark:bg-primary-900/30'
-                  : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'hover:bg-surface-sunken'
               }`}
             >
               <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white">
                 {contact.name?.[0] || 'C'}
               </div>
               <div className="text-left">
-                <p className="font-medium text-gray-900 dark:text-white">{contact.name}</p>
-                <p className="text-sm text-gray-500">{contact.company || contact.email}</p>
+                <p className="font-medium text-content">{contact.name}</p>
+                <p className="text-sm text-content-muted">{contact.company || contact.email}</p>
               </div>
-              <span className="ml-auto text-xs text-gray-400">
+              <span className="ml-auto text-xs text-content-subtle">
                 {getRelationshipsFor(contact.id).length} connections
               </span>
             </button>
@@ -92,7 +92,7 @@ const RelationshipMap = ({ contacts = [], relationships = [], onAddRelationship 
         </div>
 
         {/* Relationship Details */}
-        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+        <div className="bg-surface-sunken rounded-lg p-4">
           {selectedContact ? (
             <>
               <div className="flex items-center gap-3 mb-4">
@@ -100,23 +100,23 @@ const RelationshipMap = ({ contacts = [], relationships = [], onAddRelationship 
                   {selectedContact.name?.[0]}
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-white">{selectedContact.name}</h4>
-                  <p className="text-sm text-gray-500">{selectedContact.email}</p>
+                  <h4 className="font-medium text-content">{selectedContact.name}</h4>
+                  <p className="text-sm text-content-muted">{selectedContact.email}</p>
                 </div>
               </div>
 
-              <h5 className="font-medium text-gray-700 dark:text-gray-300 mb-3">Connections</h5>
+              <h5 className="font-medium text-content mb-3">Connections</h5>
               <div className="space-y-2">
                 {getRelationshipsFor(selectedContact.id).map((rel, i) => {
                   const otherId = rel.from === selectedContact.id ? rel.to : rel.from;
                   const other = getContactById(otherId);
                   if (!other) return null;
                   return (
-                    <div key={i} className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded">
-                      <FaLink className={`text-${getRelationshipColor(rel.type)}-500`} />
+                    <div key={i} className="flex items-center gap-3 p-2 bg-surface rounded">
+                      <FaLink className={`text-content-muted`} />
                       <div className="flex-1">
-                        <p className="text-sm text-gray-900 dark:text-white">{other.name}</p>
-                        <span className={`text-xs text-${getRelationshipColor(rel.type)}-600 capitalize`}>
+                        <p className="text-sm text-content">{other.name}</p>
+                        <span className={`text-xs text-content-muted capitalize`}>
                           {rel.type}
                         </span>
                       </div>
@@ -125,19 +125,19 @@ const RelationshipMap = ({ contacts = [], relationships = [], onAddRelationship 
                 })}
 
                 {getRelationshipsFor(selectedContact.id).length === 0 && (
-                  <p className="text-sm text-gray-500 text-center py-4">No connections yet</p>
+                  <p className="text-sm text-content-muted text-center py-4">No connections yet</p>
                 )}
               </div>
 
               <button
                 onClick={() => onAddRelationship?.(selectedContact.id)}
-                className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 hover:text-primary-600 hover:border-primary-500"
+                className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-line rounded-lg text-content-muted hover:text-primary-600 hover:border-primary-500"
               >
                 <FaPlus /> Add Connection
               </button>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400 py-12">
+            <div className="flex flex-col items-center justify-center h-full text-content-muted py-12">
               <FaUser className="text-4xl mb-2" />
               <p>Select a contact to view relationships</p>
             </div>

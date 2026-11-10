@@ -6,16 +6,8 @@ const AuditLogs = ({ logs: initialLogs = [], onExport }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState('7d');
 
-  const defaultLogs = [
-    { id: 1, action: 'login', user: 'john@example.com', target: null, ip: '192.168.1.1', time: new Date(Date.now() - 300000), status: 'success' },
-    { id: 2, action: 'create', user: 'sarah@example.com', target: 'Task: Q1 Report', ip: '192.168.1.2', time: new Date(Date.now() - 600000), status: 'success' },
-    { id: 3, action: 'update', user: 'mike@example.com', target: 'Event: Team Meeting', ip: '192.168.1.3', time: new Date(Date.now() - 1800000), status: 'success' },
-    { id: 4, action: 'delete', user: 'john@example.com', target: 'Contact: Old Vendor', ip: '192.168.1.1', time: new Date(Date.now() - 3600000), status: 'success' },
-    { id: 5, action: 'login', user: 'unknown@hacker.com', target: null, ip: '45.33.32.156', time: new Date(Date.now() - 7200000), status: 'failed' },
-    { id: 6, action: 'permission', user: 'admin@example.com', target: 'Role: Manager', ip: '192.168.1.10', time: new Date(Date.now() - 14400000), status: 'success' },
-  ];
 
-  const logs = initialLogs.length > 0 ? initialLogs : defaultLogs;
+  const logs = initialLogs;
 
   const getActionIcon = (action) => {
     switch (action) {
@@ -57,15 +49,15 @@ const AuditLogs = ({ logs: initialLogs = [], onExport }) => {
   });
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaHistory className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Audit Logs</h3>
+          <h3 className="text-lg font-semibold text-content">Audit Logs</h3>
         </div>
         <button
           onClick={onExport}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-surface-sunken hover:bg-surface-sunken text-content rounded-lg text-sm"
         >
           <FaDownload /> Export
         </button>
@@ -75,13 +67,13 @@ const AuditLogs = ({ logs: initialLogs = [], onExport }) => {
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="flex-1 min-w-[200px]">
           <div className="relative">
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-content-subtle" />
             <input
               type="text"
               placeholder="Search by user or target..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+              className="w-full pl-10 pr-4 py-2 border rounded-lg bg-surface-sunken border-line"
             />
           </div>
         </div>
@@ -93,7 +85,7 @@ const AuditLogs = ({ logs: initialLogs = [], onExport }) => {
               className={`px-3 py-2 rounded-lg text-sm capitalize ${
                 filter === f
                   ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                  : 'bg-surface-sunken text-content-muted'
               }`}
             >
               {f}
@@ -103,7 +95,7 @@ const AuditLogs = ({ logs: initialLogs = [], onExport }) => {
         <select
           value={dateRange}
           onChange={(e) => setDateRange(e.target.value)}
-          className="px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          className="px-4 py-2 border rounded-lg bg-surface-sunken border-line"
         >
           <option value="24h">Last 24 hours</option>
           <option value="7d">Last 7 days</option>
@@ -116,7 +108,7 @@ const AuditLogs = ({ logs: initialLogs = [], onExport }) => {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="text-left text-sm text-gray-500 border-b border-gray-200 dark:border-gray-700">
+            <tr className="text-left text-sm text-content-muted border-b border-line">
               <th className="pb-3 font-medium">Action</th>
               <th className="pb-3 font-medium">User</th>
               <th className="pb-3 font-medium">Target</th>
@@ -130,28 +122,28 @@ const AuditLogs = ({ logs: initialLogs = [], onExport }) => {
               const ActionIcon = getActionIcon(log.action);
               const color = getActionColor(log.action, log.status);
               return (
-                <tr key={log.id} className="border-b border-gray-100 dark:border-gray-700">
+                <tr key={log.id} className="border-b border-line">
                   <td className="py-3">
                     <div className="flex items-center gap-2">
-                      <div className={`w-8 h-8 rounded-full bg-${color}-100 dark:bg-${color}-900/30 flex items-center justify-center`}>
-                        <ActionIcon className={`text-${color}-600 text-xs`} />
+                      <div className={`w-8 h-8 rounded-full bg-surface-sunken flex items-center justify-center`}>
+                        <ActionIcon className={`text-content-muted text-xs`} />
                       </div>
-                      <span className="capitalize text-gray-900 dark:text-white">{log.action}</span>
+                      <span className="capitalize text-content">{log.action}</span>
                     </div>
                   </td>
                   <td className="py-3">
                     <div className="flex items-center gap-2">
-                      <FaUser className="text-gray-400" />
-                      <span className="text-gray-700 dark:text-gray-300">{log.user}</span>
+                      <FaUser className="text-content-subtle" />
+                      <span className="text-content">{log.user}</span>
                     </div>
                   </td>
-                  <td className="py-3 text-gray-500">{log.target || '-'}</td>
+                  <td className="py-3 text-content-muted">{log.target || '-'}</td>
                   <td className="py-3">
-                    <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                    <code className="text-xs bg-surface-sunken px-2 py-1 rounded">
                       {log.ip}
                     </code>
                   </td>
-                  <td className="py-3 text-gray-500">{formatTime(log.time)}</td>
+                  <td className="py-3 text-content-muted">{formatTime(log.time)}</td>
                   <td className="py-3">
                     <span className={`px-2 py-0.5 rounded-full text-xs ${
                       log.status === 'success'
@@ -169,7 +161,7 @@ const AuditLogs = ({ logs: initialLogs = [], onExport }) => {
       </div>
 
       {filteredLogs.length === 0 && (
-        <div className="text-center py-8 text-gray-500">No logs found matching your criteria</div>
+        <div className="text-center py-8 text-content-muted">No logs found matching your criteria</div>
       )}
     </div>
   );

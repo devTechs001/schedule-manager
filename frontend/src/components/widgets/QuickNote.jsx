@@ -68,11 +68,11 @@ const QuickNote = ({
 
   if (compact) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
+      <div className="bg-surface rounded-lg shadow-lg p-4">
         <div className="flex items-center gap-2 mb-3">
           <FaStickyNote className="text-yellow-500" />
-          <span className="font-medium text-gray-900 dark:text-white">Quick Notes</span>
-          <span className="text-xs text-gray-500">({notes.length})</span>
+          <span className="font-medium text-content">Quick Notes</span>
+          <span className="text-xs text-content-muted">({notes.length})</span>
         </div>
         <input
           type="text"
@@ -80,20 +80,20 @@ const QuickNote = ({
           onChange={(e) => setNewNote(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAddNote()}
           placeholder="Add a quick note..."
-          className="w-full px-3 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          className="w-full px-3 py-2 text-sm border rounded-lg bg-surface-sunken border-line"
         />
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <FaStickyNote className="text-yellow-500 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Quick Notes</h3>
+          <h3 className="text-lg font-semibold text-content">Quick Notes</h3>
         </div>
-        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-600 dark:text-gray-400">
+        <span className="px-2 py-1 bg-surface-sunken rounded-full text-xs text-content-muted">
           {notes.length} notes
         </span>
       </div>
@@ -107,7 +107,7 @@ const QuickNote = ({
           onChange={(e) => setNewNote(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAddNote()}
           placeholder="Write a quick note..."
-          className="flex-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-primary-500"
+          className="flex-1 px-4 py-2 border rounded-lg bg-surface-sunken border-line focus:ring-2 focus:ring-primary-500"
         />
         <button
           onClick={handleAddNote}
@@ -134,7 +134,7 @@ const QuickNote = ({
                     if (e.key === 'Escape') setEditingId(null);
                   }}
                   autoFocus
-                  className="flex-1 px-2 py-1 border rounded dark:bg-gray-800 dark:border-gray-600"
+                  className="flex-1 px-2 py-1 border rounded bg-surface-raised border-line"
                 />
                 <button
                   onClick={(e) => handleEdit(note.id, e.target.previousSibling.value)}
@@ -142,37 +142,37 @@ const QuickNote = ({
                 >
                   <FaCheck />
                 </button>
-                <button onClick={() => setEditingId(null)} className="text-gray-500">
+                <button onClick={() => setEditingId(null)} className="text-content-muted">
                   <FaTimes />
                 </button>
               </div>
             ) : (
               <>
                 <div className="flex items-start justify-between">
-                  <p className="text-sm text-gray-800 dark:text-gray-200 pr-16">{note.content}</p>
-                  {note.pinned && <FaThumbtack className="text-gray-400 text-xs" />}
+                  <p className="text-sm text-content pr-16">{note.content}</p>
+                  {note.pinned && <FaThumbtack className="text-content-subtle text-xs" />}
                 </div>
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                  <button onClick={() => togglePin(note.id)} className={`p-1 rounded ${note.pinned ? 'text-primary-500' : 'text-gray-400'} hover:bg-white/50`}>
+                  <button onClick={() => togglePin(note.id)} className={`p-1 rounded ${note.pinned ? 'text-primary-500' : 'text-content-subtle'} hover:bg-surface/50`}>
                     <FaThumbtack className="text-xs" />
                   </button>
-                  <button onClick={() => setShowColorPicker(note.id)} className="p-1 text-gray-400 hover:bg-white/50 rounded">
+                  <button onClick={() => setShowColorPicker(note.id)} className="p-1 text-content-subtle hover:bg-surface/50 rounded">
                     <FaPalette className="text-xs" />
                   </button>
-                  <button onClick={() => setEditingId(note.id)} className="p-1 text-gray-400 hover:bg-white/50 rounded">
+                  <button onClick={() => setEditingId(note.id)} className="p-1 text-content-subtle hover:bg-surface/50 rounded">
                     <FaEdit className="text-xs" />
                   </button>
-                  <button onClick={() => handleDelete(note.id)} className="p-1 text-red-400 hover:bg-white/50 rounded">
+                  <button onClick={() => handleDelete(note.id)} className="p-1 text-red-400 hover:bg-surface/50 rounded">
                     <FaTrash className="text-xs" />
                   </button>
                 </div>
                 {showColorPicker === note.id && (
-                  <div className="absolute top-8 right-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 flex gap-1 z-10">
+                  <div className="absolute top-8 right-2 bg-surface rounded-lg shadow-lg p-2 flex gap-1 z-10">
                     {colors.map((color) => (
                       <button
                         key={color}
                         onClick={() => handleColorChange(note.id, color)}
-                        className={`w-6 h-6 rounded-full bg-${color}-400 hover:scale-110 transition-transform`}
+                        className={`w-6 h-6 rounded-full bg-surface-sunken hover:scale-110 transition-transform`}
                       />
                     ))}
                   </div>

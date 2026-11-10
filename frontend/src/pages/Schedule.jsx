@@ -8,6 +8,7 @@ import EventForm from '@components/schedule/EventForm';
 import Modal from '@components/ui/Modal';
 import EmptyState from '@components/ui/EmptyState';
 import Badge from '@components/ui/Badge';
+import ConflictResolver from '@components/schedule/ConflictResolver';
 
 const Schedule = () => {
   const { events, loading, createEvent, updateEvent, deleteEvent, refreshEvents } = useSchedule();
@@ -170,6 +171,14 @@ const Schedule = () => {
             <ScheduleView events={events} onEventClick={handleSelectEvent} />
           )}
         </div>
+      )}
+
+      {/* Real overlap detection from the user's own events. */}
+      {events.length > 1 && (
+        <ConflictResolver
+          events={events}
+          onReschedule={(conflict) => handleSelectEvent(conflict.events[1])}
+        />
       )}
 
       <Modal

@@ -79,7 +79,7 @@ const FocusWidget = ({
           </div>
           <button
             onClick={isRunning ? handlePause : handleStart}
-            className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30"
+            className="w-10 h-10 rounded-full bg-surface/20 flex items-center justify-center hover:bg-surface/30"
           >
             {isRunning ? <FaPause /> : <FaPlay />}
           </button>
@@ -89,15 +89,15 @@ const FocusWidget = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaBrain className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Focus Timer</h3>
+          <h3 className="text-lg font-semibold text-content">Focus Timer</h3>
         </div>
         <button
           onClick={() => setShowSettings(!showSettings)}
-          className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+          className="p-2 text-content-muted hover:bg-surface-sunken rounded-lg"
         >
           <FaCog />
         </button>
@@ -110,7 +110,7 @@ const FocusWidget = ({
         {/* Progress Ring */}
         <svg className="absolute inset-0 w-full h-full -rotate-90">
           <circle cx="96" cy="96" r="88" fill="none" stroke="currentColor" strokeWidth="8"
-            className="text-gray-200 dark:text-gray-700" />
+            className="text-content-subtle dark:text-content" />
           <circle cx="96" cy="96" r="88" fill="none" stroke="currentColor" strokeWidth="8"
             strokeDasharray={2 * Math.PI * 88} strokeDashoffset={2 * Math.PI * 88 * (1 - progress / 100)}
             strokeLinecap="round"
@@ -118,7 +118,7 @@ const FocusWidget = ({
           />
         </svg>
         <div className="text-center z-10">
-          <p className="text-4xl font-bold font-mono text-gray-900 dark:text-white">
+          <p className="text-4xl font-bold font-mono text-content">
             {formatTime(timeLeft)}
           </p>
           <p className={`text-sm ${isBreak ? 'text-green-600' : 'text-primary-600'}`}>
@@ -131,9 +131,9 @@ const FocusWidget = ({
       <div className="flex justify-center gap-4 mb-6">
         <button
           onClick={handleReset}
-          className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600"
+          className="w-12 h-12 rounded-full bg-surface-sunken flex items-center justify-center hover:bg-surface-sunken"
         >
-          <FaRedo className="text-gray-600 dark:text-gray-400" />
+          <FaRedo className="text-content-muted" />
         </button>
         <button
           onClick={isRunning ? handlePause : handleStart}
@@ -145,9 +145,9 @@ const FocusWidget = ({
         </button>
         <button
           onClick={handleComplete}
-          className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600"
+          className="w-12 h-12 rounded-full bg-surface-sunken flex items-center justify-center hover:bg-surface-sunken"
         >
-          <FaCheck className="text-gray-600 dark:text-gray-400" />
+          <FaCheck className="text-content-muted" />
         </button>
       </div>
 
@@ -157,32 +157,32 @@ const FocusWidget = ({
           <div
             key={i}
             className={`w-3 h-3 rounded-full ${
-              i < sessions % 4 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'
+              i < sessions % 4 ? 'bg-primary-500' : 'bg-surface-sunken'
             }`}
           />
         ))}
-        <span className="ml-2 text-sm text-gray-500">{sessions} sessions today</span>
+        <span className="ml-2 text-sm text-content-muted">{sessions} sessions today</span>
       </div>
 
       {/* Settings Panel */}
       {showSettings && (
-        <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+        <div className="mt-4 p-4 bg-surface-sunken rounded-lg">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Focus (min)</label>
+              <label className="text-xs text-content-muted mb-1 block">Focus (min)</label>
               <input
                 type="number"
                 value={duration}
                 onChange={(e) => { setDuration(Number(e.target.value)); setTimeLeft(Number(e.target.value) * 60); }}
-                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-600"
+                className="w-full px-3 py-2 border rounded-lg bg-surface-raised border-line"
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">Break (min)</label>
+              <label className="text-xs text-content-muted mb-1 block">Break (min)</label>
               <input
                 type="number"
                 value={breakDuration}
-                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-600"
+                className="w-full px-3 py-2 border rounded-lg bg-surface-raised border-line"
               />
             </div>
           </div>

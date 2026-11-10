@@ -40,11 +40,11 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
   const isConnected = (id) => connectedCRMs.includes(id);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaUsers className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">CRM Integration</h3>
+          <h3 className="text-lg font-semibold text-content">CRM Integration</h3>
         </div>
       </div>
 
@@ -59,24 +59,24 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
               className={`p-4 rounded-lg border-2 ${
                 connected
                   ? 'border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20'
-                  : 'border-gray-200 dark:border-gray-700'
+                  : 'border-line'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-lg bg-${crm.color}-100 dark:bg-${crm.color}-900/30 flex items-center justify-center`}>
-                    <crm.icon className={`text-${crm.color}-500 text-xl`} />
+                  <div className={`w-12 h-12 rounded-lg bg-surface-sunken flex items-center justify-center`}>
+                    <crm.icon className={`text-content-muted text-xl`} />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">{crm.name}</h4>
+                    <h4 className="font-medium text-content">{crm.name}</h4>
                     {connected ? (
-                      <div className="flex items-center gap-3 text-sm text-gray-500">
+                      <div className="flex items-center gap-3 text-sm text-content-muted">
                         <span>{crm.contacts || 156} contacts</span>
                         <span>•</span>
                         <span>{crm.deals || 23} deals</span>
                       </div>
                     ) : (
-                      <span className="text-sm text-gray-500">Connect to sync contacts & deals</span>
+                      <span className="text-sm text-content-muted">Connect to sync contacts & deals</span>
                     )}
                   </div>
                 </div>
@@ -87,11 +87,11 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
                       <button
                         onClick={() => handleSync(crm.id)}
                         disabled={isSyncing}
-                        className="p-2 text-gray-500 hover:text-primary-600"
+                        className="p-2 text-content-muted hover:text-primary-600"
                       >
                         <FaSync className={isSyncing ? 'animate-spin' : ''} />
                       </button>
-                      <button className="p-2 text-gray-500 hover:text-gray-700">
+                      <button className="p-2 text-content-muted hover:text-content">
                         <FaCog />
                       </button>
                     </>
@@ -116,19 +116,19 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
       </div>
 
       {/* Field Mappings */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg mb-4">
-        <h4 className="font-medium text-gray-900 dark:text-white mb-3">Data to Sync</h4>
+      <div className="p-4 bg-surface-sunken rounded-lg mb-4">
+        <h4 className="font-medium text-content mb-3">Data to Sync</h4>
         <div className="space-y-3">
           {Object.entries(mappings).map(([key, value]) => (
             <label key={key} className="flex items-center justify-between">
-              <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">{key}</span>
+              <span className="text-sm text-content capitalize">{key}</span>
               <button
                 onClick={() => setMappings(prev => ({ ...prev, [key]: !prev[key] }))}
                 className={`w-10 h-6 rounded-full transition-colors ${
-                  value ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'
+                  value ? 'bg-primary-600' : 'bg-surface-sunken'
                 }`}
               >
-                <div className={`w-4 h-4 bg-white rounded-full shadow transform transition-transform ${
+                <div className={`w-4 h-4 bg-surface rounded-full shadow transform transition-transform ${
                   value ? 'translate-x-5' : 'translate-x-1'
                 }`} />
               </button>
@@ -138,20 +138,20 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
       </div>
 
       {/* Sync Direction */}
-      <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-        <h4 className="font-medium text-gray-900 dark:text-white mb-3">Sync Direction</h4>
+      <div className="p-4 border border-line rounded-lg">
+        <h4 className="font-medium text-content mb-3">Sync Direction</h4>
         <div className="space-y-2">
           <label className="flex items-center gap-3">
             <input type="radio" name="direction" defaultChecked className="text-primary-600" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Two-way sync</span>
+            <span className="text-sm text-content">Two-way sync</span>
           </label>
           <label className="flex items-center gap-3">
             <input type="radio" name="direction" className="text-primary-600" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Import only (CRM → App)</span>
+            <span className="text-sm text-content">Import only (CRM → App)</span>
           </label>
           <label className="flex items-center gap-3">
             <input type="radio" name="direction" className="text-primary-600" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Export only (App → CRM)</span>
+            <span className="text-sm text-content">Export only (App → CRM)</span>
           </label>
         </div>
       </div>

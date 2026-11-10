@@ -62,7 +62,7 @@ export const DraggableItem = ({
       `}
     >
       {showHandle && (
-        <div className="absolute left-2 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing text-content-subtle hover:text-content-muted">
           <FaGripVertical />
         </div>
       )}
@@ -115,13 +115,13 @@ export const DroppableZone = ({
         min-h-[100px] rounded-lg border-2 transition-all duration-200
         ${isDragOver
           ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 border-dashed'
-          : 'border-gray-200 dark:border-gray-700 border-solid'
+          : 'border-line border-solid'
         }
         ${className}
       `}
     >
       {isEmpty ? (
-        <div className="flex flex-col items-center justify-center h-full min-h-[100px] text-gray-400">
+        <div className="flex flex-col items-center justify-center h-full min-h-[100px] text-content-subtle">
           <FaArrowsAlt className="text-2xl mb-2" />
           <span className="text-sm">{emptyMessage}</span>
         </div>
@@ -152,7 +152,7 @@ const DragDropList = ({ items = [], renderItem, onReorder, className = '' }) => 
           id={item.id}
           index={index}
           onDrop={handleDrop}
-          className="p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm pl-10"
+          className="p-3 bg-surface rounded-lg shadow-sm pl-10"
         >
           {renderItem ? renderItem(item, index) : <span>{item.label || item.id}</span>}
         </DraggableItem>

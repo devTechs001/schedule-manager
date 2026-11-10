@@ -46,8 +46,8 @@ const TrafficWidget = ({
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 animate-pulse">
-        <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+      <div className="bg-surface rounded-lg shadow-lg p-4 animate-pulse">
+        <div className="h-32 bg-surface-sunken rounded-lg" />
       </div>
     );
   }
@@ -55,18 +55,18 @@ const TrafficWidget = ({
   if (compact) {
     const bestRoute = routes[0];
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
+      <div className="bg-surface rounded-lg shadow-lg p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
               <FaCar className="text-primary-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">{origin} → {destination}</p>
-              <p className="font-bold text-gray-900 dark:text-white">{bestRoute?.duration} min</p>
+              <p className="text-sm text-content-muted">{origin} → {destination}</p>
+              <p className="font-bold text-content">{bestRoute?.duration} min</p>
             </div>
           </div>
-          <span className={`px-2 py-1 rounded-full text-xs bg-${getTrafficColor(bestRoute?.traffic)}-100 text-${getTrafficColor(bestRoute?.traffic)}-700`}>
+          <span className={`px-2 py-1 rounded-full text-xs bg-surface-sunken text-content-muted`}>
             {bestRoute?.traffic}
           </span>
         </div>
@@ -75,24 +75,24 @@ const TrafficWidget = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <FaCar className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Traffic</h3>
+          <h3 className="text-lg font-semibold text-content">Traffic</h3>
         </div>
-        <button onClick={() => setLoading(true)} className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+        <button onClick={() => setLoading(true)} className="p-2 text-content-muted hover:bg-surface-sunken rounded-lg">
           <FaSyncAlt />
         </button>
       </div>
 
       {/* Route Header */}
-      <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-4">
+      <div className="flex items-center gap-2 p-3 bg-surface-sunken rounded-lg mb-4">
         <FaMapMarkerAlt className="text-green-500" />
-        <span className="text-sm text-gray-700 dark:text-gray-300">{origin}</span>
-        <FaArrowRight className="text-gray-400 mx-2" />
+        <span className="text-sm text-content">{origin}</span>
+        <FaArrowRight className="text-content-subtle mx-2" />
         <FaMapMarkerAlt className="text-red-500" />
-        <span className="text-sm text-gray-700 dark:text-gray-300">{destination}</span>
+        <span className="text-sm text-content">{destination}</span>
       </div>
 
       {/* Routes */}
@@ -107,24 +107,24 @@ const TrafficWidget = ({
               className={`w-full p-3 rounded-lg text-left transition-colors ${
                 isSelected
                   ? 'border-2 border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                  : 'border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                  : 'border-2 border-line hover:border-line'
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="font-medium text-gray-900 dark:text-white">{route.name}</span>
+                <span className="font-medium text-content">{route.name}</span>
                 <div className="flex items-center gap-2">
-                  <FaClock className="text-gray-400 text-xs" />
-                  <span className="font-bold text-gray-900 dark:text-white">{route.duration} min</span>
+                  <FaClock className="text-content-subtle text-xs" />
+                  <span className="font-bold text-content">{route.duration} min</span>
                   {route.delay > 0 && (
                     <span className="text-xs text-red-500">+{route.delay}</span>
                   )}
                 </div>
               </div>
-              <div className="flex items-center justify-between text-sm text-gray-500">
+              <div className="flex items-center justify-between text-sm text-content-muted">
                 <span>via {route.via}</span>
                 <div className="flex items-center gap-2">
                   <span>{route.distance}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs bg-${color}-100 text-${color}-700 capitalize`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs bg-surface-sunken text-content-muted capitalize`}>
                     {route.traffic}
                   </span>
                 </div>
@@ -137,14 +137,14 @@ const TrafficWidget = ({
       {/* Incidents */}
       {incidents.length > 0 && (
         <div>
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Traffic Incidents</p>
+          <p className="text-sm font-medium text-content mb-2">Traffic Incidents</p>
           <div className="space-y-2">
             {incidents.map((incident) => (
               <div key={incident.id} className="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                 <FaExclamationTriangle className="text-yellow-500" />
                 <div className="flex-1">
-                  <p className="text-sm text-gray-900 dark:text-white capitalize">{incident.type}</p>
-                  <p className="text-xs text-gray-500">{incident.location}</p>
+                  <p className="text-sm text-content capitalize">{incident.type}</p>
+                  <p className="text-xs text-content-muted">{incident.location}</p>
                 </div>
               </div>
             ))}

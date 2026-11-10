@@ -78,8 +78,8 @@ const RewardsStore = ({ userPoints = 1250, onRedeem }) => {
                   : 'border-gray-200 dark:border-gray-700 opacity-50'
               }`}
             >
-              <div className={`w-12 h-12 rounded-lg bg-${reward.color}-100 dark:bg-${reward.color}-900/30 flex items-center justify-center mb-3`}>
-                <reward.icon className={`text-${reward.color}-500 text-xl`} />
+              <div className={`w-12 h-12 rounded-lg bg-surface-sunken flex items-center justify-center mb-3`}>
+                <reward.icon className={`text-content-muted text-xl`} />
               </div>
               
               <h4 className="font-medium text-gray-900 dark:text-white mb-1">{reward.name}</h4>

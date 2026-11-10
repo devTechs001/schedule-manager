@@ -10,7 +10,8 @@
     "test": "jest",
     "seed:admin": "node src/scripts/seedAdmin.js",
     "verify:user": "node src/scripts/verifyUser.js",
-    "test:password": "node src/scripts/testPassword.js"
+    "test:password": "node src/scripts/testPassword.js",
+    "test:ai": "node --test scripts/test-ai-parsing.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

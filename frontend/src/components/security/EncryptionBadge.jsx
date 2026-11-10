@@ -33,13 +33,13 @@ const EncryptionBadge = ({
         </button>
         
         {showTooltip && (
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg z-50">
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-surface-inverse text-content-inverse text-xs rounded-lg shadow-lg z-50">
             <div className="flex items-center gap-2 mb-2">
               <FaShieldAlt className="text-green-400" />
               <span className="font-medium">End-to-end encrypted</span>
             </div>
-            <p className="text-gray-300">Your data is protected with {encryptionType} encryption</p>
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-gray-900" />
+            <p className="text-content-subtle">Your data is protected with {encryptionType} encryption</p>
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-surface-inverse" />
           </div>
         )}
       </div>
@@ -48,11 +48,11 @@ const EncryptionBadge = ({
 
   // Detailed view
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaShieldAlt className="text-green-500 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Encryption Status</h3>
+          <h3 className="text-lg font-semibold text-content">Encryption Status</h3>
         </div>
         <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
           isSecure
@@ -66,29 +66,29 @@ const EncryptionBadge = ({
 
       {/* Encryption Details */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          <div className="flex items-center gap-2 text-gray-500 mb-2">
+        <div className="p-4 bg-surface-sunken rounded-lg">
+          <div className="flex items-center gap-2 text-content-muted mb-2">
             <FaLock className="text-xs" />
             <span className="text-sm">Encryption Type</span>
           </div>
-          <p className="font-bold text-gray-900 dark:text-white">{encryptionType}</p>
-          <p className="text-xs text-gray-500 mt-1">Military-grade encryption</p>
+          <p className="font-bold text-content">{encryptionType}</p>
+          <p className="text-xs text-content-muted mt-1">Military-grade encryption</p>
         </div>
-        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          <div className="flex items-center gap-2 text-gray-500 mb-2">
+        <div className="p-4 bg-surface-sunken rounded-lg">
+          <div className="flex items-center gap-2 text-content-muted mb-2">
             <FaKey className="text-xs" />
             <span className="text-sm">Last Key Rotation</span>
           </div>
-          <p className="font-bold text-gray-900 dark:text-white">
+          <p className="font-bold text-content">
             {Math.floor((Date.now() - new Date(lastKeyRotation).getTime()) / 86400000)} days ago
           </p>
-          <p className="text-xs text-gray-500 mt-1">Auto-rotates every 90 days</p>
+          <p className="text-xs text-content-muted mt-1">Auto-rotates every 90 days</p>
         </div>
       </div>
 
       {/* What's Protected */}
       <div className="mb-6">
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Protected Data</h4>
+        <h4 className="text-sm font-medium text-content mb-3">Protected Data</h4>
         <div className="space-y-2">
           {[
             { name: 'Tasks & Notes', encrypted: true },
@@ -97,10 +97,10 @@ const EncryptionBadge = ({
             { name: 'Files & Attachments', encrypted: true },
             { name: 'Messages', encrypted: true },
           ].map((item) => (
-            <div key={item.name} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <span className="text-sm text-gray-700 dark:text-gray-300">{item.name}</span>
+            <div key={item.name} className="flex items-center justify-between p-2 bg-surface-sunken rounded-lg">
+              <span className="text-sm text-content">{item.name}</span>
               <span className={`flex items-center gap-1 text-xs ${
-                item.encrypted ? 'text-green-600' : 'text-gray-500'
+                item.encrypted ? 'text-green-600' : 'text-content-muted'
               }`}>
                 {item.encrypted ? <FaCheck /> : <FaExclamationTriangle />}
                 {item.encrypted ? 'Encrypted' : 'Not encrypted'}
@@ -127,7 +127,7 @@ const EncryptionBadge = ({
       </div>
 
       {/* Server Info */}
-      <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
+      <div className="mt-4 flex items-center justify-between text-sm text-content-muted">
         <div className="flex items-center gap-2">
           <FaServer />
           <span>Data stored in US-East region</span>

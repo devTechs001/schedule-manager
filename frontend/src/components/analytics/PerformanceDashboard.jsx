@@ -75,14 +75,14 @@ const PerformanceDashboard = ({ stats = {} }) => {
         {metrics.map((metric, index) => (
           <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
-              <metric.icon className={`text-${metric.color}-500`} />
+              <metric.icon className={`text-content-muted`} />
               <span className="text-sm text-gray-600 dark:text-gray-400">{metric.title}</span>
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{metric.value}</p>
             {metric.progress !== undefined && (
               <div className="mt-2 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                 <div
-                  className={`h-full bg-${metric.color}-500 rounded-full`}
+                  className={`h-full bg-surface-sunken rounded-full`}
                   style={{ width: `${metric.progress}%` }}
                 />
               </div>

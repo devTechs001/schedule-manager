@@ -152,7 +152,7 @@ const VideoConference = ({ roomId, participants = [], onLeave }) => {
           <h4 className="text-white font-medium mb-4">Chat</h4>
           <div className="h-full flex flex-col">
             <div className="flex-1 overflow-y-auto space-y-2">
-              <p className="text-gray-400 text-sm text-center">No messages yet</p>
+              <p className="text-content-subtle text-sm text-center">No messages yet</p>
             </div>
             <input
               type="text"

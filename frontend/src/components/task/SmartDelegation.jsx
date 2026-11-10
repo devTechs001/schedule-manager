@@ -13,15 +13,9 @@ const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
     skills: ['analytics', 'marketing', 'reporting'],
   };
 
-  const defaultMembers = [
-    { id: 1, name: 'Sarah Wilson', avatar: 'S', role: 'Marketing Analyst', skills: ['analytics', 'marketing', 'reporting'], workload: 65, matchScore: 95, availability: 'available' },
-    { id: 2, name: 'Mike Chen', avatar: 'M', role: 'Data Analyst', skills: ['analytics', 'data', 'reporting'], workload: 80, matchScore: 78, availability: 'busy' },
-    { id: 3, name: 'Emily Davis', avatar: 'E', role: 'Marketing Manager', skills: ['marketing', 'strategy', 'leadership'], workload: 50, matchScore: 72, availability: 'available' },
-    { id: 4, name: 'James Brown', avatar: 'J', role: 'Junior Analyst', skills: ['analytics', 'research'], workload: 40, matchScore: 65, availability: 'available' },
-  ];
 
   const currentTask = task || defaultTask;
-  const members = teamMembers.length > 0 ? teamMembers : defaultMembers;
+;
   const sortedMembers = [...members].sort((a, b) => b.matchScore - a.matchScore);
 
   const getWorkloadColor = (workload) => {
@@ -37,11 +31,11 @@ const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaUserFriends className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Smart Delegation</h3>
+          <h3 className="text-lg font-semibold text-content">Smart Delegation</h3>
         </div>
         <span className="flex items-center gap-2 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm">
           <FaBrain /> AI Powered
@@ -49,13 +43,13 @@ const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
       </div>
 
       {/* Task to Delegate */}
-      <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+      <div className="mb-6 p-4 bg-surface-sunken rounded-lg">
+        <div className="flex items-center gap-2 text-sm text-content-muted mb-2">
           <FaTasks />
           <span>Task to Delegate</span>
         </div>
-        <h4 className="font-medium text-gray-900 dark:text-white">{currentTask.title}</h4>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{currentTask.description}</p>
+        <h4 className="font-medium text-content">{currentTask.title}</h4>
+        <p className="text-sm text-content-muted mt-1">{currentTask.description}</p>
         <div className="flex flex-wrap gap-2 mt-3">
           {currentTask.skills.map((skill) => (
             <span key={skill} className="px-2 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs rounded-full">
@@ -63,7 +57,7 @@ const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
             </span>
           ))}
         </div>
-        <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
+        <div className="flex items-center gap-4 mt-3 text-sm text-content-muted">
           <span className="flex items-center gap-1">
             <FaClock /> {currentTask.estimatedTime}
           </span>
@@ -75,7 +69,7 @@ const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
 
       {/* AI Recommendations */}
       <div className="mb-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-content mb-3">
           <FaBrain className="text-purple-500" />
           <span>AI Recommendations</span>
         </div>
@@ -97,7 +91,7 @@ const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
                   ? 'border-2 border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                   : isRecommended
                   ? 'border-2 border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20'
-                  : 'border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                  : 'border-2 border-line hover:border-line'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -107,7 +101,7 @@ const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900 dark:text-white">{member.name}</span>
+                      <span className="font-medium text-content">{member.name}</span>
                       {isRecommended && (
                         <span className="px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">
                           Best Match
@@ -121,24 +115,24 @@ const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
                         {member.availability}
                       </span>
                     </div>
-                    <span className="text-sm text-gray-500">{member.role}</span>
+                    <span className="text-sm text-content-muted">{member.role}</span>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="flex items-center gap-1 text-sm">
                     <FaChartLine className="text-purple-500" />
-                    <span className="font-bold text-gray-900 dark:text-white">{member.matchScore}%</span>
-                    <span className="text-gray-500">match</span>
+                    <span className="font-bold text-content">{member.matchScore}%</span>
+                    <span className="text-content-muted">match</span>
                   </div>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-gray-500">Workload:</span>
-                    <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <span className="text-xs text-content-muted">Workload:</span>
+                    <div className="w-16 h-2 bg-surface-sunken rounded-full overflow-hidden">
                       <div
-                        className={`h-full bg-${workloadColor}-500`}
+                        className={`h-full bg-surface-sunken`}
                         style={{ width: `${member.workload}%` }}
                       />
                     </div>
-                    <span className="text-xs text-gray-500">{member.workload}%</span>
+                    <span className="text-xs text-content-muted">{member.workload}%</span>
                   </div>
                 </div>
               </div>
@@ -154,7 +148,7 @@ const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
         className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg text-white ${
           selectedMember
             ? 'bg-primary-600 hover:bg-primary-700'
-            : 'bg-gray-300 cursor-not-allowed'
+            : 'bg-surface-sunken cursor-not-allowed'
         }`}
       >
         <span>Delegate to {selectedMember?.name || 'Select a team member'}</span>

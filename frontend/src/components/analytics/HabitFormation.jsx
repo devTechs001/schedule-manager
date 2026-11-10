@@ -74,10 +74,10 @@ const HabitFormation = ({ habits: initialHabits = [], onUpdate }) => {
   const days = getLast7Days();
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center gap-3 mb-6">
         <FaFire className="text-orange-500 text-xl" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Habit Tracker</h3>
+        <h3 className="text-lg font-semibold text-content">Habit Tracker</h3>
       </div>
 
       <div className="flex gap-2 mb-6">
@@ -87,7 +87,7 @@ const HabitFormation = ({ habits: initialHabits = [], onUpdate }) => {
           onChange={(e) => setNewHabit(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && addHabit()}
           placeholder="New habit..."
-          className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="flex-1 px-3 py-2 border border-line rounded-lg bg-white bg-surface-sunken text-content"
         />
         <button
           onClick={addHabit}
@@ -99,15 +99,15 @@ const HabitFormation = ({ habits: initialHabits = [], onUpdate }) => {
 
       <div className="space-y-4">
         {habits.length === 0 ? (
-          <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+          <p className="text-center text-content-muted py-8">
             No habits yet. Start building good habits today!
           </p>
         ) : (
           habits.map((habit) => (
-            <div key={habit.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div key={habit.id} className="p-4 bg-surface-sunken rounded-lg">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <h4 className="font-medium text-gray-900 dark:text-white">{habit.name}</h4>
+                  <h4 className="font-medium text-content">{habit.name}</h4>
                   {habit.streak > 0 && (
                     <span className="flex items-center gap-1 px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 rounded text-sm">
                       <FaFire /> {habit.streak}
@@ -116,7 +116,7 @@ const HabitFormation = ({ habits: initialHabits = [], onUpdate }) => {
                 </div>
                 <button
                   onClick={() => deleteHabit(habit.id)}
-                  className="text-gray-400 hover:text-red-500 text-sm"
+                  className="text-content-subtle hover:text-red-500 text-sm"
                 >
                   <FaTimes />
                 </button>
@@ -133,7 +133,7 @@ const HabitFormation = ({ habits: initialHabits = [], onUpdate }) => {
                       className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs transition-all ${
                         isCompleted
                           ? 'bg-green-500 text-white'
-                          : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
+                          : 'bg-surface-sunken text-content-muted'
                       } ${isToday ? 'ring-2 ring-primary-500 cursor-pointer' : 'cursor-default opacity-75'}`}
                     >
                       {isCompleted ? <FaCheck /> : day.getDate()}

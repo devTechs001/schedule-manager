@@ -46,7 +46,7 @@ const Toast = ({ type = 'info', message, onClose }) => {
       <div className={`ml-3 text-sm font-medium ${config.text}`}>{message}</div>
       <button
         onClick={onClose}
-        className={`ml-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex h-8 w-8 ${config.text} hover:bg-white/50 dark:hover:bg-gray-800/50`}
+        className={`ml-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex h-8 w-8 ${config.text} hover:bg-surface/50 hover:bg-surface-sunken/50`}
       >
         <FaTimes size={16} />
       </button>

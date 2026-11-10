@@ -57,30 +57,30 @@ const RealTimeEditor = ({ documentId, initialContent = '', collaborators = [], o
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+    <div className="bg-surface rounded-lg shadow-lg">
       {/* Toolbar */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between p-4 border-b border-line">
         <div className="flex items-center gap-2">
           <FaEdit className="text-primary-600" />
-          <span className="font-medium text-gray-900 dark:text-white">Collaborative Editor</span>
+          <span className="font-medium text-content">Collaborative Editor</span>
         </div>
         
         <div className="flex items-center gap-4">
           {/* Active Collaborators */}
           <div className="flex items-center gap-1">
-            <FaUsers className="text-gray-400" />
+            <FaUsers className="text-content-subtle" />
             <div className="flex -space-x-2">
               {activeUsers.slice(0, 4).map((user, i) => (
                 <div
                   key={i}
-                  className="w-8 h-8 rounded-full bg-primary-500 border-2 border-white dark:border-gray-800 flex items-center justify-center text-white text-xs"
+                  className="w-8 h-8 rounded-full bg-primary-500 border-2 border-white border-line flex items-center justify-center text-white text-xs"
                   title={user.name}
                 >
                   {user.name?.[0] || 'U'}
                 </div>
               ))}
               {activeUsers.length > 4 && (
-                <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 border-2 border-white dark:border-gray-800 flex items-center justify-center text-xs">
+                <div className="w-8 h-8 rounded-full bg-surface-sunken border-2 border-white border-line flex items-center justify-center text-xs">
                   +{activeUsers.length - 4}
                 </div>
               )}
@@ -92,7 +92,7 @@ const RealTimeEditor = ({ documentId, initialContent = '', collaborators = [], o
             <button
               onClick={handleUndo}
               disabled={historyIndex === 0}
-              className="p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+              className="p-2 text-content-muted hover:text-content disabled:opacity-50"
               title="Undo"
             >
               <FaUndo />
@@ -100,7 +100,7 @@ const RealTimeEditor = ({ documentId, initialContent = '', collaborators = [], o
             <button
               onClick={handleRedo}
               disabled={historyIndex === history.length - 1}
-              className="p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+              className="p-2 text-content-muted hover:text-content disabled:opacity-50"
               title="Redo"
             >
               <FaRedo />
@@ -123,12 +123,12 @@ const RealTimeEditor = ({ documentId, initialContent = '', collaborators = [], o
           value={content}
           onChange={handleChange}
           placeholder="Start typing..."
-          className="w-full h-96 p-4 bg-transparent text-gray-900 dark:text-white resize-none focus:outline-none font-mono"
+          className="w-full h-96 p-4 bg-transparent text-content resize-none focus:outline-none font-mono"
         />
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between p-3 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500">
+      <div className="flex items-center justify-between p-3 border-t border-line text-sm text-content-muted">
         <span>{content.length} characters</span>
         {lastSaved && (
           <span>Last saved: {lastSaved.toLocaleTimeString()}</span>

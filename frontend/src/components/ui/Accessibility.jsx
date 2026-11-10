@@ -63,13 +63,13 @@ const AccessibilityPanel = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6" role="dialog" aria-modal="true" aria-labelledby="a11y-title">
+      <div className="bg-surface rounded-lg shadow-xl w-full max-w-md p-6" role="dialog" aria-modal="true" aria-labelledby="a11y-title">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <FaUniversalAccess className="text-primary-600 text-xl" />
-            <h2 id="a11y-title" className="text-lg font-semibold text-gray-900 dark:text-white">Accessibility Settings</h2>
+            <h2 id="a11y-title" className="text-lg font-semibold text-content">Accessibility Settings</h2>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-500 hover:text-gray-700" aria-label="Close">
+          <button onClick={onClose} className="p-2 text-content-muted hover:text-content" aria-label="Close">
             <FaTimes />
           </button>
         </div>
@@ -77,7 +77,7 @@ const AccessibilityPanel = ({ isOpen, onClose }) => {
         <div className="space-y-6">
           {/* Font Size */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-content mb-2">
               <FaFont /> Text Size
             </label>
             <div className="flex gap-2">
@@ -88,7 +88,7 @@ const AccessibilityPanel = ({ isOpen, onClose }) => {
                   className={`flex-1 py-2 px-4 rounded-lg capitalize ${
                     settings.fontSize === size
                       ? 'bg-primary-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      : 'bg-surface-sunken text-content'
                   }`}
                 >
                   {size}
@@ -99,7 +99,7 @@ const AccessibilityPanel = ({ isOpen, onClose }) => {
 
           {/* Contrast */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-content mb-2">
               <FaAdjust /> Contrast
             </label>
             <div className="flex gap-2">
@@ -110,7 +110,7 @@ const AccessibilityPanel = ({ isOpen, onClose }) => {
                   className={`flex-1 py-2 px-4 rounded-lg capitalize ${
                     settings.contrast === level
                       ? 'bg-primary-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      : 'bg-surface-sunken text-content'
                   }`}
                 >
                   {level}
@@ -126,10 +126,10 @@ const AccessibilityPanel = ({ isOpen, onClose }) => {
             { key: 'keyboardNav', icon: FaKeyboard, label: 'Enhanced Keyboard Navigation' },
             { key: 'focusHighlight', icon: FaUniversalAccess, label: 'Focus Highlight' },
           ].map(({ key, icon: Icon, label }) => (
-            <label key={key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer">
+            <label key={key} className="flex items-center justify-between p-3 bg-surface-sunken rounded-lg cursor-pointer">
               <div className="flex items-center gap-3">
-                <Icon className="text-gray-500" />
-                <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+                <Icon className="text-content-muted" />
+                <span className="text-sm text-content">{label}</span>
               </div>
               <input
                 type="checkbox"

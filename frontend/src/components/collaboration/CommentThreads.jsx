@@ -58,10 +58,10 @@ const CommentThreads = ({ comments: initialComments = [], onAddComment, onReply 
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center gap-3 mb-6">
         <FaComment className="text-primary-600 text-xl" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-content">
           Comments ({comments.length})
         </h3>
       </div>
@@ -77,7 +77,7 @@ const CommentThreads = ({ comments: initialComments = [], onAddComment, onReply 
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Write a comment..."
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+            className="w-full px-3 py-2 border border-line rounded-lg bg-white bg-surface-sunken text-content resize-none"
           />
           <button
             onClick={addComment}
@@ -92,37 +92,37 @@ const CommentThreads = ({ comments: initialComments = [], onAddComment, onReply 
       {/* Comments List */}
       <div className="space-y-6">
         {comments.length === 0 ? (
-          <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+          <p className="text-center text-content-muted py-8">
             No comments yet. Start the discussion!
           </p>
         ) : (
           comments.map((comment) => (
             <div key={comment.id} className="flex gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-gray-700 dark:text-gray-300 flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-surface-sunken flex items-center justify-center text-content flex-shrink-0">
                 {comment.author.avatar}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-gray-900 dark:text-white">{comment.author.name}</span>
-                  <span className="text-sm text-gray-500">{formatTime(comment.createdAt)}</span>
+                  <span className="font-medium text-content">{comment.author.name}</span>
+                  <span className="text-sm text-content-muted">{formatTime(comment.createdAt)}</span>
                 </div>
-                <p className="text-gray-700 dark:text-gray-300 mb-2">{comment.text}</p>
+                <p className="text-content mb-2">{comment.text}</p>
                 <div className="flex items-center gap-4 text-sm">
                   <button
                     onClick={() => likeComment(comment.id)}
-                    className="flex items-center gap-1 text-gray-500 hover:text-primary-600"
+                    className="flex items-center gap-1 text-content-muted hover:text-primary-600"
                   >
                     <FaThumbsUp /> {comment.likes || 'Like'}
                   </button>
                   <button
                     onClick={() => setReplyTo(comment.id)}
-                    className="flex items-center gap-1 text-gray-500 hover:text-primary-600"
+                    className="flex items-center gap-1 text-content-muted hover:text-primary-600"
                   >
                     <FaReply /> Reply
                   </button>
                   <button
                     onClick={() => deleteComment(comment.id)}
-                    className="flex items-center gap-1 text-gray-500 hover:text-red-500"
+                    className="flex items-center gap-1 text-content-muted hover:text-red-500"
                   >
                     <FaTrash />
                   </button>
@@ -136,7 +136,7 @@ const CommentThreads = ({ comments: initialComments = [], onAddComment, onReply 
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
                       placeholder="Write a reply..."
-                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="flex-1 px-3 py-2 border border-line rounded-lg bg-white bg-surface-sunken text-content"
                     />
                     <button
                       onClick={() => addReply(comment.id)}
@@ -147,15 +147,15 @@ const CommentThreads = ({ comments: initialComments = [], onAddComment, onReply 
 
                 {/* Replies */}
                 {comment.replies?.length > 0 && (
-                  <div className="mt-4 space-y-3 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
+                  <div className="mt-4 space-y-3 pl-4 border-l-2 border-line">
                     {comment.replies.map((reply) => (
                       <div key={reply.id} className="flex gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-sm">
+                        <div className="w-8 h-8 rounded-full bg-surface-sunken flex items-center justify-center text-sm">
                           {reply.author.avatar}
                         </div>
                         <div>
-                          <span className="font-medium text-gray-900 dark:text-white text-sm">{reply.author.name}</span>
-                          <p className="text-gray-700 dark:text-gray-300 text-sm">{reply.text}</p>
+                          <span className="font-medium text-content text-sm">{reply.author.name}</span>
+                          <p className="text-content text-sm">{reply.text}</p>
                         </div>
                       </div>
                     ))}

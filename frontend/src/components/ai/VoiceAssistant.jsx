@@ -83,13 +83,13 @@ const VoiceAssistant = ({ onCommand, onTranscript }) => {
         {isListening ? <FaStop size={24} /> : <FaMicrophone size={24} />}
       </button>
       
-      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+      <p className="mt-2 text-sm text-content-muted">
         {isListening ? 'Listening...' : 'Click to speak'}
       </p>
 
       {transcript && (
-        <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg max-w-md">
-          <p className="text-sm text-gray-700 dark:text-gray-300">{transcript}</p>
+        <div className="mt-4 p-3 bg-surface-sunken rounded-lg max-w-md">
+          <p className="text-sm text-content">{transcript}</p>
         </div>
       )}
 

@@ -6,14 +6,14 @@ import Card from '@components/ui/Card';
 const AISuggestions = ({ suggestions, onAccept, onReject }) => {
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+      <h3 className="text-lg font-semibold text-content flex items-center">
         <FaMagic className="mr-2 text-purple-500" />
         AI Suggestions
       </h3>
 
       {suggestions.length === 0 ? (
         <Card>
-          <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+          <p className="text-content-muted text-center py-8">
             No suggestions at the moment
           </p>
         </Card>
@@ -24,21 +24,21 @@ const AISuggestions = ({ suggestions, onAccept, onReject }) => {
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-900 dark:text-white">
+                    <h4 className="font-medium text-content">
                       {suggestion.title}
                     </h4>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                    <span className="text-xs text-content-muted">
                       {suggestion.confidence}% confidence
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-content-muted">
                     {suggestion.description}
                   </p>
                 </div>
 
                 {suggestion.preview && (
-                  <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <div className="p-3 bg-surface-sunken rounded-lg">
+                    <p className="text-sm text-content">
                       {suggestion.preview}
                     </p>
                   </div>

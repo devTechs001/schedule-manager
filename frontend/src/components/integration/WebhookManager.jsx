@@ -5,13 +5,8 @@ const WebhookManager = ({ webhooks: initialWebhooks = [], onCreate, onDelete, on
   const [showCreate, setShowCreate] = useState(false);
   const [newWebhook, setNewWebhook] = useState({ name: '', url: '', events: [] });
 
-  const defaultWebhooks = [
-    { id: 1, name: 'Task Updates', url: 'https://api.example.com/tasks', events: ['task.created', 'task.completed'], active: true, lastTriggered: new Date(Date.now() - 3600000), successRate: 98 },
-    { id: 2, name: 'Calendar Sync', url: 'https://api.example.com/calendar', events: ['event.created', 'event.updated'], active: true, lastTriggered: new Date(Date.now() - 7200000), successRate: 100 },
-    { id: 3, name: 'Slack Notifications', url: 'https://hooks.slack.com/webhook', events: ['task.assigned'], active: false, lastTriggered: null, successRate: 95 },
-  ];
 
-  const [webhooks, setWebhooks] = useState(initialWebhooks.length > 0 ? initialWebhooks : defaultWebhooks);
+  const [webhooks, setWebhooks] = useState(initialWebhooks);
 
   const availableEvents = [
     'task.created', 'task.updated', 'task.completed', 'task.deleted', 'task.assigned',
@@ -56,11 +51,11 @@ const WebhookManager = ({ webhooks: initialWebhooks = [], onCreate, onDelete, on
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FaPlug className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Webhook Manager</h3>
+          <h3 className="text-lg font-semibold text-content">Webhook Manager</h3>
         </div>
         <button
           onClick={() => setShowCreate(!showCreate)}
@@ -79,17 +74,17 @@ const WebhookManager = ({ webhooks: initialWebhooks = [], onCreate, onDelete, on
               placeholder="Webhook name"
               value={newWebhook.name}
               onChange={(e) => setNewWebhook({ ...newWebhook, name: e.target.value })}
-              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+              className="w-full px-4 py-2 border rounded-lg bg-surface-sunken border-line"
             />
             <input
               type="url"
               placeholder="Webhook URL (https://...)"
               value={newWebhook.url}
               onChange={(e) => setNewWebhook({ ...newWebhook, url: e.target.value })}
-              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+              className="w-full px-4 py-2 border rounded-lg bg-surface-sunken border-line"
             />
             <div>
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Events</p>
+              <p className="text-sm font-medium text-content mb-2">Events</p>
               <div className="flex flex-wrap gap-2">
                 {availableEvents.map((event) => (
                   <button
@@ -98,7 +93,7 @@ const WebhookManager = ({ webhooks: initialWebhooks = [], onCreate, onDelete, on
                     className={`px-3 py-1 rounded-full text-xs ${
                       newWebhook.events.includes(event)
                         ? 'bg-primary-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                        : 'bg-surface-sunken text-content'
                     }`}
                   >
                     {event}
@@ -125,26 +120,26 @@ const WebhookManager = ({ webhooks: initialWebhooks = [], onCreate, onDelete, on
             className={`p-4 rounded-lg border-2 ${
               webhook.active
                 ? 'border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20'
-                : 'border-gray-200 dark:border-gray-700'
+                : 'border-line'
             }`}
           >
             <div className="flex items-start justify-between mb-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <h4 className="font-medium text-gray-900 dark:text-white">{webhook.name}</h4>
+                  <h4 className="font-medium text-content">{webhook.name}</h4>
                   {webhook.active ? (
                     <span className="flex items-center gap-1 text-xs text-green-600">
                       <FaCheck /> Active
                     </span>
                   ) : (
-                    <span className="text-xs text-gray-500">Paused</span>
+                    <span className="text-xs text-content-muted">Paused</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 mt-1">
-                  <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded truncate max-w-xs">
+                  <code className="text-xs bg-surface-sunken px-2 py-1 rounded truncate max-w-xs">
                     {webhook.url}
                   </code>
-                  <button className="text-gray-400 hover:text-gray-600">
+                  <button className="text-content-subtle hover:text-content-muted">
                     <FaCopy className="text-xs" />
                   </button>
                 </div>
@@ -153,7 +148,7 @@ const WebhookManager = ({ webhooks: initialWebhooks = [], onCreate, onDelete, on
                 <button
                   onClick={() => handleToggle(webhook.id)}
                   className={`p-2 rounded-lg ${
-                    webhook.active ? 'text-green-600 hover:bg-green-100' : 'text-gray-400 hover:bg-gray-100'
+                    webhook.active ? 'text-green-600 hover:bg-green-100' : 'text-content-subtle hover:bg-surface-sunken'
                   }`}
                 >
                   {webhook.active ? <FaPause /> : <FaPlay />}
@@ -168,12 +163,12 @@ const WebhookManager = ({ webhooks: initialWebhooks = [], onCreate, onDelete, on
             </div>
             <div className="flex flex-wrap gap-1 mb-2">
               {webhook.events.map((event) => (
-                <span key={event} className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded">
+                <span key={event} className="px-2 py-0.5 bg-surface-sunken text-content-muted text-xs rounded">
                   {event}
                 </span>
               ))}
             </div>
-            <div className="flex items-center gap-4 text-xs text-gray-500">
+            <div className="flex items-center gap-4 text-xs text-content-muted">
               <span>Success rate: {webhook.successRate}%</span>
               {webhook.lastTriggered && (
                 <span>Last triggered: {new Date(webhook.lastTriggered).toLocaleString()}</span>

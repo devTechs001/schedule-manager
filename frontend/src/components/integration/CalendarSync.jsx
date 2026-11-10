@@ -36,10 +36,10 @@ const CalendarSync = ({ onConnect, onDisconnect, onSync }) => {
   const isConnected = (id) => connectedCalendars.includes(id);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-surface rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Calendar Sync</h3>
-        <span className="text-sm text-gray-500">
+        <h3 className="text-lg font-semibold text-content">Calendar Sync</h3>
+        <span className="text-sm text-content-muted">
           Last sync: {lastSync.toLocaleTimeString()}
         </span>
       </div>
@@ -55,16 +55,16 @@ const CalendarSync = ({ onConnect, onDisconnect, onSync }) => {
               className={`p-4 rounded-lg border-2 ${
                 connected
                   ? 'border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20'
-                  : 'border-gray-200 dark:border-gray-700'
+                  : 'border-line'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-lg bg-${calendar.color}-100 dark:bg-${calendar.color}-900/30 flex items-center justify-center`}>
-                    <calendar.icon className={`text-${calendar.color}-500 text-xl`} />
+                  <div className={`w-12 h-12 rounded-lg bg-surface-sunken flex items-center justify-center`}>
+                    <calendar.icon className={`text-content-muted text-xl`} />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">{calendar.name}</h4>
+                    <h4 className="font-medium text-content">{calendar.name}</h4>
                     <div className="flex items-center gap-2 text-sm">
                       {connected ? (
                         <>
@@ -72,7 +72,7 @@ const CalendarSync = ({ onConnect, onDisconnect, onSync }) => {
                           <span className="text-green-600">{calendar.events} events synced</span>
                         </>
                       ) : (
-                        <span className="text-gray-500">Not connected</span>
+                        <span className="text-content-muted">Not connected</span>
                       )}
                     </div>
                   </div>
@@ -84,11 +84,11 @@ const CalendarSync = ({ onConnect, onDisconnect, onSync }) => {
                       <button
                         onClick={() => handleSync(calendar.id)}
                         disabled={isSyncing}
-                        className="p-2 text-gray-500 hover:text-primary-600 transition-colors"
+                        className="p-2 text-content-muted hover:text-primary-600 transition-colors"
                       >
                         <FaSync className={isSyncing ? 'animate-spin' : ''} />
                       </button>
-                      <button className="p-2 text-gray-500 hover:text-gray-700">
+                      <button className="p-2 text-content-muted hover:text-content">
                         <FaCog />
                       </button>
                     </>
@@ -112,20 +112,20 @@ const CalendarSync = ({ onConnect, onDisconnect, onSync }) => {
       </div>
 
       {/* Sync Settings */}
-      <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-        <h4 className="font-medium text-gray-900 dark:text-white mb-3">Sync Settings</h4>
+      <div className="mt-6 p-4 bg-surface-sunken rounded-lg">
+        <h4 className="font-medium text-content mb-3">Sync Settings</h4>
         <div className="space-y-3">
           <label className="flex items-center gap-3">
             <input type="checkbox" defaultChecked className="rounded" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Auto-sync every 15 minutes</span>
+            <span className="text-sm text-content">Auto-sync every 15 minutes</span>
           </label>
           <label className="flex items-center gap-3">
             <input type="checkbox" defaultChecked className="rounded" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Two-way sync (push changes back)</span>
+            <span className="text-sm text-content">Two-way sync (push changes back)</span>
           </label>
           <label className="flex items-center gap-3">
             <input type="checkbox" className="rounded" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Include declined events</span>
+            <span className="text-sm text-content">Include declined events</span>
           </label>
         </div>
       </div>

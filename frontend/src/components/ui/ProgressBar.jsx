@@ -39,11 +39,11 @@ const ProgressBar = ({
     red: 'bg-red-100 dark:bg-red-900/30',
     yellow: 'bg-yellow-100 dark:bg-yellow-900/30',
     purple: 'bg-purple-100 dark:bg-purple-900/30',
-    gradient: 'bg-gray-200 dark:bg-gray-700',
+    gradient: 'bg-surface-sunken',
   };
 
   const Label = () => (
-    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+    <span className="text-sm font-medium text-content">
       {Math.round(percentage)}%
     </span>
   );
@@ -100,7 +100,7 @@ export const MultiProgressBar = ({ segments = [], size = 'md', className = '' })
 
   return (
     <div
-      className={`w-full ${sizes[size]} bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden flex ${className}`}
+      className={`w-full ${sizes[size]} bg-surface-sunken rounded-full overflow-hidden flex ${className}`}
     >
       {segments.map((segment, index) => (
         <div
@@ -137,7 +137,7 @@ export const CircularProgress = ({ value = 0, size = 80, strokeWidth = 8, color 
           fill="none"
           stroke="currentColor"
           strokeWidth={strokeWidth}
-          className="text-gray-200 dark:text-gray-700"
+          className="text-content-subtle dark:text-content"
         />
         <circle
           cx={size / 2}
@@ -152,7 +152,7 @@ export const CircularProgress = ({ value = 0, size = 80, strokeWidth = 8, color 
           className={`${colors[color]} transition-all duration-300`}
         />
       </svg>
-      <span className="absolute text-sm font-bold text-gray-900 dark:text-white">
+      <span className="absolute text-sm font-bold text-content">
         {Math.round(value)}%
       </span>
     </div>

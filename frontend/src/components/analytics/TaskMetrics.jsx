@@ -43,8 +43,8 @@ const TaskMetrics = ({ metrics }) => {
               <stat.icon className={stat.color} size={24} />
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+              <p className="text-sm text-content-muted">{stat.label}</p>
+              <p className="text-2xl font-bold text-content">{stat.value}</p>
             </div>
           </div>
         </Card>

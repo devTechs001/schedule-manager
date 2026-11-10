@@ -16,9 +16,9 @@ const ContactGroups = ({ groups, onAddGroup, onEditGroup, onDeleteGroup }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+        <h3 className="text-lg font-semibold text-content flex items-center">
           <FaUsers className="mr-2" />
           Contact Groups
         </h3>
@@ -39,7 +39,7 @@ const ContactGroups = ({ groups, onAddGroup, onEditGroup, onDeleteGroup }) => {
             value={newGroupName}
             onChange={(e) => setNewGroupName(e.target.value)}
             placeholder="Group name"
-            className="flex-1 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"
+            className="flex-1 px-4 py-2 bg-white bg-surface-sunken border border-line rounded-lg"
           />
           <Button onClick={handleAddGroup} size="sm">Add</Button>
           <Button onClick={() => setShowAddForm(false)} variant="secondary" size="sm">
@@ -52,10 +52,10 @@ const ContactGroups = ({ groups, onAddGroup, onEditGroup, onDeleteGroup }) => {
         {groups.map((group) => (
           <div
             key={group._id}
-            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            className="flex items-center justify-between p-3 bg-surface-sunken rounded-lg hover:bg-surface-sunken transition-colors"
           >
             <div className="flex items-center space-x-3">
-              <span className="font-medium text-gray-900 dark:text-white">
+              <span className="font-medium text-content">
                 {group.name}
               </span>
               <Badge variant="secondary" size="sm">

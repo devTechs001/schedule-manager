@@ -75,7 +75,7 @@ const Tooltip = ({
           ref={tooltipRef}
           role="tooltip"
           className={`
-            absolute z-50 px-3 py-2 text-sm text-white bg-gray-900 dark:bg-gray-700
+            absolute z-50 px-3 py-2 text-sm text-white bg-surface-sunken
             rounded-lg shadow-lg whitespace-normal pointer-events-none
             animate-fade-in ${positionClasses[position]}
           `}
@@ -85,7 +85,7 @@ const Tooltip = ({
           {arrow && (
             <div
               className={`
-                absolute w-0 h-0 border-4 border-gray-900 dark:border-gray-700
+                absolute w-0 h-0 border-4 border-line
                 ${arrowClasses[position]}
               `}
             />
