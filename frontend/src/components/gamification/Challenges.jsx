@@ -34,15 +34,6 @@ const Challenges = ({ challenges: initialChallenges = [], onJoin, onComplete }) 
     return `${days}d left`;
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active': return 'blue';
-      case 'completed': return 'green';
-      case 'available': return 'purple';
-      default: return 'gray';
-    }
-  };
-
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">

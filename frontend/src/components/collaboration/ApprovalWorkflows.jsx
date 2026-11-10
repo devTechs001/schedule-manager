@@ -22,15 +22,6 @@ const ApprovalWorkflows = ({ workflows: initialWorkflows = [], onApprove, onReje
     if (status === 'rejected') onReject?.(workflowId);
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'approved': return 'green';
-      case 'rejected': return 'red';
-      case 'pending': return 'yellow';
-      default: return 'gray';
-    }
-  };
-
   const getStatusIcon = (status) => {
     switch (status) {
       case 'approved': return <FaCheck className="text-green-500" />;

@@ -15,6 +15,7 @@ import TaskList from '@components/tasks/TaskList';
 import TaskForm from '@components/tasks/TaskForm';
 import TaskCalendar from '@components/tasks/TaskCalendar';
 import TaskFilters from '@components/tasks/TaskFilters';
+import AIPriority from '@components/ai/AIPriority';
 import QuickAddTask from '@components/tasks/QuickAddTask';
 import Modal from '@components/ui/Modal';
 import EmptyState from '@components/ui/EmptyState';
@@ -390,6 +391,10 @@ const Tasks = () => {
                 ))}
               </div>
             </div>
+
+            {visibleTasks.length > 0 && (
+              <AIPriority tasks={visibleTasks.filter((task) => task.status !== 'completed')} />
+            )}
 
             <div className="card p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-content-subtle">Due soon</p>

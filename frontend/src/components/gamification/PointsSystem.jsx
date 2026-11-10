@@ -92,23 +92,21 @@ const PointsSystem = ({ points = 0, history = [], onRedeem }) => {
           <h4 className="font-medium text-content">Recent Activity</h4>
         </div>
         <div className="space-y-2 max-h-48 overflow-y-auto">
-          {allHistory.map((item) => (
-            <div key={item.id} className="flex items-center justify-between p-3 bg-surface-sunken rounded-lg">
+          {history.length === 0 ? (
+            <p className="rounded-lg bg-surface-sunken p-3 text-sm text-content-muted">
+              No activity yet. Points appear here as you complete tasks.
+            </p>
+          ) : history.map((item, index) => (
+            <div key={item.source || index} className="flex items-center justify-between p-3 bg-surface-sunken rounded-lg">
               <div className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  item.type === 'earn' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'
+                  'bg-green-100 dark:bg-green-900/30'
                 }`}>
-                  {item.type === 'earn' ? (
-                    <FaArrowUp className="text-green-500" />
-                  ) : (
-                    <FaGift className="text-red-500" />
-                  )}
+                  <FaArrowUp className="text-green-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-content">{item.action}</p>
-                  <p className="text-xs text-content-muted">
-                    {new Date(item.date).toLocaleTimeString()}
-                  </p>
+                  <p className="text-sm text-content">{item.label || item.source}</p>
+                  <p className="text-xs text-content-muted">earned from {item.source}</p>
                 </div>
               </div>
               <span className={`font-bold ${

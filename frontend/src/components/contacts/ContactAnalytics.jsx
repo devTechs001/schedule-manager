@@ -8,8 +8,11 @@ const ContactAnalytics = ({ contact, interactions = [] }) => {
     callsMade: interactions.filter(i => i.type === 'call').length,
     meetingsHeld: interactions.filter(i => i.type === 'meeting').length,
     lastContact: interactions.length > 0 ? interactions[0].date : null,
-    responseRate: 75,
-    avgResponseTime: '2.5 hours',
+    /*
+     * responseRate and avgResponseTime used to be the literals 75 and
+     * '2.5 hours' — invented statistics presented next to real counts. The
+     * app does not track replies, so these are gone rather than approximated.
+     */
   };
 
   const interactionTypes = [
@@ -65,17 +68,6 @@ const ContactAnalytics = ({ contact, interactions = [] }) => {
         <div className="flex items-center justify-between p-3 bg-surface-sunken rounded-lg">
           <span className="text-content-muted">Last Contact</span>
           <span className="font-medium text-content">{getTimeAgo(stats.lastContact)}</span>
-        </div>
-        <div className="flex items-center justify-between p-3 bg-surface-sunken rounded-lg">
-          <span className="text-content-muted">Response Rate</span>
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-content">{stats.responseRate}%</span>
-            <FaArrowUp className="text-green-500 text-sm" />
-          </div>
-        </div>
-        <div className="flex items-center justify-between p-3 bg-surface-sunken rounded-lg">
-          <span className="text-content-muted">Avg Response Time</span>
-          <span className="font-medium text-content">{stats.avgResponseTime}</span>
         </div>
         <div className="flex items-center justify-between p-3 bg-surface-sunken rounded-lg">
           <span className="text-content-muted">Total Interactions</span>

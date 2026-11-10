@@ -65,31 +65,22 @@ const useCalendarSync = (options = {}) => {
       // Simulate sync
       await new Promise(r => setTimeout(r, 2000));
 
-      // Generate mock events
-      const mockEvents = Array.from({ length: Math.floor(Math.random() * 10) + 5 }, (_, i) => ({
-        id: `${calendarId}-event-${i}`,
-        calendarId,
-        title: `Event ${i + 1}`,
-        start: new Date(Date.now() + Math.random() * 7 * 86400000),
-        end: new Date(Date.now() + Math.random() * 7 * 86400000 + 3600000),
-        provider: calendar.provider,
-      }));
-
-      setEvents(prev => [
-        ...prev.filter(e => e.calendarId !== calendarId),
-        ...mockEvents,
-      ]);
-
-      setConnectedCalendars(prev =>
-        prev.map(c =>
-          c.id === calendarId
-            ? { ...c, lastSync: new Date(), eventCount: mockEvents.length }
-            : c
-        )
+      /*
+       * No fabricated events. This previously generated 5-14 events titled
+       * "Event 1", "Event 2"... at random times in the coming week and wrote
+       * them into the calendar list, so a sync that imported nothing looked
+       * successful and the schedule filled up with noise.
+       *
+       * There is no provider integration implemented, so a "sync" is a no-op
+       * that reports zero imported events. When a real provider is added the
+       * fetched events belong here.
+       */
+      setConnectedCalendars((prev) =>
+        prev.map((c) => (c.id === calendarId ? { ...c, lastSync: new Date(), eventCount: 0 } : c))
       );
 
       setLastSync(new Date());
-      return { success: true, eventCount: mockEvents.length };
+      return { success: true, eventCount: 0, notImplemented: true };
     } catch (error) {
       setSyncErrors(prev => [...prev, { calendarId, error: error.message, time: new Date() }]);
       return { success: false, error: error.message };

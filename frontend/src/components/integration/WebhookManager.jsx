@@ -33,7 +33,11 @@ const WebhookManager = ({ webhooks: initialWebhooks = [], onCreate, onDelete, on
       id: Date.now(),
       active: true,
       lastTriggered: null,
-      successRate: 100,
+      /*
+       * No successRate. A webhook that has never fired has no success rate;
+       * claiming 100 made every newly created hook look proven.
+       */
+      successRate: null,
     };
     setWebhooks([...webhooks, webhook]);
     setNewWebhook({ name: '', url: '', events: [] });

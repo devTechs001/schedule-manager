@@ -68,37 +68,21 @@ const useEmailSync = (options = {}) => {
     try {
       await new Promise(r => setTimeout(r, 2000));
 
-      // Generate mock emails
-      const mockEmails = Array.from({ length: Math.floor(Math.random() * 20) + 10 }, (_, i) => ({
-        id: `${accountId}-email-${Date.now()}-${i}`,
-        accountId,
-        folder,
-        from: `sender${i}@example.com`,
-        to: account.email,
-        subject: `Email Subject ${i + 1}`,
-        preview: 'This is a preview of the email content...',
-        body: 'Full email body content here...',
-        date: new Date(Date.now() - Math.random() * 7 * 86400000),
-        read: Math.random() > 0.3,
-        starred: Math.random() > 0.8,
-        attachments: Math.random() > 0.7 ? [{ name: 'file.pdf', size: 1024 }] : [],
-      }));
-
-      setEmails(prev => {
-        const filtered = prev.filter(e => e.accountId !== accountId || e.folder !== folder);
-        return [...filtered, ...mockEmails].slice(-maxEmails);
-      });
-
-      setConnectedAccounts(prev =>
-        prev.map(a =>
-          a.id === accountId
-            ? { ...a, lastSync: new Date(), emailCount: mockEmails.length }
-            : a
-        )
+      /*
+       * No fabricated mail. This previously invented 10-30 emails from
+       * "sender3@example.com" with random read/starred flags and wrote them
+       * into the inbox — indistinguishable from a real sync, and impossible to
+       * clear without deleting them one by one.
+       *
+       * No mail provider is implemented yet, so a sync reports zero messages.
+       * Real fetched mail belongs here once the integration exists.
+       */
+      setConnectedAccounts((prev) =>
+        prev.map((a) => (a.id === accountId ? { ...a, lastSync: new Date(), emailCount: 0 } : a))
       );
 
       setLastSync(new Date());
-      return { success: true, count: mockEmails.length };
+      return { success: true, count: 0, notImplemented: true };
     } catch (error) {
       return { success: false, error: error.message };
     } finally {

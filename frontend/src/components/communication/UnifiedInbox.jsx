@@ -36,15 +36,6 @@ const UnifiedInbox = ({ messages = [], onSelect, onArchive, onDelete }) => {
     return s ? <s.icon /> : <FaEnvelope />;
   };
 
-  const getSourceColor = (source) => {
-    switch (source) {
-      case 'email': return 'blue';
-      case 'slack': return 'purple';
-      case 'chat': return 'green';
-      default: return 'gray';
-    }
-  };
-
   return (
     <div className="bg-surface rounded-lg shadow-lg">
       {/* Header */}

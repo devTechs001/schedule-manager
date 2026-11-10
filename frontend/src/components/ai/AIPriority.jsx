@@ -1,4 +1,10 @@
 import React from 'react';
+/*
+ * Named AIPriority historically, but nothing here calls a model: the score is
+ * priority weight + urgency + in-progress. The UI says so rather than
+ * implying an inference. Deterministic scoring is more predictable for the
+ * user anyway, since the same task always gets the same number.
+ */
 import { FaFlag, FaSortAmountDown } from 'react-icons/fa';
 import Badge from '@components/ui/Badge';
 import Card from '@components/ui/Card';
@@ -38,8 +44,8 @@ const AIPriority = ({ tasks, onReorder }) => {
 
   return (
     <Card
-      title="AI Priority Ranking"
-      subtitle="Tasks ranked by AI-calculated priority"
+      title="Priority ranking"
+      subtitle="Ranked by priority, due date and status — a fixed rule set, not a model"
     >
       <div className="space-y-3">
         {priorityScores.map((task, index) => (
@@ -77,7 +83,7 @@ const AIPriority = ({ tasks, onReorder }) => {
 
       {tasks.length === 0 && (
         <p className="text-content-muted text-center py-8">
-          No tasks to prioritize
+          No tasks to rank yet
         </p>
       )}
     </Card>

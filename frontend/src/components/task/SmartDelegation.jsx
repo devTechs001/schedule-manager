@@ -4,19 +4,17 @@ import { FaUserFriends, FaBrain, FaTasks, FaCheck, FaClock, FaChartLine, FaArrow
 const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
   const [selectedMember, setSelectedMember] = useState(null);
 
-  const defaultTask = {
-    id: 1,
-    title: 'Create Q1 Marketing Report',
-    description: 'Compile and analyze marketing metrics for Q1',
-    priority: 'high',
-    estimatedTime: '4 hours',
-    skills: ['analytics', 'marketing', 'reporting'],
-  };
-
-
-  const currentTask = task || defaultTask;
-;
-  const sortedMembers = [...members].sort((a, b) => b.matchScore - a.matchScore);
+  /*
+   * No placeholder task. This used to fall back to an invented "Create Q1
+   * Marketing Report" so the panel always had something to show — meaning a
+   * user with no task selected saw a stranger's work described as theirs.
+   *
+   * The component also referenced a bare `members` variable that was never
+   * defined (the prop is `teamMembers`), so rendering it threw immediately.
+   */
+  const currentTask = task;
+  const members = Array.isArray(teamMembers) ? teamMembers : [];
+  const sortedMembers = [...members].sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
 
   const getWorkloadColor = (workload) => {
     if (workload < 50) return 'green';
@@ -38,11 +36,18 @@ const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
           <h3 className="text-lg font-semibold text-content">Smart Delegation</h3>
         </div>
         <span className="flex items-center gap-2 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm">
-          <FaBrain /> AI Powered
+          <FaBrain /> Match by skills
         </span>
       </div>
 
+      {!currentTask && (
+        <p className="mb-6 rounded-lg bg-surface-sunken p-4 text-sm text-content-muted">
+          Select a task to see who on the team is the best fit for it.
+        </p>
+      )}
+
       {/* Task to Delegate */}
+      {currentTask && (
       <div className="mb-6 p-4 bg-surface-sunken rounded-lg">
         <div className="flex items-center gap-2 text-sm text-content-muted mb-2">
           <FaTasks />
@@ -51,7 +56,7 @@ const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
         <h4 className="font-medium text-content">{currentTask.title}</h4>
         <p className="text-sm text-content-muted mt-1">{currentTask.description}</p>
         <div className="flex flex-wrap gap-2 mt-3">
-          {currentTask.skills.map((skill) => (
+          {(currentTask.skills || []).map((skill) => (
             <span key={skill} className="px-2 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs rounded-full">
               {skill}
             </span>
@@ -59,15 +64,16 @@ const SmartDelegation = ({ task = null, teamMembers = [], onDelegate }) => {
         </div>
         <div className="flex items-center gap-4 mt-3 text-sm text-content-muted">
           <span className="flex items-center gap-1">
-            <FaClock /> {currentTask.estimatedTime}
+            <FaClock /> {currentTask.estimatedTime || 'no estimate'}
           </span>
           <span className="capitalize px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs">
             {currentTask.priority} priority
           </span>
         </div>
       </div>
+      )}
 
-      {/* AI Recommendations */}
+      {/* Suggested delegates */}
       <div className="mb-4">
         <div className="flex items-center gap-2 text-sm font-medium text-content mb-3">
           <FaBrain className="text-purple-500" />
