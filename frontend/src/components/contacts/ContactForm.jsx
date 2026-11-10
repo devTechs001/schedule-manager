@@ -1,24 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Input from '@components/ui/Input';
 import Button from '@components/ui/Button';
 import { FaSave, FaTimes } from 'react-icons/fa';
 
-const ContactForm = ({ contact, onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    company: '',
-    position: '',
-    notes: '',
-    tags: [],
-  });
+const EMPTY_CONTACT = {
+  name: '',
+  email: '',
+  phone: '',
+  company: '',
+  position: '',
+  notes: '',
+  tags: [],
+};
 
-  useEffect(() => {
-    if (contact) {
-      setFormData(contact);
-    }
-  }, [contact]);
+/**
+ * Seeded once, from the contact being edited or from an empty draft.
+ *
+ * This used to copy the prop into state inside an effect, which caused a second
+ * render on every open and — because the effect only ran `if (contact)` — never
+ * cleared the form when switching back to "new contact". The parent now
+ * remounts the form (via `key`) when the target contact changes, so state is
+ * derived at construction and no effect is needed.
+ */
+const ContactForm = ({ contact, onSubmit, onCancel }) => {
+  const [formData, setFormData] = useState(() => ({ ...EMPTY_CONTACT, ...(contact || {}) }));
 
   const handleSubmit = (e) => {
     e.preventDefault();

@@ -66,20 +66,16 @@ const Settings = () => {
     phone: user?.phone || '',
   });
   const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirm: '' });
-  const [notifications, setNotifications] = useState(() => {
-    try {
-      return (
-        JSON.parse(localStorage.getItem('notifications')) || {
-          email: true,
-          push: true,
-          taskReminders: true,
-          weeklyDigest: false,
-        }
-      );
-    } catch {
-      return { email: true, push: true, taskReminders: true, weeklyDigest: false };
-    }
-  });
+  /*
+   * Notification preferences used to live here as four toggles saved to
+   * localStorage — and read by nothing else in the app. Nothing sent email,
+   * nothing delivered a push, no digest was ever compiled, so "saved" only
+   * meant "written to a key no one opens". The real delivery mechanism the app
+   * has is the browser notification permission below.
+   */
+  const [notifyPermission, setNotifyPermission] = useState(() =>
+    typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
+  );
   const [privacy, setPrivacy] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('privacy')) || { shareData: false, analyticsEnabled: true };
@@ -135,9 +131,16 @@ const Settings = () => {
     }
   };
 
-  const saveNotifications = () => {
-    localStorage.setItem('notifications', JSON.stringify(notifications));
-    toast.success('Notification preferences saved');
+  const requestNotifications = async () => {
+    if (typeof Notification === 'undefined') return;
+    try {
+      const result = await Notification.requestPermission();
+      setNotifyPermission(result);
+      if (result === 'granted') toast.success('Browser notifications enabled');
+      else if (result === 'denied') toast('Notifications stayed off — your browser remembered an earlier block.');
+    } catch (error) {
+      toast.error(`Could not ask for notification permission: ${error.message}`);
+    }
   };
 
   const savePrivacy = () => {
@@ -423,30 +426,48 @@ const Settings = () => {
             <div className="card">
               <div className="border-b border-line px-5 py-4">
                 <h2 className="text-base font-semibold text-content">Notifications</h2>
-                <p className="text-sm text-content-muted">Choose what reaches you and where.</p>
+                <p className="text-sm text-content-muted">
+                  What this deployment can actually deliver, and how to switch it on.
+                </p>
               </div>
               <div className="space-y-3 p-5">
-                {[
-                  { key: 'email', title: 'Email notifications', body: 'Important updates and mentions in your inbox.' },
-                  { key: 'push', title: 'Push notifications', body: 'Browser and device alerts when something needs you.' },
-                  { key: 'taskReminders', title: 'Task reminders', body: 'A nudge before tasks fall due.' },
-                  { key: 'weeklyDigest', title: 'Weekly digest', body: 'A Monday summary of the week ahead.' },
-                ].map((item) => (
-                  <div key={item.key} className="flex items-center justify-between gap-4 rounded-xl border border-line px-4 py-3">
-                    <div>
-                      <p className="text-sm font-medium text-content">{item.title}</p>
-                      <p className="text-xs text-content-muted">{item.body}</p>
-                    </div>
-                    <Toggle
-                      checked={Boolean(notifications[item.key])}
-                      onChange={(next) => setNotifications({ ...notifications, [item.key]: next })}
-                    />
+                <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium text-content">Browser notifications</p>
+                    <p className="text-xs text-content-muted">
+                      Alerts from this tab — focus-session reminders and the in-app
+                      notification centre. Delivered by your browser while SchedAI is open.
+                    </p>
                   </div>
-                ))}
-                <div className="flex justify-end border-t border-line pt-4">
-                  <button type="button" onClick={saveNotifications} className="btn btn-primary">
-                    <FaSave size={11} /> Save preferences
-                  </button>
+                  {notifyPermission === 'granted' ? (
+                    <span className="badge badge-success inline-flex items-center gap-1">
+                      <FaCheck size={8} /> Enabled
+                    </span>
+                  ) : notifyPermission === 'unsupported' ? (
+                    <span className="badge badge-neutral">Not supported here</span>
+                  ) : (
+                    <button type="button" onClick={requestNotifications} className="btn btn-primary btn-sm">
+                      {notifyPermission === 'denied' ? 'Blocked in browser' : 'Enable'}
+                    </button>
+                  )}
+                </div>
+
+                {notifyPermission === 'denied' && (
+                  <p className="rounded-xl border border-line bg-surface-sunken px-4 py-3 text-xs text-content-muted">
+                    Your browser is blocking notifications for this site. Re-enable them
+                    in the site permissions (usually the padlock in the address bar),
+                    then reload this page.
+                  </p>
+                )}
+
+                <div className="rounded-xl border border-line bg-surface-sunken px-4 py-3">
+                  <p className="text-sm font-medium text-content">Email, push and digests</p>
+                  <p className="mt-1 text-xs text-content-muted">
+                    Not available on this deployment. Nothing sends email, delivers a
+                    web push, or compiles a weekly digest yet, so there are no
+                    preferences to set — the options that used to sit here were saved
+                    and then ignored by every part of the app.
+                  </p>
                 </div>
               </div>
             </div>

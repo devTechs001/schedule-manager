@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
 import { FaProjectDiagram, FaUser, FaLink, FaPlus, FaSearch } from 'react-icons/fa';
+/**
+ * RelationshipMap — who knows whom, for the contacts graph.
+ *
+ * Deliberately not mounted. It takes `relationships` as a prop, and there is
+ * nowhere to persist them: the contacts API stores name, email, phone, company
+ * and notes, with no relationship edges between contacts. `onAddRelationship`
+ * has no sink, so every edge the user drew would be lost on navigation — the
+ * UI would promise a saved connection and silently discard it.
+ *
+ * Needs a relationships collection (or a field on the contact document) before
+ * it can hold real data.
+ */
 
 const RelationshipMap = ({ contacts = [], relationships = [], onAddRelationship }) => {
   const [selectedContact, setSelectedContact] = useState(null);
@@ -21,11 +33,6 @@ const RelationshipMap = ({ contacts = [], relationships = [], onAddRelationship 
   };
 
   const getContactById = (id) => contacts.find(c => c.id === id);
-
-  const getRelationshipColor = (type) => {
-    const rel = relationshipTypes.find(r => r.value === type);
-    return rel?.color || 'gray';
-  };
 
   const filteredContacts = contacts.filter(c =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())

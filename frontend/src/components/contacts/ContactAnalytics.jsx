@@ -1,5 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FaChartPie, FaEnvelope, FaPhone, FaCalendar, FaUserFriends, FaArrowUp, FaArrowDown } from 'react-icons/fa';
+/**
+ * ContactAnalytics — per-contact interaction breakdown.
+ *
+ * Deliberately not mounted. Every figure it renders is derived from the
+ * `interactions` array passed to it, and this app has no interaction store:
+ * nothing records that an email was sent, a call made or a meeting held with a
+ * contact. Mounting it on the Contacts page would render a row of zeros and a
+ * chart of nothing, which reads as "this person has never been contacted"
+ * rather than "this is not tracked yet".
+ *
+ * The invented statistics it used to carry (a 75% response rate, a 2.5 hour
+ * average reply time) were already removed in an earlier pass — see the note
+ * in the component body.
+ *
+ * Mount it when interactions are recorded somewhere real; it needs no changes.
+ */
 
 const ContactAnalytics = ({ contact, interactions = [] }) => {
   const stats = {
@@ -21,9 +37,17 @@ const ContactAnalytics = ({ contact, interactions = [] }) => {
     { type: 'meeting', icon: FaCalendar, color: 'purple', count: stats.meetingsHeld },
   ];
 
+  /*
+   * "Now" is read once per mount, not on every render. Calling Date.now()
+   * during render makes the output impure — two renders of identical props can
+   * disagree — which is what the react-hooks/purity rule flags. A lazy state
+   * initialiser runs exactly once and is the form the rule accepts.
+   */
+  const [now] = useState(() => Date.now());
+
   const getTimeAgo = (date) => {
     if (!date) return 'Never';
-    const days = Math.floor((Date.now() - new Date(date).getTime()) / 86400000);
+    const days = Math.floor((now - new Date(date).getTime()) / 86400000);
     if (days === 0) return 'Today';
     if (days === 1) return 'Yesterday';
     if (days < 7) return `${days} days ago`;

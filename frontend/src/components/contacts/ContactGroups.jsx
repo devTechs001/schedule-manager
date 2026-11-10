@@ -2,6 +2,18 @@ import React, { useState } from 'react';
 import { FaUsers, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import Button from '@components/ui/Button';
 import Badge from '@components/ui/Badge';
+/**
+ * ContactGroups — named groups of contacts.
+ *
+ * Deliberately not mounted. Groups are passed in and mutations go out through
+ * `onAddGroup` / `onEditGroup` / `onDeleteGroup`, but no group store exists, so
+ * a group created here would vanish on the next render. It also counts members
+ * from a supplied `contactCount`, which would have to come from real
+ * membership data rather than being typed in.
+ *
+ * Note it does not derive the count itself — it trusts the caller. Wire it to a
+ * real groups collection before mounting.
+ */
 
 const ContactGroups = ({ groups, onAddGroup, onEditGroup, onDeleteGroup }) => {
   const [showAddForm, setShowAddForm] = useState(false);
