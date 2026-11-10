@@ -29,6 +29,7 @@ import TaskForm from '@components/tasks/TaskForm';
 import QuickAddTask from '@components/tasks/QuickAddTask';
 import FocusWidget from '@components/widgets/FocusWidget';
 import WeatherWidget from '@components/widgets/WeatherWidget';
+import QuickNote from '@components/widgets/QuickNote';
 import SmartAlerts from '@components/notification/SmartAlerts';
 import { useSmartAlerts } from '@hooks/useSmartAlerts';
 import Confetti from '@components/ui/Confetti';
@@ -360,6 +361,8 @@ const Dashboard = () => {
         <div className="space-y-5">
           {/* Derived alerts: overdue, due today, next event. */}
           {alerts.length > 0 && <SmartAlerts alerts={alerts} />}
+
+          <QuickNote />
 
           <WeatherWidget autoLoad={false} />
 

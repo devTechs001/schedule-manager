@@ -1,190 +1,208 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FaStickyNote, FaPlus, FaTrash, FaEdit, FaPalette, FaCheck, FaTimes, FaThumbtack } from 'react-icons/fa';
+import { useNotes, NOTE_COLORS } from '@hooks/useNotes';
 
-const QuickNote = ({ 
-  notes: initialNotes = [], 
-  onSave, 
-  onDelete,
-  compact = false,
-}) => {
-  // No invented notes. A new workspace shows an empty state with a prompt to
-  // add the first one — fabricating content here made real users think the app
-  // had shipped with someone else's data.
-  const [notes, setNotes] = useState(() => (Array.isArray(initialNotes) ? initialNotes : []));
+/**
+ * Scratchpad widget.
+ *
+ * Rewritten on top of useNotes so it shares one store with the Notes page:
+ * a note jotted here shows up there, pinned state included. The previous
+ * version kept a private array seeded from a prop and used a different field
+ * name (`content`, colours 'yellow'/'green') than the shared store (`text`,
+ * 'amber'/'emerald'), so the two screens could never agree.
+ */
+const TONE = {
+  amber: 'bg-amber-50 border-amber-200 dark:bg-amber-400/10 dark:border-amber-500/30',
+  emerald: 'bg-emerald-50 border-emerald-200 dark:bg-emerald-400/10 dark:border-emerald-500/30',
+  sky: 'bg-sky-50 border-sky-200 dark:bg-sky-400/10 dark:border-sky-500/30',
+  rose: 'bg-rose-50 border-rose-200 dark:bg-rose-400/10 dark:border-rose-500/30',
+  violet: 'bg-violet-50 border-violet-200 dark:bg-violet-400/10 dark:border-violet-500/30',
+  slate: 'bg-surface-sunken border-line',
+};
+
+const QuickNote = ({ limit = 4, compact = false }) => {
+  const { notes, ready, addNote, updateNote, removeNote, togglePin } = useNotes();
+  const [draft, setDraft] = useState('');
+  const [colour, setColour] = useState('amber');
   const [editingId, setEditingId] = useState(null);
-  const [newNote, setNewNote] = useState('');
-  const [showColorPicker, setShowColorPicker] = useState(null);
+  const [editingText, setEditingText] = useState('');
+  const [showColourPicker, setShowColourPicker] = useState(false);
   const inputRef = useRef(null);
 
-  const colors = ['yellow', 'green', 'blue', 'pink', 'purple', 'orange'];
+  // Give the field focus when the widget mounts empty, so a fresh dashboard
+  // does not need a click before the first note.
+  useEffect(() => {
+    if (ready && notes.length === 0) inputRef.current?.focus();
+  }, [ready, notes.length]);
 
-  const handleAddNote = () => {
-    if (!newNote.trim()) return;
-    const note = {
-      id: Date.now(),
-      content: newNote,
-      color: 'yellow',
-      pinned: false,
-      createdAt: new Date(),
-    };
-    setNotes([note, ...notes]);
-    setNewNote('');
-    onSave?.(note);
+  const handleAdd = () => {
+    const created = addNote(draft, colour);
+    if (!created) return;
+    setDraft('');
+    setColour('amber');
   };
 
-  const handleDelete = (id) => {
-    setNotes(notes.filter(n => n.id !== id));
-    onDelete?.(id);
-  };
-
-  const handleEdit = (id, content) => {
-    setNotes(notes.map(n => n.id === id ? { ...n, content } : n));
+  const commitEdit = (id) => {
+    const text = editingText.trim();
+    if (text) updateNote(id, { text });
     setEditingId(null);
+    setEditingText('');
   };
 
-  const handleColorChange = (id, color) => {
-    setNotes(notes.map(n => n.id === id ? { ...n, color } : n));
-    setShowColorPicker(null);
-  };
-
-  const togglePin = (id) => {
-    setNotes(notes.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
-  };
-
-  const sortedNotes = [...notes].sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1;
-    if (!a.pinned && b.pinned) return 1;
-    return new Date(b.createdAt) - new Date(a.createdAt);
-  });
-
-  const colorClasses = {
-    yellow: 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300',
-    green: 'bg-green-100 dark:bg-green-900/30 border-green-300',
-    blue: 'bg-blue-100 dark:bg-blue-900/30 border-blue-300',
-    pink: 'bg-pink-100 dark:bg-pink-900/30 border-pink-300',
-    purple: 'bg-purple-100 dark:bg-purple-900/30 border-purple-300',
-    orange: 'bg-orange-100 dark:bg-orange-900/30 border-orange-300',
-  };
-
-  if (compact) {
-    return (
-      <div className="bg-surface rounded-lg shadow-lg p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <FaStickyNote className="text-yellow-500" />
-          <span className="font-medium text-content">Quick Notes</span>
-          <span className="text-xs text-content-muted">({notes.length})</span>
-        </div>
-        <input
-          type="text"
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleAddNote()}
-          placeholder="Add a quick note..."
-          className="w-full px-3 py-2 text-sm border rounded-lg bg-surface-sunken border-line"
-        />
-      </div>
-    );
-  }
+  const visible = notes.slice(0, limit);
 
   return (
-    <div className="bg-surface rounded-lg shadow-lg p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <FaStickyNote className="text-yellow-500 text-xl" />
-          <h3 className="text-lg font-semibold text-content">Quick Notes</h3>
+    <div className="card p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <FaStickyNote className="text-amber-500" />
+          <h3 className="text-sm font-semibold text-content">Quick note</h3>
         </div>
-        <span className="px-2 py-1 bg-surface-sunken rounded-full text-xs text-content-muted">
-          {notes.length} notes
-        </span>
+        {notes.length > limit && (
+          <span className="text-[0.65rem] text-content-subtle">+{notes.length - limit} more in Notes</span>
+        )}
       </div>
 
-      {/* Add Note */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-1.5">
         <input
           ref={inputRef}
-          type="text"
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleAddNote()}
-          placeholder="Write a quick note..."
-          className="flex-1 px-4 py-2 border rounded-lg bg-surface-sunken border-line focus:ring-2 focus:ring-primary-500"
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault();
+              handleAdd();
+            }
+          }}
+          placeholder={compact ? 'Jot something down…' : 'Write a note and press Enter…'}
+          className="input flex-1 text-xs"
+          aria-label="New note"
         />
         <button
-          onClick={handleAddNote}
-          className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg"
+          type="button"
+          onClick={() => setShowColourPicker((open) => !open)}
+          className="rounded-lg px-2 text-content-subtle hover:bg-surface-sunken hover:text-content"
+          aria-label="Choose note colour"
+          aria-expanded={showColourPicker}
         >
-          <FaPlus />
+          <FaPalette size={11} />
+        </button>
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={!draft.trim()}
+          className="btn btn-primary btn-sm disabled:opacity-50"
+          aria-label="Add note"
+        >
+          <FaPlus size={9} />
         </button>
       </div>
 
-      {/* Notes List */}
-      <div className="space-y-2 max-h-80 overflow-y-auto">
-        {sortedNotes.map((note) => (
-          <div
-            key={note.id}
-            className={`relative p-3 rounded-lg border-l-4 ${colorClasses[note.color]} group`}
-          >
-            {editingId === note.id ? (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  defaultValue={note.content}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleEdit(note.id, e.target.value);
-                    if (e.key === 'Escape') setEditingId(null);
-                  }}
-                  autoFocus
-                  className="flex-1 px-2 py-1 border rounded bg-surface-raised border-line"
-                />
-                <button
-                  onClick={(e) => handleEdit(note.id, e.target.previousSibling.value)}
-                  className="text-green-500 hover:text-green-600"
-                >
-                  <FaCheck />
-                </button>
-                <button onClick={() => setEditingId(null)} className="text-content-muted">
-                  <FaTimes />
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-start justify-between">
-                  <p className="text-sm text-content pr-16">{note.content}</p>
-                  {note.pinned && <FaThumbtack className="text-content-subtle text-xs" />}
+      {showColourPicker && (
+        <div className="mt-2 flex gap-1.5" role="group" aria-label="Note colour">
+          {NOTE_COLORS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => {
+                setColour(option);
+                setShowColourPicker(false);
+              }}
+              className={`h-5 w-5 rounded-full border ${TONE[option]} ${
+                colour === option ? 'ring-2 ring-primary-500 ring-offset-1' : ''
+              }`}
+              aria-label={option}
+              aria-pressed={colour === option}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="mt-3 space-y-1.5">
+        {!ready ? (
+          <p className="py-3 text-center text-[0.7rem] text-content-subtle">Loading notes…</p>
+        ) : visible.length === 0 ? (
+          <p className="py-3 text-center text-[0.7rem] text-content-subtle">
+            No notes yet — the first one goes here.
+          </p>
+        ) : (
+          visible.map((note) => (
+            <div
+              key={note.id}
+              className={`group rounded-lg border px-2.5 py-2 ${TONE[note.color] || TONE.slate}`}
+            >
+              {editingId === note.id ? (
+                <div className="flex gap-1">
+                  <input
+                    value={editingText}
+                    onChange={(event) => setEditingText(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') commitEdit(note.id);
+                      if (event.key === 'Escape') setEditingId(null);
+                    }}
+                    className="input flex-1 py-1 text-xs"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => commitEdit(note.id)}
+                    className="p-1 text-emerald-600"
+                    aria-label="Save note"
+                  >
+                    <FaCheck size={10} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingId(null)}
+                    className="p-1 text-content-subtle"
+                    aria-label="Cancel edit"
+                  >
+                    <FaTimes size={10} />
+                  </button>
                 </div>
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                  <button onClick={() => togglePin(note.id)} className={`p-1 rounded ${note.pinned ? 'text-primary-500' : 'text-content-subtle'} hover:bg-surface/50`}>
-                    <FaThumbtack className="text-xs" />
-                  </button>
-                  <button onClick={() => setShowColorPicker(note.id)} className="p-1 text-content-subtle hover:bg-surface/50 rounded">
-                    <FaPalette className="text-xs" />
-                  </button>
-                  <button onClick={() => setEditingId(note.id)} className="p-1 text-content-subtle hover:bg-surface/50 rounded">
-                    <FaEdit className="text-xs" />
-                  </button>
-                  <button onClick={() => handleDelete(note.id)} className="p-1 text-red-400 hover:bg-surface/50 rounded">
-                    <FaTrash className="text-xs" />
-                  </button>
-                </div>
-                {showColorPicker === note.id && (
-                  <div className="absolute top-8 right-2 bg-surface rounded-lg shadow-lg p-2 flex gap-1 z-10">
-                    {colors.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => handleColorChange(note.id, color)}
-                        className={`w-6 h-6 rounded-full bg-surface-sunken hover:scale-110 transition-transform`}
-                      />
-                    ))}
+              ) : (
+                <div className="flex items-start gap-2">
+                  <p className="min-w-0 flex-1 whitespace-pre-wrap break-words text-xs leading-relaxed text-content">
+                    {note.text}
+                  </p>
+                  <div className="flex shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                    <button
+                      type="button"
+                      onClick={() => togglePin(note.id)}
+                      className={`p-0.5 ${note.pinned ? 'text-primary-600' : 'text-content-subtle hover:text-content'}`}
+                      aria-label={note.pinned ? 'Unpin note' : 'Pin note'}
+                      aria-pressed={note.pinned}
+                    >
+                      <FaThumbtack size={9} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingId(note.id);
+                        setEditingText(note.text);
+                      }}
+                      className="p-0.5 text-content-subtle hover:text-content"
+                      aria-label="Edit note"
+                    >
+                      <FaEdit size={9} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeNote(note.id)}
+                      className="p-0.5 text-content-subtle hover:text-rose-500"
+                      aria-label="Delete note"
+                    >
+                      <FaTrash size={9} />
+                    </button>
                   </div>
-                )}
-              </>
-            )}
-          </div>
-        ))}
+                </div>
+              )}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
 };
 
 export default QuickNote;
-
