@@ -26,10 +26,15 @@ const workspaceSchema = new mongoose.Schema({
       enum: ['owner', 'admin', 'member', 'viewer'],
       default: 'member',
     },
-    permissions: [{
-      type: String,
-      enum: ['read', 'write', 'delete', 'invite', 'manage'],
-    }],
+    permissions: {
+      type: [{
+        type: String,
+        enum: ['read', 'write', 'delete', 'invite', 'manage'],
+      }],
+      // Without a default, a member created by addMember() had `permissions`
+      // undefined, and hasPermission() below then threw on `.includes`.
+      default: ['read'],
+    },
     joinedAt: {
       type: Date,
       default: Date.now,
@@ -85,16 +90,24 @@ workspaceSchema.index({ name: 'text', description: 'text' });
 
 // Methods
 workspaceSchema.methods.addMember = function(userId, role = 'member') {
-  const exists = this.members.some(m => m.user.toString() === userId.toString());
+  const target = userId.toString();
+  const exists = this.members.some((m) => memberUserId(m) === target);
   if (!exists) {
-    this.members.push({ user: userId, role });
+    // Give the new member the permissions their role implies; an invite-only
+    // member with no permissions could never do anything.
+    this.members.push({
+      user: userId,
+      role,
+      permissions: role === 'viewer' ? ['read'] : ['read', 'write'],
+    });
     this.stats.totalMembers = this.members.length;
   }
   return this.save();
 };
 
 workspaceSchema.methods.removeMember = function(userId) {
-  this.members = this.members.filter(m => m.user.toString() !== userId.toString());
+  const target = userId.toString();
+  this.members = this.members.filter((m) => memberUserId(m) !== target);
   this.stats.totalMembers = this.members.length;
   return this.save();
 };
@@ -107,11 +120,24 @@ workspaceSchema.methods.updateMemberRole = function(userId, role) {
   return this.save();
 };
 
+/**
+ * Resolve a member's user id, whether `user` is still an ObjectId or has been
+ * populated into a document. Calling .toString() on a populated doc yields
+ * "[object Object]", so it never matched the caller.
+ */
+const memberUserId = (member) => {
+  const user = member?.user;
+  if (!user) return null;
+  return (user._id || user).toString();
+};
+
 workspaceSchema.methods.hasPermission = function(userId, permission) {
-  const member = this.members.find(m => m.user.toString() === userId.toString());
+  const target = userId.toString();
+  const member = this.members.find((m) => memberUserId(m) === target);
   if (!member) return false;
   if (member.role === 'owner' || member.role === 'admin') return true;
-  return member.permissions.includes(permission);
+  // Fail closed if a legacy document holds no permissions array.
+  return Array.isArray(member.permissions) && member.permissions.includes(permission);
 };
 
 // Statics

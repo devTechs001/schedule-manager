@@ -11,7 +11,8 @@
     "seed:admin": "node src/scripts/seedAdmin.js",
     "verify:user": "node src/scripts/verifyUser.js",
     "test:password": "node src/scripts/testPassword.js",
-    "test:ai": "node --test scripts/test-ai-parsing.mjs"
+    "test:ai": "node --test scripts/test-ai-parsing.mjs",
+    "test:workspace": "node --test scripts/test-workspace-permissions.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
