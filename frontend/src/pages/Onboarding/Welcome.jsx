@@ -4,11 +4,6 @@ import { useNavigate } from 'react-router-dom';
 const Welcome = () => {
   const navigate = useNavigate();
 
-  // Mark splash screen as seen when component mounts
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('seenSplash', 'true');
-  }
-
   const features = [
     { icon: FaCalendarAlt, title: 'Smart Scheduling', description: 'AI-powered calendar management' },
     { icon: FaTasks, title: 'Task Management', description: 'Organize and prioritize with ease' },

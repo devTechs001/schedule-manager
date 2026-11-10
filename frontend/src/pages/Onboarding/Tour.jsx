@@ -61,9 +61,7 @@ const Tour = () => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(prev => prev + 1);
     } else {
-      // Mark onboarding as complete when tour finishes
-      localStorage.setItem('onboardingComplete', 'true');
-      navigate('/register'); // Go to registration after tour completion
+      navigate('/register');
     }
   };
 
@@ -72,9 +70,7 @@ const Tour = () => {
   };
 
   const handleSkip = () => {
-    // Mark onboarding as complete when skipped
-    localStorage.setItem('onboardingComplete', 'true');
-    navigate('/login'); // Go to login if tour is skipped
+    navigate('/login');
   };
 
   const toggleAI = () => {
