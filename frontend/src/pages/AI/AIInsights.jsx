@@ -12,6 +12,7 @@ import aiAPI from '@services/api/aiAPI';
 import EmptyState from '@components/ui/EmptyState';
 import Skeleton from '@components/ui/Skeleton';
 import AISuggestions from '@components/ai/AISuggestions';
+import SentimentAnalyzer from '@components/ai/SentimentAnalyzer';
 
 /**
  * AI insights.
@@ -170,6 +171,9 @@ const AIInsightsPage = () => {
           })}
         </div>
       )}
+
+      {/* Local, deterministic tool — works without an AI provider. */}
+      <SentimentAnalyzer />
 
       <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3">

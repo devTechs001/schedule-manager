@@ -2,7 +2,17 @@ import React from 'react';
 import { FaTasks, FaCheckCircle, FaClock, FaExclamationCircle } from 'react-icons/fa';
 import Card from '@components/ui/Card';
 
-const TaskMetrics = ({ metrics }) => {
+/**
+ * Four-up task totals.
+ *
+ * NOT mounted on the Analytics page: that page renders StatCards for the same
+ * four numbers with an extra explanatory `hint` line each, which is the more
+ * useful version. Mounting both would show identical figures twice. This
+ * remains the drop-in for any surface that only needs the bare counts.
+ */
+const TaskMetrics = ({ metrics = {}, className = '' }) => {
+  if (!metrics || typeof metrics !== 'object') return null;
+
   const stats = [
     {
       label: 'Total Tasks',
