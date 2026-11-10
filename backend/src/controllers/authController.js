@@ -2,10 +2,11 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import { asyncHandler } from '../utils/helpers.js';
 import authConfig from '../config/auth.js';
+import { resolveJwtSecret } from '../config/jwtSecret.js';
 
 // Generate JWT Token
 const generateToken = (id) => {
-  const secret = authConfig.jwtSecret || process.env.JWT_SECRET || 'dev-only-insecure-secret-change-me-0123456789';
+  const secret = resolveJwtSecret();
   return jwt.sign({ id }, secret, {
     expiresIn: authConfig.jwtExpire || '7d',
   });

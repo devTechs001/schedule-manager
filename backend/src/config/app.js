@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { resolveJwtSecret } from './jwtSecret.js';
 
 // Load environment variables if not already loaded
 if (!process.env.MONGODB_URI) {
@@ -26,9 +27,10 @@ const config = {
   // JWT Configuration
   jwt: {
     secret:
-      process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 16
-        ? process.env.JWT_SECRET
-        : 'dev-only-insecure-secret-change-me-0123456789',
+      // Delegated so there is exactly one place that can decide this, and so a
+      // production misconfiguration throws instead of silently using a secret
+      // that is published in this repository.
+      resolveJwtSecret(),
     expiresIn: process.env.JWT_EXPIRE || '7d',
   },
 
@@ -61,16 +63,15 @@ const config = {
     path: process.env.UPLOAD_PATH || './uploads',
   },
 
-  // Rate Limiting Configuration
-  rateLimit: {
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000, // 15 minutes
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
-  },
-
-  // Session Configuration
-  session: {
-    secret: process.env.SESSION_SECRET || 'your-session-secret-key',
-  },
+  /*
+   * There is no `rateLimit` block here on purpose. It used to read
+   * RATE_LIMIT_WINDOW_MS / RATE_LIMIT_MAX_REQUESTS and was never consumed by
+   * anything: the real limits live in middleware/rateLimit.js, which reads
+   * RATE_LIMIT_MAX / AUTH_RATE_LIMIT_MAX. That left .env.example documenting
+   * two knobs that changed nothing, while the knobs that did matter were
+   * undocumented. Same story for a `session` block that read SESSION_SECRET
+   * for an API that has no session middleware.
+   */
 
   // External Services Configuration
   services: {

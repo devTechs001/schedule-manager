@@ -6,6 +6,7 @@ import Event from '../models/Event.js';
 import Email from '../models/Email.js';
 import Contact from '../models/Contact.js';
 import authConfig from '../config/auth.js';
+import { resolveJwtSecret } from '../config/jwtSecret.js';
 import { asyncHandler } from '../utils/helpers.js';
 import { logger } from '../utils/logger.js';
 import { isDbConnected } from '../utils/database.js';
@@ -28,7 +29,7 @@ const isDemoEnabled = () =>
   (process.env.NODE_ENV !== 'production' || process.env.DEMO_MODE === 'true');
 
 const generateToken = (id) =>
-  jwt.sign({ id }, authConfig.jwtSecret || process.env.JWT_SECRET || 'dev-only-insecure-secret-change-me-0123456789', {
+  jwt.sign({ id }, resolveJwtSecret(), {
     expiresIn: authConfig.jwtExpire || '7d',
   });
 

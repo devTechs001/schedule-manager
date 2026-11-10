@@ -5,9 +5,18 @@ build/
 logs/
 package-lock.json
 backend/server.log
+# Environment files hold credentials. Only the documented templates are tracked.
+# The leading **/ matters: a bare `.env` does not match backend/.env in every
+# git version when the pattern has no slash, which is how backend/.env and
+# frontend/.env ended up committed.
 .env
 .env.local
 .env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+!.env.example
+!**/.env.example
 .DS_Store
 coverage/
 .vite/

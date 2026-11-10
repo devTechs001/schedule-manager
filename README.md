@@ -169,9 +169,9 @@ See [frontend/.env.example](frontend/.env.example) for all available configurati
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `VITE_ENABLE_AI_FEATURES` | Enable AI features | `false` |
-| `VITE_ENABLE_NOTIFICATIONS` | Enable push notifications | `false` |
-| `VITE_ENABLE_COLLABORATION` | Enable team features | `false` |
+| ~~`VITE_ENABLE_AI_FEATURES`~~ | Removed — nothing read it. AI is gated server-side by `OPENAI_API_KEY`. | - |
+| ~~`VITE_ENABLE_NOTIFICATIONS`~~ | Removed — nothing read it. Notifications are gated by browser permission. | - |
+| ~~`VITE_ENABLE_COLLABORATION`~~ | Removed — nothing read it. Collaboration follows the workspace API. | - |
 | `VITE_GOOGLE_CLIENT_ID` | OAuth Google Client ID | - |
 | `VITE_GITHUB_CLIENT_ID` | OAuth GitHub Client ID | - |
 

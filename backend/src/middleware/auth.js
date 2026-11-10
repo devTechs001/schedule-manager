@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { resolveJwtSecret } from '../config/jwtSecret.js';
 import User from '../models/User.js';
 import { asyncHandler } from '../utils/helpers.js';
 
@@ -17,7 +18,7 @@ export const protect = asyncHandler(async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-only-insecure-secret-change-me-0123456789');
+    const decoded = jwt.verify(token, resolveJwtSecret());
     req.user = await User.findById(decoded.id);
 
     if (!req.user) {

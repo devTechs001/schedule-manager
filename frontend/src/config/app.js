@@ -4,13 +4,18 @@ const config = {
   apiUrl: import.meta.env.VITE_API_URL || '/api',
   apiTimeout: parseInt(import.meta.env.VITE_API_TIMEOUT) || 10000,
   
-  // Feature Flags
-  features: {
-    ai: import.meta.env.VITE_ENABLE_AI_FEATURES === 'true',
-    notifications: import.meta.env.VITE_ENABLE_NOTIFICATIONS === 'true',
-    collaboration: import.meta.env.VITE_ENABLE_COLLABORATION === 'true',
-    realtime: import.meta.env.VITE_ENABLE_REALTIME === 'true',
-  },
+  /*
+   * No `features` block. It read VITE_ENABLE_AI_FEATURES,
+   * VITE_ENABLE_NOTIFICATIONS and VITE_ENABLE_COLLABORATION, and nothing ever
+   * consulted the result — so setting those flags changed no behaviour while
+   * appearing to switch whole product areas on and off.
+   *
+   * What actually gates each area:
+   *   AI            the server answers 503 AI_UNAVAILABLE when no provider key
+   *                 is configured; the UI renders that state.
+   *   notifications browser permission, requested from Settings.
+   *   collaboration the workspace API; no data means an empty state.
+   */
   
   // Third-party Integrations
   integrations: {

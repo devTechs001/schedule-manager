@@ -10,6 +10,7 @@ import { Server } from 'socket.io';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import config from './config/app.js';
+import { resolveJwtSecret } from './config/jwtSecret.js';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -274,6 +275,21 @@ process.on('uncaughtException', (err) => {
   logger.error('Uncaught Exception:', err);
   gracefulShutdown();
 });
+
+/*
+ * Fail closed before binding the port.
+ *
+ * config.app already calls resolveJwtSecret() at import time, so a production
+ * deployment with a missing or example JWT_SECRET throws earlier than this —
+ * but that error surfaced as an uncaught exception in a log nobody reads.
+ * Checking here makes the intent explicit and produces one clear line.
+ */
+try {
+  resolveJwtSecret();
+} catch (error) {
+  logger.error(`Configuration error: ${error.message}`);
+  process.exit(1);
+}
 
 // Start Server
 const PORT = config.server.port;

@@ -12,10 +12,17 @@
  * behind, which throws in any non-ESM context (and in the module checker).
  */
 
-/** True only in `vite dev`. Statically false in every production build. */
+/**
+ * True only in `vite dev`. Statically false in every production build.
+ */
 export const DEMO_ENABLED = import.meta.env.DEV;
 
-/** Whether a realtime socket endpoint was configured at build time. */
-export const REALTIME_ENABLED = Boolean(import.meta.env.VITE_WS_URL);
+/*
+ * There was a REALTIME_ENABLED here, computed from VITE_WS_URL. Nothing read it,
+ * and nothing read VITE_WS_URL either — the socket uses VITE_SOCKET_URL (see
+ * services/socket/socketService.js, which falls back to the page origin). A flag
+ * that appears to switch realtime on and off but is wired to nothing is worse
+ * than no flag.
+ */
 
-export default { DEMO_ENABLED, REALTIME_ENABLED };
+export default { DEMO_ENABLED };
