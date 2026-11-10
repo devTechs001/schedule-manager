@@ -158,7 +158,7 @@ const VideoConference = ({ roomId, participants = [], onLeave }) => {
 
       {/* Chat Panel */}
       {showChat && (
-        <div className="absolute right-0 top-0 bottom-0 w-80 bg-gray-800 border-l border-gray-700 p-4">
+        <div className="absolute right-0 top-0 bottom-0 w-[min(20rem,calc(100vw-3rem))] bg-gray-800 border-l border-gray-700 p-4">
           <h4 className="text-white font-medium mb-4">Chat</h4>
           <div className="h-full flex flex-col">
             <div className="flex-1 overflow-y-auto space-y-2">

@@ -82,18 +82,17 @@ const DemoBanner = () => {
 };
 
 const Layout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // The mobile drawer is keyed to the route it was opened on rather than being
+  // cleared by an effect. Resetting state in an effect renders the drawer open
+  // for one frame on the new page first; deriving it means it is never open on
+  // a route it does not belong to, and it also closes on back/forward.
+  const [openedOn, setOpenedOn] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const { collapsed, toggle } = useSidebarPreference();
   const { toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-
-  // Close the mobile drawer whenever the route changes
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [location.pathname]);
 
   // Global keyboard shortcuts: "/" search, "?" help, "g x" navigation, "t" theme
   useEffect(() => {
@@ -155,8 +154,8 @@ const Layout = () => {
   return (
     <div className="app-shell">
       <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+        isOpen={openedOn === location.pathname}
+        onClose={() => setOpenedOn(null)}
         collapsed={collapsed}
         onToggleCollapse={toggle}
       />
@@ -173,7 +172,7 @@ const Layout = () => {
         data-collapsed={collapsed ? 'true' : 'false'}
         id="app-content"
       >
-        <Header onMenuClick={() => setSidebarOpen(true)} onOpenSearch={() => setSearchOpen(true)} />
+        <Header onMenuClick={() => setOpenedOn(location.pathname)} onOpenSearch={() => setSearchOpen(true)} />
         <DemoBanner />
 
         <main id="main-content" className="app-main">

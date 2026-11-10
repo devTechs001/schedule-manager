@@ -55,7 +55,7 @@ const PermissionManager = ({ roles: initialRoles = [], onUpdate, onCreateRole })
         </button>
       </div>
 
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {/* Roles List */}
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-content mb-3">Roles</h4>

@@ -31,6 +31,13 @@ A comprehensive, AI-powered task and schedule management application with offlin
 - **Push Notifications**: Desktop and mobile notifications
 - **Install as App**: Install on mobile and desktop devices
 
+### 📐 Mobile-First Layout
+- **320px baseline**: every screen is designed to work from 320px up, not shrunk down from desktop
+- **No page-level horizontal scroll**: wide tables and long code scroll inside their own container
+- **Panels clamp to the viewport**: dropdowns and sheets use `w-[min(…,calc(100vw-…))]`, never a bare fixed width
+- **Safe areas respected**: `viewport-fit=cover` plus `env(safe-area-inset-*)` padding for notches and home bars
+- **Enforced in CI**: `npm run check` runs `scripts/test-responsive.mjs`, which fails the build on fixed-width floating panels, dense grids with no breakpoint, and tables missing a scroll wrapper
+
 ### 🔐 Security & Privacy
 - **JWT Authentication**: Secure token-based authentication
 - **Role-Based Access Control**: Granular permission system
