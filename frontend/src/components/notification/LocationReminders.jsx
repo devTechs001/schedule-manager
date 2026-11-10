@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocalStorage } from '@hooks/useLocalStorage';
 import { FaMapMarkerAlt, FaPlus, FaTrash, FaToggleOn, FaToggleOff, FaHome, FaBuilding, FaStore, FaGlobe } from 'react-icons/fa';
 
 const LocationReminders = ({ reminders: initialReminders = [], locations: initialLocations = [], onCreate, onDelete, onToggle }) => {
@@ -8,7 +9,8 @@ const LocationReminders = ({ reminders: initialReminders = [], locations: initia
 
 
   const [locations] = useState(initialLocations);
-  const [reminders, setReminders] = useState(initialReminders);
+  // Persisted: a location reminder that vanishes on navigation is useless.
+  const [reminders, setReminders] = useLocalStorage('schedai:location-reminders', initialReminders);
 
   const handleCreate = () => {
     if (!newReminder.location || !newReminder.task) return;

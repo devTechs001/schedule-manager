@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import {
   FaBell,
@@ -44,6 +45,7 @@ import Modal from '@components/ui/Modal';
 import EmptyState from '@components/ui/EmptyState';
 import { Field, Select, Textarea } from '@components/ui/Field';
 import TaskForm from '@components/tasks/TaskForm';
+import LocationReminders from '@components/notification/LocationReminders';
 import EventForm from '@components/schedule/EventForm';
 
 /* ------------------------------------------------------------------ *
@@ -736,6 +738,19 @@ const ActivityHub = () => {
           </ul>
         )}
       </Card>
+
+      {/* ============ LOCATION REMINDERS ============ */}
+      {/*
+        * Distinct from the time-based reminders above: these fire on arriving
+        * at or leaving a place. They are stored locally, and the component
+        * says so rather than implying background tracking.
+        */}
+      <LocationReminders
+        reminders={[]}
+        locations={[]}
+        onCreate={(reminder) => toast.success(`Reminder set for ${reminder.location}`)}
+        onDelete={() => toast.success('Location reminder removed')}
+      />
 
       {/* ============ TODAY'S TIMELINE ============ */}
       <Card

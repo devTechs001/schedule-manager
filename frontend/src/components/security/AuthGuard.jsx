@@ -4,12 +4,17 @@ import { FaLock, FaSpinner } from 'react-icons/fa';
 import { useAuth } from '@contexts/AuthContext';
 
 /**
- * Route protection for a subtree.
+ * Route protection for a subtree, with an optional role requirement.
  *
- * Props default to the live auth context, so `<AuthGuard>` works on its own
- * and `<AuthGuard requiredRoles={['admin']}>` adds a role check. Pass
- * `isAuthenticated` / `isLoading` explicitly only when guarding against
- * something other than the signed-in user.
+ * NOTE: App.jsx uses its own inline ProtectedRoute for the authenticated app
+ * shell — it needs a full-screen loader and a `from` location, both of which
+ * are app-shell concerns rather than component concerns. This guard is the
+ * alternative for cases the shell does not cover: a route that needs a
+ * specific role, or a component that must render its own denied state.
+ *
+ * The account model has no roles today, so no route uses requiredRoles yet.
+ * Passing them is supported and fails closed; until roles exist it simply
+ * denies everyone, which is why nothing wires it up.
  */
 const AuthGuard = ({
   children,
