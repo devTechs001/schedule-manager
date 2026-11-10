@@ -1,27 +1,33 @@
-import React from 'react';
-import { FaCalendar, FaRobot, FaClock } from 'react-icons/fa';
+import React, { useEffect } from 'react';
+import { useTasks } from '@hooks/useTasks';
 import PredictiveSchedulerComponent from '@components/ai/PredictiveScheduler';
 
+/**
+ * Predictive scheduler.
+ *
+ * The scheduling rule (priority → time of day, rolled to tomorrow if the slot
+ * has passed) is deterministic and stays. Suggestions are labelled by rule
+ * strength rather than a fabricated confidence percentage.
+ */
 const PredictiveSchedulerPage = () => {
+  const { tasks } = useTasks();
+
+  useEffect(() => {
+    document.title = 'Scheduler suggestions — SchedAI';
+  }, []);
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-3">
-        <FaRobot className="text-primary-600" size={32} />
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Predictive Scheduler</h1>
-      </div>
-      
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">AI-Powered Scheduling</h2>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-            Smart
-          </span>
-        </div>
-        
-        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-          <PredictiveSchedulerComponent />
+    <div className="space-y-5">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Scheduler suggestions</h1>
+          <p className="page-subtitle">
+            Suggested time slots for unscheduled tasks, based on priority and due dates.
+          </p>
         </div>
       </div>
+
+      <PredictiveSchedulerComponent tasks={Array.isArray(tasks) ? tasks : []} />
     </div>
   );
 };

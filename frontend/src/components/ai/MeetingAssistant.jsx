@@ -1,112 +1,130 @@
-import React, { useState, useCallback } from 'react';
-import { FaUsers, FaClipboardList, FaClock, FaRobot, FaPlay, FaPause } from 'react-icons/fa';
+import React, { useCallback, useState } from 'react';
+import {
+  FaUsers,
+  FaClipboardList,
+  FaClock,
+  FaRobot,
+  FaSpinner,
+  FaExclamationTriangle,
+} from 'react-icons/fa';
+import aiAPI from '@services/api/aiAPI';
 
+/**
+ * Meeting notes → summary and action items.
+ *
+ * The previous version "recorded" nothing (it toggled a boolean), then after
+ * 1.5 seconds produced three hard-coded action items assigned to John, Sarah
+ * and You, plus a fixed paragraph about "feature X" and "Q2". None of it
+ * related to the transcript on screen.
+ *
+ * There is also no speech capture here: browser transcription would need a
+ * speech-to-text provider, so the field is for pasted notes and says so. The
+ * summary and action items come from POST /ai/meeting, and the component
+ * reports when that service is unavailable instead of fabricating output.
+ */
 const MeetingAssistant = ({ meeting, onActionItemsExtracted, onSummaryGenerated }) => {
-  const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [actionItems, setActionItems] = useState([]);
   const [summary, setSummary] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState('');
+  const [hasRun, setHasRun] = useState(false);
 
-  const toggleRecording = useCallback(() => {
-    setIsRecording(!isRecording);
-  }, [isRecording]);
+  const run = useCallback(async () => {
+    const text = transcript.trim();
+    if (!text || isProcessing) return;
 
-  const extractActionItems = async () => {
-    if (!transcript) return;
     setIsProcessing(true);
-    
-    // Simulate AI extraction
-    setTimeout(() => {
-      const items = [
-        { id: 1, text: 'Follow up with design team', assignee: 'John', dueDate: new Date(Date.now() + 86400000) },
-        { id: 2, text: 'Review project timeline', assignee: 'Sarah', dueDate: new Date(Date.now() + 172800000) },
-        { id: 3, text: 'Schedule next standup', assignee: 'You', dueDate: new Date(Date.now() + 259200000) },
-      ];
+    setError('');
+
+    try {
+      const result = await aiAPI.summariseMeeting(text);
+      const items = Array.isArray(result?.actionItems) ? result.actionItems : [];
+      setSummary(result?.summary || '');
       setActionItems(items);
+      setHasRun(true);
+      onSummaryGenerated?.(result?.summary || '');
       onActionItemsExtracted?.(items);
+    } catch (err) {
+      setError(
+        err?.status === 503
+          ? 'Meeting analysis is unavailable: the server has no AI provider configured.'
+          : err?.message || 'Could not analyse this transcript.'
+      );
+    } finally {
       setIsProcessing(false);
-    }, 1500);
-  };
-
-  const generateSummary = async () => {
-    if (!transcript) return;
-    setIsProcessing(true);
-    
-    setTimeout(() => {
-      const generatedSummary = `Meeting discussed project progress and upcoming deadlines. Key decisions included prioritizing feature X and allocating resources for Q2. Next steps involve finalizing designs and beginning development sprint.`;
-      setSummary(generatedSummary);
-      onSummaryGenerated?.(generatedSummary);
-      setIsProcessing(false);
-    }, 1500);
-  };
+    }
+  }, [transcript, isProcessing, onSummaryGenerated, onActionItemsExtracted]);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <FaUsers className="text-primary-600 text-xl" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Meeting Assistant
-        </h3>
+    <div className="card p-6">
+      <div className="mb-5 flex items-center gap-3">
+        <FaUsers className="text-lg text-primary-600" />
+        <div>
+          <h3 className="font-semibold text-content">Meeting assistant</h3>
+          <p className="text-xs text-content-muted">Paste your notes, get a summary and next steps.</p>
+        </div>
       </div>
 
       {meeting && (
-        <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          <h4 className="font-medium text-gray-900 dark:text-white">{meeting.title}</h4>
-          <div className="flex items-center gap-2 mt-1 text-sm text-gray-600 dark:text-gray-400">
-            <FaClock />
-            <span>{new Date(meeting.start).toLocaleTimeString()}</span>
-          </div>
+        <div className="mb-4 rounded-lg bg-surface-sunken p-3">
+          <h4 className="font-medium text-content">{meeting.title}</h4>
+          <p className="mt-1 flex items-center gap-2 text-sm text-content-muted">
+            <FaClock size={10} />
+            {new Date(meeting.start).toLocaleString()}
+          </p>
         </div>
       )}
 
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={toggleRecording}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-              isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-primary-600 hover:bg-primary-700'
-            } text-white transition-colors`}
-          >
-            {isRecording ? <FaPause /> : <FaPlay />}
-            {isRecording ? 'Stop Recording' : 'Start Recording'}
-          </button>
-          {isRecording && <span className="text-red-500 animate-pulse">● Recording</span>}
-        </div>
+        <label className="block">
+          <span className="label">Transcript or notes</span>
+          <textarea
+            value={transcript}
+            onChange={(event) => setTranscript(event.target.value)}
+            placeholder="Paste the meeting transcript, bullet points, or rough notes…"
+            rows={6}
+            className="input min-h-[8rem] resize-y"
+          />
+        </label>
 
-        <textarea
-          value={transcript}
-          onChange={(e) => setTranscript(e.target.value)}
-          placeholder="Meeting transcript will appear here, or paste your notes..."
-          rows={4}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-        />
+        <button
+          type="button"
+          onClick={run}
+          disabled={!transcript.trim() || isProcessing}
+          className="btn btn-primary w-full justify-center disabled:opacity-50"
+        >
+          {isProcessing ? <FaSpinner className="animate-spin" /> : <FaClipboardList />}
+          {isProcessing ? 'Reading the transcript…' : hasRun ? 'Run again' : 'Summarise and extract actions'}
+        </button>
 
-        <div className="flex gap-3">
-          <button
-            onClick={extractActionItems}
-            disabled={!transcript || isProcessing}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50"
-          >
-            <FaClipboardList /> Extract Actions
-          </button>
-          <button
-            onClick={generateSummary}
-            disabled={!transcript || isProcessing}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50"
-          >
-            <FaRobot /> Generate Summary
-          </button>
-        </div>
+        <p className="text-xs text-content-subtle">
+          Audio is not recorded — this analyses text you provide.
+        </p>
+
+        {error && (
+          <p role="alert" className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
+            <FaExclamationTriangle className="mt-0.5 shrink-0" />
+            <span>{error}</span>
+          </p>
+        )}
+
+        {hasRun && !error && !summary && actionItems.length === 0 && (
+          <p className="text-sm text-content-subtle">
+            Nothing was extracted. The transcript may be too short, or the model returned no usable output.
+          </p>
+        )}
 
         {actionItems.length > 0 && (
-          <div className="mt-4">
-            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Action Items</h4>
-            <ul className="space-y-2">
+          <div>
+            <h4 className="mb-2 font-medium text-content">Action items</h4>
+            <ul className="divide-y divide-line">
               {actionItems.map((item) => (
-                <li key={item.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                  <span className="text-gray-800 dark:text-gray-200">{item.text}</span>
-                  <span className="text-sm text-gray-500">@{item.assignee}</span>
+                <li key={item.id} className="flex items-start justify-between gap-3 py-2">
+                  <span className="text-sm text-content">{item.text}</span>
+                  <span className="shrink-0 text-xs text-content-subtle">
+                    {item.assignee ? `@${item.assignee}` : 'unassigned'}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -114,9 +132,11 @@ const MeetingAssistant = ({ meeting, onActionItemsExtracted, onSummaryGenerated 
         )}
 
         {summary && (
-          <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Summary</h4>
-            <p className="text-gray-700 dark:text-gray-300">{summary}</p>
+          <div className="rounded-lg bg-primary-50 p-4 dark:bg-primary-500/10">
+            <h4 className="mb-2 flex items-center gap-2 font-medium text-content">
+              <FaRobot size={12} /> Summary
+            </h4>
+            <p className="text-sm text-content-muted">{summary}</p>
           </div>
         )}
       </div>
@@ -125,4 +145,3 @@ const MeetingAssistant = ({ meeting, onActionItemsExtracted, onSummaryGenerated 
 };
 
 export default MeetingAssistant;
-

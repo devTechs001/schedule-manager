@@ -18,6 +18,7 @@ const aiAPI = {
   analyzeTasks: (tasks) => client.post('/ai/analyze', { tasks }),
   analyzeDocument: (text, fileName) => client.post('/ai/document', { text, fileName }),
   draftReplies: (message, tone, count) => client.post('/ai/replies', { message, tone, count }),
+  summariseMeeting: (transcript) => client.post('/ai/meeting', { transcript }),
 };
 
 export default aiAPI;

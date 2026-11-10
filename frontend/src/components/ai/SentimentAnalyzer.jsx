@@ -18,36 +18,43 @@ const SentimentAnalyzer = ({ onAnalyze }) => {
     if (!text.trim()) return;
     setIsAnalyzing(true);
 
-    // Simulate sentiment analysis
-    setTimeout(() => {
-      const words = text.toLowerCase();
-      let positive = 0, negative = 0;
-      
-      const positiveWords = ['good', 'great', 'excellent', 'happy', 'love', 'wonderful', 'amazing', 'fantastic'];
-      const negativeWords = ['bad', 'terrible', 'hate', 'awful', 'horrible', 'disappointed', 'angry', 'sad'];
-      
-      positiveWords.forEach(w => { if (words.includes(w)) positive++; });
-      negativeWords.forEach(w => { if (words.includes(w)) negative++; });
+    /*
+     * This is a small lexicon-based score, computed synchronously from the
+     * text on screen. The previous version wrapped it in a one-second
+     * setTimeout to look like a network call and topped it off with
+     * Math.random() "emotions" and "confidence" — numbers that had no
+     * relationship to the sentence. Lexicon scoring is coarse but it is
+     * explainable, so the result reports which words it matched.
+     */
+    const words = text.toLowerCase();
+    const negatives = /\b(not|no|never|isn't|wasn't|don't|doesn't)\b/.test(words);
 
-      const total = positive + negative || 1;
-      const score = (positive - negative) / total;
-      
-      const analysis = {
-        sentiment: score > 0.2 ? 'positive' : score < -0.2 ? 'negative' : 'neutral',
-        score: Math.round((score + 1) * 50),
-        confidence: 0.75 + Math.random() * 0.2,
-        emotions: {
-          joy: Math.random() * 0.5 + (score > 0 ? 0.3 : 0.1),
-          anger: Math.random() * 0.3 + (score < 0 ? 0.2 : 0.05),
-          sadness: Math.random() * 0.3 + (score < 0 ? 0.2 : 0.05),
-          surprise: Math.random() * 0.3,
-          fear: Math.random() * 0.2,
-        },
-      };
-      setResult(analysis);
-      onAnalyze?.(analysis);
-      setIsAnalyzing(false);
-    }, 1000);
+    const positiveWords = ['good', 'great', 'excellent', 'happy', 'love', 'wonderful', 'amazing', 'fantastic'];
+    const negativeWords = ['bad', 'terrible', 'hate', 'awful', 'horrible', 'disappointed', 'angry', 'sad'];
+
+    const matchedPositive = positiveWords.filter((word) => words.includes(word));
+    const matchedNegative = negativeWords.filter((word) => words.includes(word));
+
+    // A leading negation inverts the polarity of the matches.
+    const positive = negatives ? matchedNegative.length : matchedPositive.length;
+    const negative = negatives ? matchedPositive.length : matchedNegative.length;
+
+    const total = positive + negative || 1;
+    const score = (positive - negative) / total;
+
+    const analysis = {
+      sentiment: score > 0.2 ? 'positive' : score < -0.2 ? 'negative' : 'neutral',
+      // Normalised 0-100 where 50 is neutral.
+      score: Math.round((score + 1) * 50),
+      positiveMatches: matchedPositive,
+      negativeMatches: matchedNegative,
+      method: 'lexicon',
+      wordCount: text.trim().split(/\s+/).filter(Boolean).length,
+    };
+
+    setResult(analysis);
+    onAnalyze?.(analysis);
+    setIsAnalyzing(false);
   };
 
   const getSentimentIcon = () => {
@@ -100,29 +107,34 @@ const SentimentAnalyzer = ({ onAnalyze }) => {
                   {result.sentiment}
                 </p>
                 <p className="text-sm text-content-muted">
-                  {Math.round(result.confidence * 100)}% confidence
+                  score {result.score}/100 · {result.wordCount} words
                 </p>
               </div>
             </div>
 
-            <div className="p-4 bg-surface-sunken rounded-lg">
-              <h4 className="font-medium text-content mb-3">Emotion Breakdown</h4>
-              <div className="space-y-2">
-                {Object.entries(result.emotions).map(([emotion, value]) => (
-                  <div key={emotion} className="flex items-center gap-3">
-                    <span className="w-20 text-sm text-content-muted capitalize">{emotion}</span>
-                    <div className="flex-1 h-2 bg-surface-sunken rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary-500 rounded-full transition-all"
-                        style={{ width: `${value * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-sm text-content-muted">
-                      {Math.round(value * 100)}%
+            <div className="rounded-lg bg-surface-sunken p-4">
+              <h4 className="mb-2 font-medium text-content">Matched words</h4>
+              {result.positiveMatches.length === 0 && result.negativeMatches.length === 0 ? (
+                <p className="text-sm text-content-muted">
+                  None of the scored words appear in this text, so the result is neutral by default.
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {result.positiveMatches.map((word) => (
+                    <span key={`p-${word}`} className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                      {word}
                     </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                  {result.negativeMatches.map((word) => (
+                    <span key={`n-${word}`} className="rounded bg-rose-100 px-1.5 py-0.5 text-xs text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
+                      {word}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <p className="mt-2 text-xs text-content-subtle">
+                Lexicon scoring — a coarse keyword count, not a model judgement.
+              </p>
             </div>
 
             <div className="p-4 bg-surface-sunken rounded-lg">

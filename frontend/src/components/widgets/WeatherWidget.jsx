@@ -1,153 +1,131 @@
-import React, { useState, useEffect } from 'react';
-import { FaSun, FaCloud, FaCloudRain, FaSnowflake, FaBolt, FaWind, FaTint, FaThermometerHalf, FaMapMarkerAlt, FaSyncAlt } from 'react-icons/fa';
+import React from 'react';
+import {
+  FaSun,
+  FaCloud,
+  FaCloudRain,
+  FaSnowflake,
+  FaWind,
+  FaExclamationTriangle,
+  FaMapMarkerAlt,
+  FaRedo,
+} from 'react-icons/fa';
+import { useWeather, describeWeatherError, CONDITION_LABELS, CONDITION_TONE } from '@hooks/useWeather';
 
-const WeatherWidget = ({ location = 'New York', onLocationChange, compact = false }) => {
-  const [weather, setWeather] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [forecast, setForecast] = useState([]);
+/**
+ * Compact weather widget.
+ *
+ * Previously slept 800ms then picked a condition at random from a four-item
+ * array and displayed it as fact. It now shows the real forecast for the
+ * browser's location, and says so when it cannot get one.
+ */
+const CONDITION_ICON = {
+  sunny: FaSun,
+  'partly-cloudy': FaCloud,
+  cloudy: FaCloud,
+  fog: FaCloud,
+  drizzle: FaCloudRain,
+  rainy: FaCloudRain,
+  snowy: FaSnowflake,
+  stormy: FaExclamationTriangle,
+};
 
-  // Simulated weather data
-  useEffect(() => {
-    const fetchWeather = async () => {
-      setLoading(true);
-      await new Promise(r => setTimeout(r, 800));
-      
-      const conditions = ['sunny', 'cloudy', 'rainy', 'stormy'];
-      const randomCondition = conditions[Math.floor(Math.random() * conditions.length)];
-      
-      setWeather({
-        condition: randomCondition,
-        temperature: Math.floor(Math.random() * 30) + 10,
-        humidity: Math.floor(Math.random() * 40) + 40,
-        wind: Math.floor(Math.random() * 20) + 5,
-        feelsLike: Math.floor(Math.random() * 30) + 8,
-      });
-
-      setForecast([
-        { day: 'Mon', condition: 'sunny', high: 24, low: 16 },
-        { day: 'Tue', condition: 'cloudy', high: 22, low: 15 },
-        { day: 'Wed', condition: 'rainy', high: 18, low: 12 },
-        { day: 'Thu', condition: 'cloudy', high: 20, low: 14 },
-        { day: 'Fri', condition: 'sunny', high: 25, low: 17 },
-      ]);
-      
-      setLoading(false);
-    };
-
-    fetchWeather();
-  }, [location]);
-
-  const getWeatherIcon = (condition) => {
-    switch (condition) {
-      case 'sunny': return FaSun;
-      case 'cloudy': return FaCloud;
-      case 'rainy': return FaCloudRain;
-      case 'stormy': return FaBolt;
-      case 'snowy': return FaSnowflake;
-      default: return FaCloud;
-    }
-  };
-
-  const getWeatherColor = (condition) => {
-    switch (condition) {
-      case 'sunny': return 'text-yellow-500';
-      case 'cloudy': return 'text-content-subtle';
-      case 'rainy': return 'text-blue-500';
-      case 'stormy': return 'text-purple-500';
-      case 'snowy': return 'text-cyan-400';
-      default: return 'text-content-muted';
-    }
-  };
+const WeatherWidget = ({ unit = 'c', compact = false }) => {
+  const { weather, place, loading, error, reload } = useWeather(unit);
+  const unitLabel = unit === 'f' ? '°F' : '°C';
 
   if (loading) {
     return (
-      <div className="bg-surface rounded-lg shadow-lg p-4 animate-pulse">
-        <div className="h-20 bg-surface-sunken rounded-lg" />
+      <div className="card p-4">
+        <p className="text-sm text-content-muted">Checking the weather…</p>
       </div>
     );
   }
 
-  const WeatherIcon = weather ? getWeatherIcon(weather.condition) : FaCloud;
+  if (error) {
+    return (
+      <div className="card p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-2">
+            <FaCloud className="mt-0.5 shrink-0 text-content-subtle" />
+            <p className="text-xs text-content-muted">{describeWeatherError(error)}</p>
+          </div>
+          <button type="button" onClick={reload} className="shrink-0 text-content-subtle hover:text-content" aria-label="Retry weather">
+            <FaRedo size={10} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!weather) return null;
+
+  const meta = {
+    icon: CONDITION_ICON[weather.current.condition] || FaCloud,
+    label: CONDITION_LABELS[weather.current.condition] || 'Cloudy',
+    tone: CONDITION_TONE[weather.current.condition] || CONDITION_TONE.cloudy,
+  };
+  const Icon = meta.icon;
 
   if (compact) {
     return (
-      <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-4 text-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <WeatherIcon className="text-3xl text-yellow-300" />
-            <div>
-              <p className="text-2xl font-bold">{weather?.temperature}°C</p>
-              <p className="text-sm opacity-80 capitalize">{weather?.condition}</p>
-            </div>
-          </div>
-          <div className="text-right text-sm">
-            <p className="flex items-center gap-1"><FaMapMarkerAlt /> {location}</p>
-          </div>
+      <div className="flex items-center gap-3">
+        <Icon className={`text-2xl ${meta.tone}`} />
+        <div>
+          <p className="text-lg font-bold text-content">
+            {weather.current.temp}
+            <span className="text-xs font-medium text-content-muted">{unitLabel}</span>
+          </p>
+          <p className="text-[0.65rem] text-content-muted">{meta.label}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-lg p-6 text-white">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <FaMapMarkerAlt />
-          <span className="font-medium">{location}</span>
+    <div className="card p-4">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-content-subtle">Weather</p>
+          {place && (
+            <p className="flex items-center gap-1 text-[0.68rem] text-content-muted">
+              <FaMapMarkerAlt size={8} /> {place}
+            </p>
+          )}
         </div>
-        <button onClick={() => setLoading(true)} className="p-2 hover:bg-surface/10 rounded-lg">
-          <FaSyncAlt className={loading ? 'animate-spin' : ''} />
+        <button type="button" onClick={reload} className="text-content-subtle hover:text-content" aria-label="Refresh weather">
+          <FaRedo size={9} />
         </button>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center gap-3">
+        <Icon className={`text-3xl ${meta.tone}`} />
         <div>
-          <p className="text-5xl font-bold">{weather?.temperature}°</p>
-          <p className="text-lg capitalize opacity-90">{weather?.condition}</p>
-          <p className="text-sm opacity-75">Feels like {weather?.feelsLike}°</p>
-        </div>
-        <WeatherIcon className="text-6xl text-yellow-300" />
-      </div>
-
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="text-center p-3 bg-surface/10 rounded-lg">
-          <FaTint className="mx-auto mb-1" />
-          <p className="text-sm opacity-75">Humidity</p>
-          <p className="font-bold">{weather?.humidity}%</p>
-        </div>
-        <div className="text-center p-3 bg-surface/10 rounded-lg">
-          <FaWind className="mx-auto mb-1" />
-          <p className="text-sm opacity-75">Wind</p>
-          <p className="font-bold">{weather?.wind} km/h</p>
-        </div>
-        <div className="text-center p-3 bg-surface/10 rounded-lg">
-          <FaThermometerHalf className="mx-auto mb-1" />
-          <p className="text-sm opacity-75">Feels</p>
-          <p className="font-bold">{weather?.feelsLike}°</p>
+          <p className="text-2xl font-bold text-content">
+            {weather.current.temp}
+            <span className="text-sm font-medium text-content-muted">{unitLabel}</span>
+          </p>
+          <p className="text-xs text-content-muted">
+            {meta.label} · {weather.current.humidity}% · <FaWind size={8} className="inline" /> {weather.current.wind} km/h
+          </p>
         </div>
       </div>
 
-      <div className="border-t border-white/20 pt-4">
-        <p className="text-sm mb-3 opacity-75">5-Day Forecast</p>
-        <div className="flex justify-between">
-          {forecast.map((day) => {
-            const DayIcon = getWeatherIcon(day.condition);
-            return (
-              <div key={day.day} className="text-center">
-                <p className="text-xs opacity-75">{day.day}</p>
-                <DayIcon className="mx-auto my-1 text-lg" />
-                <p className="text-xs">
-                  <span className="font-bold">{day.high}°</span>
-                  <span className="opacity-75"> {day.low}°</span>
-                </p>
-              </div>
-            );
-          })}
-        </div>
+      <div className="mt-3 grid grid-cols-5 gap-1">
+        {weather.forecast.slice(0, 5).map((day) => {
+          const DayIcon = CONDITION_ICON[day.condition] || FaCloud;
+          return (
+            <div key={day.date.toISOString()} className="rounded-lg bg-surface-sunken/60 py-1.5 text-center">
+              <p className="text-[0.55rem] font-medium text-content-subtle">
+                {day.date.toLocaleDateString(undefined, { weekday: 'narrow' })}
+              </p>
+              <DayIcon className={`mx-auto my-0.5 ${CONDITION_TONE[day.condition]}`} size={10} />
+              <p className="text-[0.6rem] font-semibold text-content">{day.high}°</p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 };
 
 export default WeatherWidget;
-

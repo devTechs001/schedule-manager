@@ -14,19 +14,39 @@ const PredictiveScheduler = ({ tasks = [], onSchedule }) => {
 
   const generateSuggestions = async () => {
     setIsLoading(true);
-    // Simulate AI-generated suggestions
-    const mockSuggestions = tasks
-      .filter(task => !task.scheduledTime)
-      .map(task => ({
+    /*
+     * These suggestions come from a deterministic rule set, not a model. The
+     * previous version attached a Math.random() confidence between 70% and
+     * 100%, which reads as a prediction while being noise. Each suggestion now
+     * carries a strength score derived from the task's own fields, and the UI
+     * labels it as such.
+     */
+    const ruleBasedSuggestions = tasks
+      .filter((task) => !task.scheduledTime)
+      .map((task) => ({
         taskId: task._id,
         taskTitle: task.title,
         suggestedTime: getOptimalTime(task),
-        confidence: Math.random() * 0.3 + 0.7,
+        strength: strengthOf(task),
         reason: getScheduleReason(task),
       }));
-    
-    setSuggestions(mockSuggestions);
+
+    setSuggestions(ruleBasedSuggestions);
     setIsLoading(false);
+  };
+
+  /**
+   * How strongly the rule applies: priority tiers plus how soon the task is
+   * due. 3 = strongest. This is arithmetic on the task's own fields, so the
+   * number can be explained to the user.
+   */
+  const strengthOf = (task) => {
+    let score = task.priority === 'high' ? 3 : task.priority === 'medium' ? 2 : 1;
+    if (task.dueDate) {
+      const days = (new Date(task.dueDate) - Date.now()) / 86400000;
+      if (days <= 1) score += 1;
+    }
+    return Math.min(3, score);
   };
 
   const getOptimalTime = (task) => {
@@ -122,8 +142,8 @@ const PredictiveScheduler = ({ tasks = [], onSchedule }) => {
                   </p>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-sm font-medium text-green-600">
-                    {Math.round(suggestion.confidence * 100)}% match
+                  <span className="text-xs font-medium text-content-muted">
+                    rule strength {suggestion.strength}/3
                   </span>
                   {selectedSuggestions.includes(suggestion.taskId) && (
                     <FaCheckCircle className="text-primary-600 mt-2" />

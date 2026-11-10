@@ -4,7 +4,7 @@ import { asyncHandler } from '../utils/helpers.js';
 import { getChatCompletion } from '../services/ai/openAIService.js';
 import { calculateTaskPriority } from '../services/ai/priorityCalculator.js';
 import { generateSuggestions } from '../services/ai/suggestionEngine.js';
-import { analyzeDocument, draftReplies } from '../services/ai/documentService.js';
+import { analyzeDocument, draftReplies, summariseMeeting } from '../services/ai/documentService.js';
 
 // @desc    AI Chat
 // @route   POST /api/ai/chat
@@ -172,6 +172,31 @@ export const draftRepliesToMessage = asyncHandler(async (req, res) => {
   }
 
   const data = await draftReplies(message, { tone, count });
+
+  res.json({ success: true, data });
+});
+
+// @desc    Summarise a meeting transcript and extract action items
+// @route   POST /api/ai/meeting
+// @access  Private
+export const summariseMeetingTranscript = asyncHandler(async (req, res) => {
+  const { transcript } = req.body || {};
+
+  if (typeof transcript !== 'string' || !transcript.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'No transcript supplied',
+    });
+  }
+
+  if (transcript.length > 100_000) {
+    return res.status(413).json({
+      success: false,
+      message: 'Transcript is too long (limit 100,000 characters)',
+    });
+  }
+
+  const data = await summariseMeeting(transcript);
 
   res.json({ success: true, data });
 });

@@ -14,27 +14,26 @@ const BusinessCardScanner = ({ onSave }) => {
       const reader = new FileReader();
       reader.onload = (event) => {
         setImage(event.target?.result);
-        scanCard(file);
+        scanCard();
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const scanCard = async (file) => {
+  /*
+   * There is no OCR provider wired into this app, and the previous version
+   * "scanned" every card into the same invented person — John Smith, Senior
+   * Product Manager at Tech Solutions Inc. Saving that would have written a
+   * fabrication into the user's real contacts.
+   *
+   * Instead the image is kept as a reference and the fields are left blank
+   * for the user to type. That is slower but it is their data, not ours.
+   */
+  const scanCard = async () => {
     setIsScanning(true);
-    // Simulate OCR processing
-    setTimeout(() => {
-      setExtractedData({
-        name: 'John Smith',
-        title: 'Senior Product Manager',
-        company: 'Tech Solutions Inc.',
-        email: 'john.smith@techsolutions.com',
-        phone: '+1 (555) 123-4567',
-        website: 'www.techsolutions.com',
-        address: '123 Business Ave, Suite 100, San Francisco, CA 94102',
-      });
-      setIsScanning(false);
-    }, 2000);
+    setExtractedData({ name: '', title: '', company: '', email: '', phone: '', website: '', address: '' });
+    setIsEditing(true);
+    setIsScanning(false);
   };
 
   const handleChange = (field, value) => {
@@ -59,6 +58,11 @@ const BusinessCardScanner = ({ onSave }) => {
         <FaIdCard className="text-primary-600 text-xl" />
         <h3 className="text-lg font-semibold text-content">Business Card Scanner</h3>
       </div>
+
+      <p className="mb-4 rounded-lg bg-surface-sunken p-3 text-xs text-content-muted">
+        Automatic text recognition is not connected, so details are not read from the image — enter them
+        yourself after attaching the card.
+      </p>
 
       {!image ? (
         <div

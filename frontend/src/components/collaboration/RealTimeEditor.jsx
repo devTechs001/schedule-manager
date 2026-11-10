@@ -9,16 +9,16 @@ const RealTimeEditor = ({ documentId, initialContent = '', collaborators = [], o
   const [lastSaved, setLastSaved] = useState(null);
   const [activeUsers, setActiveUsers] = useState(collaborators);
 
+  /*
+   * No fake presence. The previous version re-rolled each collaborator's
+   * cursor position with Math.random() every three seconds, which looked like
+   * other people moving around a shared document. There is no realtime channel
+   * behind this editor, so it lists whoever the caller actually passes in and
+   * makes no claim about where they are.
+   */
   useEffect(() => {
-    // Simulate real-time presence
-    const interval = setInterval(() => {
-      setActiveUsers(collaborators.map(c => ({
-        ...c,
-        cursor: Math.floor(Math.random() * content.length),
-      })));
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [collaborators, content]);
+    setActiveUsers(Array.isArray(collaborators) ? collaborators : []);
+  }, [collaborators]);
 
   const handleChange = useCallback((e) => {
     const newContent = e.target.value;

@@ -107,3 +107,47 @@ MESSAGE:
 };
 
 export { TONES };
+
+/**
+ * Turn a meeting transcript into action items and a summary.
+ *
+ * Both come from the model in one call. The transcript is whatever the user
+ * pasted or recorded; we never invent attendees or deadlines. Action items are
+ * returned with an `assignee` only when the model can attribute them from the
+ * text — otherwise the field is null and the UI shows it as unassigned.
+ */
+export const summariseMeeting = async (transcript) => {
+  const text = String(transcript || '').trim();
+  if (!text) return { summary: '', actionItems: [] };
+
+  const prompt = `Read the meeting transcript below and return a JSON object:
+{
+  "summary": "3-4 sentence neutral summary of what was discussed and decided",
+  "actionItems": [
+    { "text": "concrete next step", "assignee": "name if stated in the transcript, else null" }
+  ]
+}
+Rules: at most 8 action items. Only include assignees who are named in the text. Invent nothing.
+
+TRANSCRIPT:
+"""${text.slice(0, 12000)}"""`;
+
+  const response = await getChatCompletion(prompt, [], { temperature: 0.2, json: true });
+  const parsed = JSON.parse(response.content);
+
+  const actionItems = Array.isArray(parsed?.actionItems)
+    ? parsed.actionItems
+        .filter((item) => item && typeof item.text === 'string' && item.text.trim())
+        .slice(0, 8)
+        .map((item, index) => ({
+          id: index + 1,
+          text: item.text.trim(),
+          assignee: typeof item.assignee === 'string' && item.assignee.trim() ? item.assignee.trim() : null,
+        }))
+    : [];
+
+  return {
+    summary: typeof parsed?.summary === 'string' ? parsed.summary : '',
+    actionItems,
+  };
+};
