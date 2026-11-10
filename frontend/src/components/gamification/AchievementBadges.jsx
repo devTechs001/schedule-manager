@@ -2,16 +2,14 @@ import React from 'react';
 import { FaMedal, FaTrophy, FaStar, FaFire, FaRocket, FaBolt, FaCrown, FaGem } from 'react-icons/fa';
 
 const AchievementBadges = ({ achievements = [], onViewDetails }) => {
-  const defaultAchievements = [
-    { id: 1, name: 'First Task', description: 'Complete your first task', icon: FaStar, color: 'yellow', earned: true, earnedDate: '2026-02-01' },
-    { id: 2, name: 'Week Warrior', description: 'Complete 7 days streak', icon: FaFire, color: 'orange', earned: true, earnedDate: '2026-02-05' },
-    { id: 3, name: 'Productivity Pro', description: 'Complete 100 tasks', icon: FaRocket, color: 'blue', earned: false, progress: 75 },
-    { id: 4, name: 'Speed Demon', description: 'Complete 10 tasks in one day', icon: FaBolt, color: 'purple', earned: false, progress: 40 },
-    { id: 5, name: 'Team Player', description: 'Collaborate on 50 tasks', icon: FaCrown, color: 'green', earned: false, progress: 20 },
-    { id: 6, name: 'Diamond Focus', description: 'Complete 100 focus sessions', icon: FaGem, color: 'cyan', earned: false, progress: 60 },
-  ];
+  /*
+   * No built-in achievements. The previous version shipped six with 'earned'
+   * flags and 2026 earned-dates, so a brand-new account appeared to have
+   * already won 'Week Warrior'. Progress must come from real activity.
+   */
+  const allAchievements = Array.isArray(achievements) ? achievements : [];
 
-  const allAchievements = achievements.length > 0 ? achievements : defaultAchievements;
+
   const earnedCount = allAchievements.filter(a => a.earned).length;
 
   return (
@@ -26,6 +24,11 @@ const AchievementBadges = ({ achievements = [], onViewDetails }) => {
         </span>
       </div>
 
+      {allAchievements.length === 0 ? (
+        <p className="rounded-lg bg-gray-50 p-4 text-sm text-gray-500 dark:bg-gray-700/40 dark:text-gray-400">
+          No achievements yet. They unlock as you complete tasks and keep streaks going.
+        </p>
+      ) : (
       <div className="grid grid-cols-3 gap-4">
         {allAchievements.map((achievement) => (
           <button
@@ -73,6 +76,7 @@ const AchievementBadges = ({ achievements = [], onViewDetails }) => {
           </button>
         ))}
       </div>
+      )}
 
       {/* Recent Achievement */}
       {earnedCount > 0 && (
@@ -83,7 +87,9 @@ const AchievementBadges = ({ achievements = [], onViewDetails }) => {
             <div>
               <p className="font-bold">{allAchievements.find(a => a.earned)?.name}</p>
               <p className="text-sm opacity-80">
-                Earned on {new Date(allAchievements.find(a => a.earned)?.earnedDate).toLocaleDateString()}
+                {allAchievements.find((a) => a.earned)?.earnedDate
+                  ? `Earned on ${new Date(allAchievements.find((a) => a.earned).earnedDate).toLocaleDateString()}`
+                  : 'Earned'}
               </p>
             </div>
           </div>

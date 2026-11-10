@@ -4,13 +4,19 @@ import { FaCoins, FaArrowUp, FaGift, FaHistory, FaTasks, FaClock, FaFire } from 
 const PointsSystem = ({ points = 0, history = [], onRedeem }) => {
 
 ;
-  const totalPoints = points || 1250;
+  // Zero is a valid balance. Defaulting to 1250 made every new account look
+  // like it had already earned points.
+  const totalPoints = Number.isFinite(points) ? points : 0;
 
-  const pointCategories = [
-    { label: 'Tasks', icon: FaTasks, points: 450, color: 'blue' },
-    { label: 'Focus Time', icon: FaClock, points: 380, color: 'purple' },
-    { label: 'Streaks', icon: FaFire, points: 420, color: 'orange' },
-  ];
+  // Breakdown only exists if the caller supplies real history.
+  const pointCategories = React.useMemo(() => {
+    if (!Array.isArray(history) || history.length === 0) return [];
+    return [
+      { label: 'Tasks', icon: FaTasks, color: 'blue', points: history.filter((h) => h.source === 'tasks').reduce((sum, h) => sum + (h.points || 0), 0) },
+      { label: 'Focus Time', icon: FaClock, color: 'purple', points: history.filter((h) => h.source === 'focus').reduce((sum, h) => sum + (h.points || 0), 0) },
+      { label: 'Streaks', icon: FaFire, color: 'orange', points: history.filter((h) => h.source === 'streak').reduce((sum, h) => sum + (h.points || 0), 0) },
+    ].filter((category) => category.points > 0);
+  }, [history]);
 
   const getLevel = (pts) => {
     if (pts < 500) return { level: 1, name: 'Beginner', next: 500 };

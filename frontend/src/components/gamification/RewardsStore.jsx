@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaGift, FaCoins, FaCheck, FaCoffee, FaHeadphones, FaPalette, FaCrown, FaRocket } from 'react-icons/fa';
 
-const RewardsStore = ({ userPoints = 1250, onRedeem }) => {
+const RewardsStore = ({ userPoints = 0, onRedeem }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [redeemedItems, setRedeemedItems] = useState([]);
 

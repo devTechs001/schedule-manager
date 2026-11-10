@@ -13,14 +13,14 @@ const CHALLENGE_TONE = {
 const Challenges = ({ challenges: initialChallenges = [], onJoin, onComplete }) => {
   const [filter, setFilter] = useState('active');
 
-  const defaultChallenges = [
-    { id: 1, title: 'Focus Master', description: 'Complete 5 focus sessions in one day', reward: 100, type: 'personal', status: 'active', progress: 60, endDate: new Date(Date.now() + 86400000), participants: 24 },
-    { id: 2, title: 'Team Sprint', description: 'Team completes 50 tasks this week', reward: 500, type: 'team', status: 'active', progress: 75, endDate: new Date(Date.now() + 259200000), participants: 8 },
-    { id: 3, title: 'Early Bird', description: 'Complete 3 tasks before 9 AM', reward: 75, type: 'personal', status: 'available', progress: 0, endDate: new Date(Date.now() + 172800000), participants: 156 },
-    { id: 4, title: 'Perfect Week', description: 'Maintain 7-day streak', reward: 250, type: 'personal', status: 'completed', progress: 100, participants: 89 },
-  ];
+  /*
+   * No built-in challenges. The four that used to live here had invented
+   * participant counts (24 people, 156 people) and rewards; a user looking at
+   * that would reasonably think other people were competing with them.
+   */
+  const allChallenges = Array.isArray(initialChallenges) ? initialChallenges : [];
 
-  const allChallenges = initialChallenges.length > 0 ? initialChallenges : defaultChallenges;
+
   const filteredChallenges = allChallenges.filter(c =>
     filter === 'all' || c.status === filter
   );

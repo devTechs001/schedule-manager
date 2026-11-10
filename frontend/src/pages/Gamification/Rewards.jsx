@@ -1,27 +1,36 @@
-import React from 'react';
-import { FaGift, FaGem, FaAward } from 'react-icons/fa';
+import React, { useEffect } from 'react';
+import { FaGift } from 'react-icons/fa';
+import { useTasks } from '@hooks/useTasks';
+import { usePoints } from '@hooks/usePoints';
 import RewardsStoreComponent from '@components/gamification/RewardsStore';
 
+/**
+ * Rewards.
+ *
+ * The point balance used to be `${Math.floor(Math.random() * 500)} points` in
+ * the header and a hard-coded 1250 default inside the store — two different
+ * numbers on the same screen, neither real. Both now read the same derived
+ * balance from completed tasks (see usePoints).
+ */
 const RewardsPage = () => {
+  const { tasks } = useTasks();
+  const { points } = usePoints(tasks);
+
+  useEffect(() => {
+    document.title = 'Rewards — SchedAI';
+  }, []);
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-3">
-        <FaGift className="text-purple-500" size={32} />
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Rewards</h1>
-      </div>
-      
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Rewards Store</h2>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-            {Math.floor(Math.random() * 500)} points
-          </span>
+    <div className="space-y-5">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Rewards</h1>
+          <p className="page-subtitle">Spend points earned by completing tasks and keeping your streak.</p>
         </div>
-        
-        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-          <RewardsStoreComponent />
-        </div>
+        <span className="badge badge-accent">{points.toLocaleString()} points</span>
       </div>
+
+      <RewardsStoreComponent userPoints={points} />
     </div>
   );
 };
