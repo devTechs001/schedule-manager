@@ -9,7 +9,7 @@ import {
 } from '../controllers/taskController.js';
 import { protect } from '../middleware/auth.js';
 import { requireDatabase } from '../utils/database.js';
-import { validateTask } from '../middleware/validation.js';
+import { validateTask, validateTaskUpdate } from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -24,7 +24,7 @@ router.route('/')
 
 router.route('/:id')
   .get(getTask)
-  .put(validateTask, updateTask)
+  .put(validateTaskUpdate, updateTask)
   .delete(deleteTask);
 
 export default router;

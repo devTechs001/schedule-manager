@@ -8,7 +8,7 @@ import {
 } from '../controllers/scheduleController.js';
 import { protect } from '../middleware/auth.js';
 import { requireDatabase } from '../utils/database.js';
-import { validateEvent } from '../middleware/validation.js';
+import { validateEvent, validateEventUpdate } from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -21,7 +21,7 @@ router.route('/')
 
 router.route('/:id')
   .get(getEvent)
-  .put(validateEvent, updateEvent)
+  .put(validateEventUpdate, updateEvent)
   .delete(deleteEvent);
 
 export default router;

@@ -12,7 +12,9 @@
     "verify:user": "node src/scripts/verifyUser.js",
     "test:password": "node src/scripts/testPassword.js",
     "test:ai": "node --test scripts/test-ai-parsing.mjs",
-    "test:workspace": "node --test scripts/test-workspace-permissions.mjs"
+    "test:workspace": "node --test scripts/test-workspace-permissions.mjs",
+    "test:validation": "node --test scripts/test-task-validation.mjs",
+    "test:unit": "node --test scripts/test-ai-parsing.mjs scripts/test-workspace-permissions.mjs scripts/test-task-validation.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
