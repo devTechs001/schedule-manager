@@ -1,142 +1,114 @@
-import React, { useState } from 'react';
-import { FaLock, FaShieldAlt, FaCheck, FaExclamationTriangle, FaInfoCircle, FaKey, FaServer } from 'react-icons/fa';
+import React from 'react';
+import { FaLock, FaLockOpen, FaShieldAlt, FaQuestionCircle } from 'react-icons/fa';
 
-const EncryptionBadge = ({ 
-  encryptionStatus = 'active',
-  encryptionType = 'AES-256',
-  lastKeyRotation = new Date(Date.now() - 86400000 * 30),
+/**
+ * Connection and credential badge.
+ *
+ * The original version advertised "AES-256 active" with a "last key rotation"
+ * date that was computed in the browser — neither figure came from anywhere.
+ * This version reports two things that are actually observable from the client:
+ *
+ *   1. whether the page was served over HTTPS (a real property of the current
+ *      browsing context, not an assumption), and
+ *   2. that stored passwords are bcrypt-hashed (a fact about the server code,
+ *      not a runtime measurement).
+ *
+ * Pass `encryptionStatus` explicitly if a caller has real information; the
+ * default is "unknown" rather than "active".
+ */
+const EncryptionBadge = ({
+  encryptionStatus = 'unknown', // 'active' | 'inactive' | 'unknown'
   onClick,
   showDetails = false,
+  className = '',
 }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
+  const isBrowser = typeof window !== 'undefined';
+  const isHttps = isBrowser ? window.location.protocol === 'https:' : false;
+  const isLocalhost = isBrowser
+    ? ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
+    : false;
 
-  const isSecure = encryptionStatus === 'active';
+  const transport = isHttps ? 'secure' : isLocalhost ? 'local' : 'insecure';
+
+  const TONE = {
+    secure: {
+      icon: FaLock,
+      label: 'Encrypted in transit',
+      detail: 'This page was served over HTTPS.',
+      classes: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300',
+      iconTone: 'text-emerald-500',
+    },
+    local: {
+      icon: FaShieldAlt,
+      label: 'Local development',
+      detail: 'Served over plain HTTP from localhost. Expected during development.',
+      classes: 'bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300',
+      iconTone: 'text-sky-500',
+    },
+    insecure: {
+      icon: FaLockOpen,
+      label: 'Not encrypted in transit',
+      detail: 'This page was served over plain HTTP. Anything sent from it is readable on the network.',
+      classes: 'bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300',
+      iconTone: 'text-amber-500',
+    },
+  };
+
+  const tone = TONE[transport];
+  const Icon = tone.icon;
 
   if (!showDetails) {
-    // Compact badge view
     return (
-      <div 
-        className="relative inline-flex"
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
+      <button
+        type="button"
+        onClick={onClick}
+        title={tone.detail}
+        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${tone.classes} ${className}`}
       >
-        <button
-          onClick={onClick}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
-            isSecure
-              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-              : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-          }`}
-        >
-          <FaLock className="text-xs" />
-          <span>{isSecure ? 'Encrypted' : 'Not Encrypted'}</span>
-        </button>
-        
-        {showTooltip && (
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-surface-inverse text-content-inverse text-xs rounded-lg shadow-lg z-50">
-            <div className="flex items-center gap-2 mb-2">
-              <FaShieldAlt className="text-green-400" />
-              <span className="font-medium">End-to-end encrypted</span>
-            </div>
-            <p className="text-content-subtle">Your data is protected with {encryptionType} encryption</p>
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-surface-inverse" />
-          </div>
-        )}
-      </div>
+        <Icon size={10} className={tone.iconTone} />
+        {tone.label}
+      </button>
     );
   }
 
-  // Detailed view
+  const storage = {
+    active: { label: 'Passwords hashed', detail: 'Passwords are stored as bcrypt hashes, never as plain text.' },
+    inactive: { label: 'Password storage unverified', detail: 'This deployment did not report how passwords are stored.' },
+    unknown: { label: 'Password storage unverified', detail: 'This deployment did not report how passwords are stored.' },
+  }[encryptionStatus] || {
+    label: 'Password storage unverified',
+    detail: 'This deployment did not report how passwords are stored.',
+  };
+
   return (
-    <div className="bg-surface rounded-lg shadow-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <FaShieldAlt className="text-green-500 text-xl" />
-          <h3 className="text-lg font-semibold text-content">Encryption Status</h3>
-        </div>
-        <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
-          isSecure
-            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-        }`}>
-          {isSecure ? <FaCheck /> : <FaExclamationTriangle />}
-          {isSecure ? 'Active' : 'Inactive'}
-        </span>
+    <div className={`card p-5 ${className}`}>
+      <div className="mb-4 flex items-center gap-3">
+        <FaShieldAlt className="text-lg text-primary-600" />
+        <h3 className="font-semibold text-content">Security</h3>
       </div>
 
-      {/* Encryption Details */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="p-4 bg-surface-sunken rounded-lg">
-          <div className="flex items-center gap-2 text-content-muted mb-2">
-            <FaLock className="text-xs" />
-            <span className="text-sm">Encryption Type</span>
-          </div>
-          <p className="font-bold text-content">{encryptionType}</p>
-          <p className="text-xs text-content-muted mt-1">Military-grade encryption</p>
-        </div>
-        <div className="p-4 bg-surface-sunken rounded-lg">
-          <div className="flex items-center gap-2 text-content-muted mb-2">
-            <FaKey className="text-xs" />
-            <span className="text-sm">Last Key Rotation</span>
-          </div>
-          <p className="font-bold text-content">
-            {Math.floor((Date.now() - new Date(lastKeyRotation).getTime()) / 86400000)} days ago
-          </p>
-          <p className="text-xs text-content-muted mt-1">Auto-rotates every 90 days</p>
-        </div>
-      </div>
-
-      {/* What's Protected */}
-      <div className="mb-6">
-        <h4 className="text-sm font-medium text-content mb-3">Protected Data</h4>
-        <div className="space-y-2">
-          {[
-            { name: 'Tasks & Notes', encrypted: true },
-            { name: 'Calendar Events', encrypted: true },
-            { name: 'Contacts', encrypted: true },
-            { name: 'Files & Attachments', encrypted: true },
-            { name: 'Messages', encrypted: true },
-          ].map((item) => (
-            <div key={item.name} className="flex items-center justify-between p-2 bg-surface-sunken rounded-lg">
-              <span className="text-sm text-content">{item.name}</span>
-              <span className={`flex items-center gap-1 text-xs ${
-                item.encrypted ? 'text-green-600' : 'text-content-muted'
-              }`}>
-                {item.encrypted ? <FaCheck /> : <FaExclamationTriangle />}
-                {item.encrypted ? 'Encrypted' : 'Not encrypted'}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Security Features */}
-      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-        <div className="flex items-start gap-3">
-          <FaInfoCircle className="text-blue-500 mt-0.5" />
+      <ul className="space-y-3 text-sm">
+        <li className="flex items-start gap-3">
+          <Icon className={`mt-0.5 shrink-0 ${tone.iconTone}`} />
           <div>
-            <h4 className="font-medium text-blue-700 dark:text-blue-300 mb-1">Security Features</h4>
-            <ul className="text-sm text-blue-600 dark:text-blue-400 space-y-1">
-              <li>• Zero-knowledge encryption (we can't read your data)</li>
-              <li>• TLS 1.3 for data in transit</li>
-              <li>• Automatic key rotation every 90 days</li>
-              <li>• SOC 2 Type II certified</li>
-            </ul>
+            <p className="font-medium text-content">{tone.label}</p>
+            <p className="text-xs text-content-muted">{tone.detail}</p>
           </div>
-        </div>
-      </div>
-
-      {/* Server Info */}
-      <div className="mt-4 flex items-center justify-between text-sm text-content-muted">
-        <div className="flex items-center gap-2">
-          <FaServer />
-          <span>Data stored in US-East region</span>
-        </div>
-        <button className="text-primary-600 hover:text-primary-700">Learn more</button>
-      </div>
+        </li>
+        <li className="flex items-start gap-3">
+          {encryptionStatus === 'active' ? (
+            <FaLock className="mt-0.5 shrink-0 text-emerald-500" />
+          ) : (
+            <FaQuestionCircle className="mt-0.5 shrink-0 text-content-subtle" />
+          )}
+          <div>
+            <p className="font-medium text-content">{storage.label}</p>
+            <p className="text-xs text-content-muted">{storage.detail}</p>
+          </div>
+        </li>
+      </ul>
     </div>
   );
 };
 
 export default EncryptionBadge;
-

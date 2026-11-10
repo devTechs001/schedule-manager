@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useLocalStorage } from '@hooks/useLocalStorage';
 import { FaBolt, FaBatteryFull, FaBatteryHalf, FaBatteryQuarter } from 'react-icons/fa';
 
 const EnergyTracker = ({ onLog }) => {
-  const [entries, setEntries] = useState([]);
+  // Energy is only useful as a trend, so it has to survive a reload.
+  const [entries, setEntries] = useLocalStorage('schedai:energy-entries', []);
   const [currentEnergy, setCurrentEnergy] = useState(3);
   const [notes, setNotes] = useState('');
 

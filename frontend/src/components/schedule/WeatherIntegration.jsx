@@ -1,195 +1,266 @@
-import React, { useState, useEffect } from 'react';
-import { FaSun, FaCloud, FaCloudRain, FaSnowflake, FaWind, FaExclamationTriangle, FaCalendarAlt, FaBolt } from 'react-icons/fa';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  FaSun,
+  FaCloud,
+  FaCloudRain,
+  FaSnowflake,
+  FaWind,
+  FaExclamationTriangle,
+  FaMapMarkerAlt,
+  FaRedo,
+  FaThermometerHalf,
+} from 'react-icons/fa';
 
-const WeatherIntegration = ({ events = [], location = 'New York', onSuggestReschedule }) => {
+/**
+ * Weather for the user's location, with a note on which events it affects.
+ *
+ * The previous implementation slept for a second and then invented a 7-day
+ * forecast out of `Math.random()` — including for "New York", a location the
+ * user never chose. It now reads the browser's real coordinates and asks
+ * Open-Meteo (free, no API key) for the actual forecast. If the browser
+ * refuses geolocation we say so instead of guessing a city.
+ */
+
+// WMO weather interpretation codes → condition buckets.
+// https://open-meteo.com/en/docs (weather_code)
+const conditionFromCode = (code) => {
+  if (code === 0) return 'sunny';
+  if ([1, 2].includes(code)) return 'partly-cloudy';
+  if (code === 3) return 'cloudy';
+  if ([45, 48].includes(code)) return 'fog';
+  if ([51, 53, 55, 56, 57].includes(code)) return 'drizzle';
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return 'rainy';
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return 'snowy';
+  if ([95, 96, 99].includes(code)) return 'stormy';
+  return 'cloudy';
+};
+
+const CONDITION_META = {
+  sunny: { icon: FaSun, label: 'Clear', tone: 'text-amber-500' },
+  'partly-cloudy': { icon: FaCloud, label: 'Partly cloudy', tone: 'text-sky-400' },
+  cloudy: { icon: FaCloud, label: 'Cloudy', tone: 'text-slate-400' },
+  fog: { icon: FaCloud, label: 'Fog', tone: 'text-slate-400' },
+  drizzle: { icon: FaCloudRain, label: 'Drizzle', tone: 'text-sky-500' },
+  rainy: { icon: FaCloudRain, label: 'Rain', tone: 'text-sky-600' },
+  snowy: { icon: FaSnowflake, label: 'Snow', tone: 'text-sky-300' },
+  stormy: { icon: FaExclamationTriangle, label: 'Storms', tone: 'text-rose-500' },
+};
+
+const DISRUPTIVE = new Set(['rainy', 'snowy', 'stormy']);
+
+const WeatherIntegration = ({ events = [], onSuggestReschedule, unit = 'c' }) => {
   const [weather, setWeather] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [place, setPlace] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError('');
 
-;
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setError('This browser does not share its location, so weather cannot be shown.');
+      setLoading(false);
+      return;
+    }
 
-  useEffect(() => {
-    // Simulate weather fetch
-    const fetchWeather = async () => {
-      setLoading(true);
-      await new Promise(r => setTimeout(r, 1000));
-      
-      const conditions = ['sunny', 'cloudy', 'rainy', 'stormy'];
-      const forecast = [];
-      
-      for (let i = 0; i < 7; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() + i);
-        forecast.push({
-          date,
-          condition: conditions[Math.floor(Math.random() * conditions.length)],
-          high: 60 + Math.floor(Math.random() * 20),
-          low: 45 + Math.floor(Math.random() * 15),
-          precipitation: Math.floor(Math.random() * 100),
-          wind: 5 + Math.floor(Math.random() * 20),
-        });
-      }
-      
+    const position = await new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve(pos),
+        () => resolve(null),
+        { timeout: 8000, maximumAge: 10 * 60 * 1000 }
+      );
+    });
+
+    if (!position) {
+      setError('Location permission was declined — weather needs it to know which forecast applies to you.');
+      setLoading(false);
+      return;
+    }
+
+    const { latitude, longitude } = position.coords;
+    const tempUnit = unit === 'f' ? 'fahrenheit' : 'celsius';
+
+    try {
+      const url =
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
+        `&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code` +
+        `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max` +
+        `&forecast_days=7&timezone=auto&temperature_unit=${tempUnit}`;
+
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Weather service returned ${response.status}`);
+      const data = await response.json();
+
+      const current = data?.current;
+      const daily = data?.daily;
+      if (!current || !daily?.time) throw new Error('Weather service returned no data');
+
       setWeather({
         current: {
-          temp: 72,
-          condition: 'sunny',
-          humidity: 45,
-          wind: 8,
+          temp: Math.round(current.temperature_2m),
+          humidity: current.relative_humidity_2m,
+          wind: Math.round(current.wind_speed_10m),
+          condition: conditionFromCode(current.weather_code),
         },
-        forecast,
+        forecast: daily.time.map((iso, index) => ({
+          date: new Date(iso),
+          condition: conditionFromCode(daily.weather_code?.[index]),
+          high: Math.round(daily.temperature_2m_max?.[index]),
+          low: Math.round(daily.temperature_2m_min?.[index]),
+          precipitation: daily.precipitation_probability_max?.[index] ?? null,
+        })),
       });
+
+      // Reverse geocoding is a second service; if it fails we simply omit the
+      // place name rather than inventing one.
+      try {
+        const geo = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+        );
+        if (geo.ok) {
+          const g = await geo.json();
+          setPlace([g.city || g.locality, g.countryName].filter(Boolean).join(', '));
+        }
+      } catch {
+        setPlace('');
+      }
+    } catch (err) {
+      setError(err.message || 'Could not reach the weather service.');
+      setWeather(null);
+    } finally {
       setLoading(false);
-    };
-
-    fetchWeather();
-  }, [location]);
-
-  const getWeatherIcon = (condition) => {
-    switch (condition) {
-      case 'sunny': return FaSun;
-      case 'cloudy': return FaCloud;
-      case 'rainy': return FaCloudRain;
-      case 'stormy': return FaBolt;
-      case 'snowy': return FaSnowflake;
-      default: return FaSun;
     }
-  };
+  }, [unit]);
 
-  const getWeatherColor = (condition) => {
-    switch (condition) {
-      case 'sunny': return 'yellow';
-      case 'cloudy': return 'gray';
-      case 'rainy': return 'blue';
-      case 'stormy': return 'purple';
-      case 'snowy': return 'cyan';
-      default: return 'gray';
-    }
-  };
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const getEventWeather = (eventDate) => {
-    if (!weather) return null;
-    const dayDiff = Math.floor((new Date(eventDate).getTime() - Date.now()) / 86400000);
-    return weather.forecast[Math.min(dayDiff, weather.forecast.length - 1)];
-  };
+  // Which upcoming events fall on a day the forecast calls disruptive.
+  const affected = (() => {
+    if (!weather || !Array.isArray(events)) return [];
+    const badDays = new Set(
+      weather.forecast
+        .filter((day) => DISRUPTIVE.has(day.condition))
+        .map((day) => new Date(day.date).toDateString())
+    );
+    return events.filter((event) => {
+      if (!event?.start) return false;
+      return badDays.has(new Date(event.start).toDateString());
+    });
+  })();
 
-  const isBadWeather = (condition) => ['rainy', 'stormy', 'snowy'].includes(condition);
+  const unitLabel = unit === 'f' ? '°F' : '°C';
 
   if (loading) {
     return (
-      <div className="bg-surface rounded-lg shadow-lg p-6">
-        <div className="text-center py-8 text-content-muted">
-          <FaSun className="mx-auto text-4xl mb-3 animate-spin" />
-          <p>Loading weather data...</p>
-        </div>
+      <div className="card p-6">
+        <p className="text-sm text-content-muted">Loading the forecast for your location…</p>
       </div>
     );
   }
 
-  return (
-    <div className="bg-surface rounded-lg shadow-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <FaSun className="text-yellow-500 text-xl" />
-          <h3 className="text-lg font-semibold text-content">Weather & Events</h3>
+  if (error) {
+    return (
+      <div className="card p-6">
+        <div className="mb-3 flex items-center gap-3">
+          <FaCloud className="text-lg text-content-subtle" />
+          <h3 className="font-semibold text-content">Weather</h3>
         </div>
-        <span className="text-sm text-content-muted">{location}</span>
+        <p className="flex items-start gap-2 rounded-lg bg-surface-sunken p-3 text-sm text-content-muted">
+          <FaExclamationTriangle className="mt-0.5 shrink-0 text-amber-500" />
+          <span>{error}</span>
+        </p>
+        <button type="button" onClick={load} className="btn btn-outline btn-sm mt-3">
+          <FaRedo size={9} /> Try again
+        </button>
+      </div>
+    );
+  }
+
+  if (!weather) return null;
+
+  const CurrentIcon = CONDITION_META[weather.current.condition]?.icon || FaCloud;
+
+  return (
+    <div className="card p-6">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h3 className="font-semibold text-content">Weather</h3>
+          {place && (
+            <p className="flex items-center gap-1 text-xs text-content-muted">
+              <FaMapMarkerAlt size={9} /> {place}
+            </p>
+          )}
+        </div>
+        <button type="button" onClick={load} className="btn btn-ghost btn-sm" aria-label="Refresh weather">
+          <FaRedo size={9} />
+        </button>
       </div>
 
-      {/* Current Weather */}
-      {weather && (
-        <div className="mb-6 p-4 bg-gradient-to-r from-blue-400 to-blue-600 rounded-xl text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm opacity-80">Current Weather</p>
-              <p className="text-4xl font-bold">{weather.current.temp}°F</p>
-              <p className="capitalize">{weather.current.condition}</p>
+      <div className="mb-5 flex items-center gap-4">
+        <CurrentIcon className={`text-4xl ${CONDITION_META[weather.current.condition]?.tone}`} />
+        <div>
+          <p className="text-3xl font-bold text-content">
+            {weather.current.temp}
+            <span className="text-lg font-medium text-content-muted">{unitLabel}</span>
+          </p>
+          <p className="text-sm text-content-muted">
+            {CONDITION_META[weather.current.condition]?.label}
+          </p>
+        </div>
+        <dl className="ml-auto space-y-1 text-xs text-content-muted">
+          <div className="flex items-center gap-1.5">
+            <FaThermometerHalf size={9} /> {weather.current.humidity}% humidity
+          </div>
+          <div className="flex items-center gap-1.5">
+            <FaWind size={9} /> {weather.current.wind} km/h
+          </div>
+        </dl>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1">
+        {weather.forecast.map((day) => {
+          const Icon = CONDITION_META[day.condition]?.icon || FaCloud;
+          return (
+            <div key={day.date.toISOString()} className="rounded-lg bg-surface-sunken/60 p-2 text-center">
+              <p className="text-[0.6rem] font-medium text-content-subtle">
+                {day.date.toLocaleDateString(undefined, { weekday: 'short' })}
+              </p>
+              <Icon className={`mx-auto my-1 ${CONDITION_META[day.condition]?.tone}`} size={12} />
+              <p className="text-[0.65rem] font-semibold text-content">{day.high}°</p>
+              <p className="text-[0.6rem] text-content-subtle">{day.low}°</p>
             </div>
-            <FaSun className="text-6xl opacity-80" />
-          </div>
-          <div className="flex gap-4 mt-4 text-sm">
-            <span>💧 {weather.current.humidity}% humidity</span>
-            <span>💨 {weather.current.wind} mph wind</span>
-          </div>
+          );
+        })}
+      </div>
+
+      {affected.length > 0 && (
+        <div className="mt-4 rounded-lg bg-amber-50 p-3 text-sm dark:bg-amber-900/20">
+          <p className="flex items-center gap-2 font-medium text-amber-800 dark:text-amber-300">
+            <FaExclamationTriangle size={11} /> {affected.length} event{affected.length === 1 ? '' : 's'} on stormy days
+          </p>
+          <ul className="mt-1 space-y-0.5 pl-5 text-xs text-amber-700 dark:text-amber-400">
+            {affected.slice(0, 3).map((event) => (
+              <li key={event._id || event.id || event.start} className="list-disc">
+                {event.title || 'Untitled event'}
+              </li>
+            ))}
+          </ul>
+          {onSuggestReschedule && (
+            <button
+              type="button"
+              onClick={() => onSuggestReschedule(affected)}
+              className="mt-2 text-xs font-semibold text-amber-800 underline dark:text-amber-300"
+            >
+              Suggest moving these
+            </button>
+          )}
         </div>
       )}
-
-      {/* 7-Day Forecast */}
-      <div className="mb-6">
-        <h4 className="text-sm font-medium text-content mb-3">7-Day Forecast</h4>
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {weather?.forecast.map((day, i) => {
-            const WeatherIcon = getWeatherIcon(day.condition);
-            const color = getWeatherColor(day.condition);
-            return (
-              <div key={i} className="flex-shrink-0 text-center p-3 bg-surface-sunken rounded-lg w-20">
-                <p className="text-xs text-content-muted mb-1">
-                  {i === 0 ? 'Today' : new Date(day.date).toLocaleDateString('en', { weekday: 'short' })}
-                </p>
-                <WeatherIcon className={`mx-auto text-content-muted text-xl mb-1`} />
-                <p className="text-sm font-medium text-content">{day.high}°</p>
-                <p className="text-xs text-content-muted">{day.low}°</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Outdoor Events Alerts */}
-      <div>
-        <h4 className="text-sm font-medium text-content mb-3">Outdoor Events</h4>
-        <div className="space-y-3">
-          {allEvents.filter(e => e.isOutdoor).map((event) => {
-            const eventWeather = getEventWeather(event.date);
-            if (!eventWeather) return null;
-            
-            const WeatherIcon = getWeatherIcon(eventWeather.condition);
-            const hasBadWeather = isBadWeather(eventWeather.condition);
-            
-            return (
-              <div
-                key={event.id}
-                className={`p-4 rounded-lg border-2 ${
-                  hasBadWeather
-                    ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20'
-                    : 'border-line'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <FaCalendarAlt className="text-content-subtle" />
-                      <span className="font-medium text-content">{event.title}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <WeatherIcon className={`text-content-muted`} />
-                    <span className="text-sm text-content-muted">{eventWeather.high}°F</span>
-                  </div>
-                </div>
-                
-                {hasBadWeather && (
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
-                      <FaExclamationTriangle />
-                      <span>{eventWeather.precipitation}% chance of rain</span>
-                    </div>
-                    <button
-                      onClick={() => onSuggestReschedule?.(event)}
-                      className="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white text-sm rounded-lg"
-                    >
-                      Suggest Reschedule
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 };
 
 export default WeatherIntegration;
-

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useLocalStorage } from '@hooks/useLocalStorage';
 import { FaBan, FaPlus, FaTrash, FaChartLine } from 'react-icons/fa';
 
 const DistractionTracker = ({ onLog }) => {
-  const [distractions, setDistractions] = useState([]);
+  // Persisted so a distraction logged now still counts tomorrow.
+  const [distractions, setDistractions] = useLocalStorage('schedai:distractions', []);
   const [newDistraction, setNewDistraction] = useState('');
   const [stats, setStats] = useState({ total: 0, byCategory: {} });
 

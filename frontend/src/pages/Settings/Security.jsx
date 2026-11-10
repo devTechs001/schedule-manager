@@ -1,142 +1,253 @@
 import { useState } from 'react';
-import { FaLock, FaShieldAlt, FaKey, FaMobile, FaHistory, FaSignOutAlt, FaDesktop, FaExclamationTriangle } from 'react-icons/fa';
+import {
+  FaLock,
+  FaShieldAlt,
+  FaExclamationTriangle,
+  FaCheckCircle,
+  FaServer,
+  FaUserShield,
+} from 'react-icons/fa';
+import { useAuth } from '@contexts/AuthContext';
+import Modal from '@components/ui/Modal';
+import Input from '@components/ui/Input';
+import EncryptionBadge from '@components/security/EncryptionBadge';
 
+/**
+ * Security settings.
+ *
+ * This page used to list three active sessions (Chrome on Windows in New York,
+ * Safari on iPhone, Firefox on Mac), a security log with fabricated IP
+ * addresses, and a two-factor toggle that flipped local state and persisted
+ * nothing. None of it came from the server — the account may well have been
+ * signed in on one device, from a different country, with 2FA unavailable.
+ *
+ * Everything shown now either comes from the signed-in user record or is a
+ * capability the backend genuinely implements. Things the backend does not
+ * support yet are stated plainly as unavailable rather than faked.
+ */
 const Security = () => {
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const { user, changePassword, logout } = useAuth();
+
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirm: '' });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const sessions = [
-    { id: 1, device: 'Chrome on Windows', location: 'New York, US', lastActive: 'Now', current: true },
-    { id: 2, device: 'Safari on iPhone', location: 'New York, US', lastActive: '2 hours ago', current: false },
-    { id: 3, device: 'Firefox on Mac', location: 'Boston, US', lastActive: '3 days ago', current: false },
-  ];
+  const openPasswordModal = () => {
+    setForm({ currentPassword: '', newPassword: '', confirm: '' });
+    setError('');
+    setSuccess('');
+    setShowPasswordModal(true);
+  };
 
-  const securityEvents = [
-    { id: 1, event: 'Password changed', date: '2024-01-15', ip: '192.168.1.1' },
-    { id: 2, event: 'Login from new device', date: '2024-01-10', ip: '192.168.1.2' },
-    { id: 3, event: '2FA enabled', date: '2024-01-05', ip: '192.168.1.1' },
-  ];
+  const handleChangePassword = async (event) => {
+    event.preventDefault();
+    setError('');
+
+    if (form.newPassword.length < 8) {
+      setError('New password must be at least 8 characters.');
+      return;
+    }
+    if (form.newPassword !== form.confirm) {
+      setError('The two new passwords do not match.');
+      return;
+    }
+    if (form.newPassword === form.currentPassword) {
+      setError('Choose a password different from your current one.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await changePassword(form.currentPassword, form.newPassword);
+      setShowPasswordModal(false);
+      setSuccess('Password changed. Use it the next time you sign in.');
+    } catch (err) {
+      setError(err.message || 'Could not change your password.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+    : null;
 
   return (
     <div className="space-y-5">
-      <div className="mx-auto max-w-4xl">
-        {/* Header */}
+      <div className="mx-auto max-w-3xl">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Security Settings</h1>
-          <p className="text-gray-500 dark:text-gray-400">Manage your account security</p>
+          <h1 className="page-title">Security</h1>
+          <p className="page-subtitle">How this account is protected, and what you can change.</p>
         </div>
 
-        {/* Password Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-                <FaLock className="text-xl text-blue-500" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Password</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Last changed 30 days ago</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowPasswordModal(true)}
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
-            >
-              Change Password
-            </button>
-          </div>
-        </div>
+        {success && (
+          <p className="mb-5 flex items-start gap-2 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300">
+            <FaCheckCircle className="mt-0.5 shrink-0" />
+            <span>{success}</span>
+          </p>
+        )}
 
-        {/* Two-Factor Authentication */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className={`w-12 h-12 ${twoFactorEnabled ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-700'} rounded-xl flex items-center justify-center`}>
-                <FaShieldAlt className={`text-xl ${twoFactorEnabled ? 'text-green-500' : 'text-gray-500'}`} />
-              </div>
+        {/* Password — the one credential control the API actually supports. */}
+        <section className="card mb-5">
+          <div className="flex flex-wrap items-center justify-between gap-4 p-5">
+            <div className="flex items-center gap-4">
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300">
+                <FaLock className="text-xl" />
+              </span>
               <div>
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Two-Factor Authentication</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {twoFactorEnabled ? 'Enabled - Your account is more secure' : 'Add an extra layer of security'}
+                <h2 className="text-base font-semibold text-content">Password</h2>
+                <p className="text-sm text-content-muted">
+                  Changing it signs nothing out — the change takes effect on your next sign-in.
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
-              className={`px-4 py-2 rounded-lg ${
-                twoFactorEnabled
-                  ? 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400'
-                  : 'bg-green-500 hover:bg-green-600 text-white'
-              }`}
-            >
-              {twoFactorEnabled ? 'Disable' : 'Enable'}
+            <button type="button" onClick={openPasswordModal} className="btn btn-primary btn-sm">
+              Change password
             </button>
           </div>
-          {twoFactorEnabled && (
-            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-start space-x-3">
-              <FaMobile className="text-green-500 mt-1" />
-              <div>
-                <p className="text-sm font-medium text-green-800 dark:text-green-300">Authenticator App</p>
-                <p className="text-sm text-green-600 dark:text-green-400">Using Google Authenticator</p>
-              </div>
+        </section>
+
+        {/* Account facts we can state without guessing. */}
+        <section className="card mb-5">
+          <div className="border-b border-line px-5 py-4">
+            <h2 className="text-base font-semibold text-content">Account</h2>
+            <p className="text-sm text-content-muted">Details stored against your profile.</p>
+          </div>
+          <dl className="divide-y divide-line">
+            <div className="flex items-center justify-between gap-4 px-5 py-3">
+              <dt className="text-sm text-content-muted">Email</dt>
+              <dd className="text-sm font-medium text-content">{user?.email || 'Not available'}</dd>
             </div>
-          )}
-        </div>
+            <div className="flex items-center justify-between gap-4 px-5 py-3">
+              <dt className="text-sm text-content-muted">Sign-in method</dt>
+              <dd className="text-sm font-medium text-content">Email and password</dd>
+            </div>
+            <div className="flex items-center justify-between gap-4 px-5 py-3">
+              <dt className="text-sm text-content-muted">Member since</dt>
+              <dd className="text-sm font-medium text-content">{memberSince || 'Unknown'}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-4 px-5 py-3">
+              <dt className="text-sm text-content-muted">Session</dt>
+              <dd className="flex items-center gap-2 text-sm font-medium text-content">
+                <FaShieldAlt size={11} className="text-emerald-500" /> Signed in on this browser
+              </dd>
+            </div>
+          </dl>
+        </section>
 
-        {/* Active Sessions */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Active Sessions</h2>
-            <button className="text-red-500 hover:text-red-600 text-sm font-medium">Sign out all</button>
-          </div>
-          <div className="space-y-4">
-            {sessions.map((session) => (
-              <div key={session.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <FaDesktop className="text-xl text-gray-500 dark:text-gray-400" />
-                  <div>
-                    <p className="font-medium text-gray-800 dark:text-white">
-                      {session.device}
-                      {session.current && <span className="ml-2 text-xs bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded">Current</span>}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{session.location} • {session.lastActive}</p>
-                  </div>
-                </div>
-                {!session.current && (
-                  <button className="p-2 text-red-500 hover:text-red-600">
-                    <FaSignOutAlt />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+        <EncryptionBadge showDetails encryptionStatus="active" className="mb-5" />
 
-        {/* Security Log */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
-          <div className="flex items-center space-x-2 mb-4">
-            <FaHistory className="text-gray-500" />
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Security Log</h2>
+        {/* Be explicit about what is not built, rather than pretending. */}
+        <section className="card mb-5">
+          <div className="border-b border-line px-5 py-4">
+            <h2 className="text-base font-semibold text-content">Not available yet</h2>
+            <p className="text-sm text-content-muted">
+              These are often expected on a security page. They are listed here so you know their absence is
+              deliberate rather than broken.
+            </p>
           </div>
-          <div className="space-y-3">
-            {securityEvents.map((event) => (
-              <div key={event.id} className="flex items-center justify-between py-3 border-b dark:border-gray-700 last:border-0">
-                <div className="flex items-center space-x-3">
-                  <FaKey className="text-gray-400" />
+          <ul className="divide-y divide-line">
+            {[
+              {
+                icon: FaUserShield,
+                title: 'Two-factor authentication',
+                body: 'Not implemented. Your account is protected by your password alone.',
+              },
+              {
+                icon: FaServer,
+                title: 'Active sessions and devices',
+                body: 'Sessions are not tracked server-side, so there is no device list to show or revoke.',
+              },
+              {
+                icon: FaExclamationTriangle,
+                title: 'Security event log',
+                body: 'Sign-in history and IP addresses are not recorded.',
+              },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.title} className="flex items-start gap-3 px-5 py-4">
+                  <Icon className="mt-0.5 shrink-0 text-content-subtle" />
                   <div>
-                    <p className="text-gray-800 dark:text-white">{event.event}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">IP: {event.ip}</p>
+                    <p className="text-sm font-medium text-content">{item.title}</p>
+                    <p className="text-xs text-content-muted">{item.body}</p>
                   </div>
-                </div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">{event.date}</span>
-              </div>
-            ))}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+        <section className="card">
+          <div className="flex flex-wrap items-center justify-between gap-4 p-5">
+            <div>
+              <h2 className="text-base font-semibold text-content">Sign out</h2>
+              <p className="text-sm text-content-muted">Ends this session on this browser.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => logout({ redirect: true })}
+              className="btn btn-outline btn-sm"
+            >
+              Sign out
+            </button>
           </div>
-        </div>
+        </section>
       </div>
+
+      <Modal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+        title="Change password"
+        size="sm"
+      >
+        <form onSubmit={handleChangePassword} className="space-y-4">
+          <Input
+            label="Current password"
+            type="password"
+            autoComplete="current-password"
+            value={form.currentPassword}
+            onChange={(event) => setForm({ ...form, currentPassword: event.target.value })}
+            required
+          />
+          <Input
+            label="New password"
+            type="password"
+            autoComplete="new-password"
+            helperText="At least 8 characters."
+            value={form.newPassword}
+            onChange={(event) => setForm({ ...form, newPassword: event.target.value })}
+            required
+          />
+          <Input
+            label="Confirm new password"
+            type="password"
+            autoComplete="new-password"
+            value={form.confirm}
+            onChange={(event) => setForm({ ...form, confirm: event.target.value })}
+            required
+          />
+
+          {error && (
+            <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
+              {error}
+            </p>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={() => setShowPasswordModal(false)} className="btn btn-ghost btn-sm">
+              Cancel
+            </button>
+            <button type="submit" disabled={submitting} className="btn btn-primary btn-sm disabled:opacity-60">
+              {submitting ? 'Saving…' : 'Change password'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
 
 export default Security;
-

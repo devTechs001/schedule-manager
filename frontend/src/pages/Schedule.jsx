@@ -9,6 +9,8 @@ import Modal from '@components/ui/Modal';
 import EmptyState from '@components/ui/EmptyState';
 import Badge from '@components/ui/Badge';
 import ConflictResolver from '@components/schedule/ConflictResolver';
+import TrafficAware from '@components/schedule/TrafficAware';
+import WeatherIntegration from '@components/schedule/WeatherIntegration';
 
 const Schedule = () => {
   const { events, loading, createEvent, updateEvent, deleteEvent, refreshEvents } = useSchedule();
@@ -179,6 +181,13 @@ const Schedule = () => {
           events={events}
           onReschedule={(conflict) => handleSelectEvent(conflict.events[1])}
         />
+      )}
+
+      {events.length > 0 && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <TrafficAware events={events} />
+          <WeatherIntegration events={events} />
+        </div>
       )}
 
       <Modal

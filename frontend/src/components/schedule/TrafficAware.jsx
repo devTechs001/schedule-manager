@@ -1,145 +1,155 @@
-import React, { useState, useEffect } from 'react';
-import { FaCar, FaRoute, FaClock, FaExclamationTriangle, FaMapMarkerAlt, FaSync } from 'react-icons/fa';
+import React, { useMemo, useState } from 'react';
+import { FaCar, FaClock, FaRoute, FaInfoCircle } from 'react-icons/fa';
 
-const TrafficAware = ({ events = [], onUpdateDeparture }) => {
-  const [trafficData, setTrafficData] = useState({});
-  const [loading, setLoading] = useState(false);
+/**
+ * Departure planner.
+ *
+ * This used to invent a "traffic level" between low/moderate/heavy with
+ * `Math.random()`, and a suggested departure derived from that random number.
+ * It also referenced an undefined `allEvents` variable, so it threw on mount.
+ *
+ * There is no live traffic feed wired into this app (that needs a paid
+ * provider), so instead of inventing congestion we do the part that is real:
+ * take each event, subtract the travel time the *user* supplies plus an
+ * optional buffer, and show the time they need to leave. No fabricated
+ * congestion, no guessed travel durations.
+ */
+const TrafficAware = ({ events = [], defaultTravelMinutes = 30, onUpdateDeparture }) => {
+  const [travelMinutes, setTravelMinutes] = useState(defaultTravelMinutes);
+  const [bufferMinutes, setBufferMinutes] = useState(10);
 
+  const upcoming = useMemo(() => {
+    const list = Array.isArray(events) ? events : [];
+    const now = Date.now();
 
-;
+    return list
+      .filter((event) => {
+        const start = new Date(event?.start).getTime();
+        return Number.isFinite(start) && start > now;
+      })
+      .sort((a, b) => new Date(a.start) - new Date(b.start))
+      .slice(0, 6)
+      .map((event) => {
+        const start = new Date(event.start);
+        const leaveAt = new Date(start.getTime() - (travelMinutes + bufferMinutes) * 60 * 1000);
+        const minutesUntilLeave = Math.round((leaveAt.getTime() - now) / 60000);
 
-  useEffect(() => {
-    // Simulate traffic data fetch
-    const fetchTrafficData = async () => {
-      setLoading(true);
-      await new Promise(r => setTimeout(r, 1500));
-      
-      const data = {};
-      allEvents.forEach(event => {
-        data[event.id] = {
-          normalDuration: 20 + Math.floor(Math.random() * 20),
-          currentDuration: 25 + Math.floor(Math.random() * 30),
-          trafficLevel: ['low', 'moderate', 'heavy'][Math.floor(Math.random() * 3)],
-          suggestedDeparture: new Date(new Date(event.time).getTime() - (30 + Math.floor(Math.random() * 20)) * 60000),
+        return {
+          id: event._id || event.id || event.start,
+          title: event.title || 'Untitled event',
+          location: event.location || '',
+          start,
+          leaveAt,
+          minutesUntilLeave,
         };
       });
-      
-      setTrafficData(data);
-      setLoading(false);
-    };
-
-    fetchTrafficData();
-  }, []);
-
-  const getTrafficColor = (level) => {
-    switch (level) {
-      case 'low': return 'green';
-      case 'moderate': return 'yellow';
-      case 'heavy': return 'red';
-      default: return 'gray';
-    }
-  };
-
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const refreshTraffic = async () => {
-    setLoading(true);
-    await new Promise(r => setTimeout(r, 1000));
-    setLoading(false);
-  };
+  }, [events, travelMinutes, bufferMinutes]);
 
   return (
-    <div className="bg-surface rounded-lg shadow-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <FaCar className="text-primary-600 text-xl" />
-          <h3 className="text-lg font-semibold text-content">Traffic-Aware Scheduling</h3>
+    <div className="card p-6">
+      <div className="mb-4 flex items-center gap-3">
+        <FaCar className="text-lg text-primary-600" />
+        <div>
+          <h3 className="font-semibold text-content">When to leave</h3>
+          <p className="text-xs text-content-muted">Based on the travel time you set — not live traffic.</p>
         </div>
-        <button
-          onClick={refreshTraffic}
-          disabled={loading}
-          className="flex items-center gap-2 px-3 py-2 bg-surface-sunken hover:bg-surface-sunken rounded-lg text-sm"
-        >
-          <FaSync className={loading ? 'animate-spin' : ''} />
-          Refresh
-        </button>
       </div>
 
-      {loading && !Object.keys(trafficData).length ? (
-        <div className="text-center py-8 text-content-muted">
-          <FaRoute className="mx-auto text-4xl mb-3 animate-pulse" />
-          <p>Checking traffic conditions...</p>
-        </div>
+      <div className="mb-4 grid grid-cols-2 gap-3">
+        <label className="block">
+          <span className="label">Travel time (min)</span>
+          <input
+            type="number"
+            min={0}
+            max={600}
+            value={travelMinutes}
+            onChange={(event) => setTravelMinutes(Math.max(0, Number(event.target.value) || 0))}
+            className="input"
+          />
+        </label>
+        <label className="block">
+          <span className="label">Buffer (min)</span>
+          <input
+            type="number"
+            min={0}
+            max={180}
+            value={bufferMinutes}
+            onChange={(event) => setBufferMinutes(Math.max(0, Number(event.target.value) || 0))}
+            className="input"
+          />
+        </label>
+      </div>
+
+      {upcoming.length === 0 ? (
+        <p className="rounded-lg bg-surface-sunken p-3 text-sm text-content-muted">
+          Nothing scheduled ahead. Add an event and its leave-by time will appear here.
+        </p>
       ) : (
-        <div className="space-y-4">
-          {allEvents.map((event) => {
-            const traffic = trafficData[event.id];
-            if (!traffic) return null;
-            
-            const trafficColor = getTrafficColor(traffic.trafficLevel);
-            const delay = traffic.currentDuration - traffic.normalDuration;
-            
+        <ul className="divide-y divide-line">
+          {upcoming.map((item) => {
+            const urgent = item.minutesUntilLeave <= 15 && item.minutesUntilLeave >= 0;
+            const missed = item.minutesUntilLeave < 0;
+
             return (
-              <div key={event.id} className="p-4 rounded-lg border-2 border-line">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 className="font-medium text-content">{event.title}</h4>
-                    <div className="flex items-center gap-2 text-sm text-content-muted mt-1">
-                      <FaMapMarkerAlt className="text-xs" />
-                      <span>{event.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-content-muted">
-                      <FaClock className="text-xs" />
-                      <span>Starts at {formatTime(event.time)}</span>
-                    </div>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium bg-surface-sunken text-content-muted text-content-muted capitalize`}>
-                    {traffic.trafficLevel} traffic
-                  </span>
+              <li key={item.id} className="flex items-start justify-between gap-3 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-content">{item.title}</p>
+                  <p className="flex items-center gap-1 text-xs text-content-muted">
+                    <FaClock size={9} />
+                    {item.start.toLocaleString(undefined, {
+                      weekday: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                    {item.location && (
+                      <>
+                        <span className="mx-1">·</span>
+                        <FaRoute size={9} />
+                        <span className="truncate">{item.location}</span>
+                      </>
+                    )}
+                  </p>
                 </div>
-
-                {/* Travel Info */}
-                <div className="grid grid-cols-3 gap-4 p-3 bg-surface-sunken rounded-lg mb-3">
-                  <div className="text-center">
-                    <p className="text-xs text-content-muted">Normal</p>
-                    <p className="font-medium text-content">{traffic.normalDuration} min</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs text-content-muted">Current</p>
-                    <p className={`font-medium ${delay > 5 ? 'text-red-600' : 'text-content'}`}>
-                      {traffic.currentDuration} min
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs text-content-muted">Leave by</p>
-                    <p className="font-medium text-primary-600">{formatTime(traffic.suggestedDeparture)}</p>
-                  </div>
+                <div className="shrink-0 text-right">
+                  <p
+                    className={`text-sm font-semibold ${
+                      missed ? 'text-rose-600' : urgent ? 'text-amber-600' : 'text-content'
+                    }`}
+                  >
+                    {item.leaveAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                  <p className="text-[0.65rem] text-content-subtle">
+                    {missed
+                      ? 'leave time passed'
+                      : item.minutesUntilLeave < 60
+                        ? `in ${item.minutesUntilLeave} min`
+                        : `in ${Math.round(item.minutesUntilLeave / 60)} h`}
+                  </p>
+                  {onUpdateDeparture && (
+                    <button
+                      type="button"
+                      onClick={() => onUpdateDeparture(item.id, item.leaveAt)}
+                      className="mt-1 text-[0.65rem] font-semibold text-primary-600 hover:underline"
+                    >
+                      add reminder
+                    </button>
+                  )}
                 </div>
-
-                {/* Alert */}
-                {delay > 10 && (
-                  <div className="flex items-center gap-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg text-red-700 dark:text-red-300 text-sm">
-                    <FaExclamationTriangle />
-                    <span>Heavy traffic! Leave {delay} minutes earlier than usual.</span>
-                  </div>
-                )}
-
-                <button
-                  onClick={() => onUpdateDeparture?.(event.id, traffic.suggestedDeparture)}
-                  className="mt-3 w-full py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm"
-                >
-                  Set Departure Reminder
-                </button>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
+
+      <p className="mt-4 flex items-start gap-2 rounded-lg bg-surface-sunken p-3 text-xs text-content-subtle">
+        <FaInfoCircle className="mt-0.5 shrink-0" />
+        <span>
+          Live traffic is not connected. These times are your travel estimate plus buffer, so add extra
+          during rush hour.
+        </span>
+      </p>
     </div>
   );
 };
 
 export default TrafficAware;
-

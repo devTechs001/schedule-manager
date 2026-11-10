@@ -14,16 +14,14 @@ import { useTasks } from '@hooks/useTasks';
 import TaskList from '@components/tasks/TaskList';
 import TaskForm from '@components/tasks/TaskForm';
 import TaskCalendar from '@components/tasks/TaskCalendar';
+import TaskFilters from '@components/tasks/TaskFilters';
 import QuickAddTask from '@components/tasks/QuickAddTask';
 import Modal from '@components/ui/Modal';
 import EmptyState from '@components/ui/EmptyState';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
 
-const FILTERS = [
+const QUICK_SCOPES = [
   { id: 'all', label: 'All' },
-  { id: 'todo', label: 'To do' },
-  { id: 'in-progress', label: 'In progress' },
-  { id: 'completed', label: 'Completed' },
   { id: 'overdue', label: 'Overdue' },
   { id: 'today', label: 'Today' },
 ];
@@ -45,6 +43,7 @@ const Tasks = () => {
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('priority');
   const [query, setQuery] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('all');
 
   useEffect(() => {
     document.title = 'Tasks — SchedAI';
@@ -77,6 +76,10 @@ const Tasks = () => {
       list = list.filter((task) => task.status === filter);
     }
 
+    if (priorityFilter !== 'all') {
+      list = list.filter((task) => (task.priority || 'medium') === priorityFilter);
+    }
+
     const term = query.trim().toLowerCase();
     if (term) {
       list = list.filter(
@@ -103,7 +106,7 @@ const Tasks = () => {
     });
 
     return list;
-  }, [tasks, filter, query, sortBy]);
+  }, [tasks, filter, query, sortBy, priorityFilter]);
 
   const openCreate = () => {
     setSelectedTask(null);
@@ -300,37 +303,38 @@ const Tasks = () => {
           <div className="space-y-3">
             <QuickAddTask onCreate={(data) => createTask(data)} />
 
-            {/* Filters & search */}
-            <div className="card flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
-              <div className="relative flex-1">
-                <FaSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-content-subtle" size={11} />
-                <input
-                  type="search"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search tasks, tags, descriptions…"
-                  className="input pl-9 text-xs"
-                  aria-label="Search tasks"
-                />
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {FILTERS.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => setFilter(option.id)}
-                    className={`rounded-lg px-2.5 py-1.5 text-[0.68rem] font-semibold transition-colors ${
-                      filter === option.id
-                        ? 'bg-primary-600 text-white'
-                        : 'text-content-muted hover:bg-gray-100 dark:hover:bg-white/5'
-                    }`}
-                  >
-                    {option.label}
-                    <span className="ml-1 opacity-70">{counts[option.id] ?? 0}</span>
-                  </button>
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-1.5">
+              {QUICK_SCOPES.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setFilter(option.id)}
+                  className={`rounded-lg px-2.5 py-1.5 text-[0.68rem] font-semibold transition-colors ${
+                    filter === option.id
+                      ? 'bg-primary-600 text-white'
+                      : 'text-content-muted hover:bg-gray-100 dark:hover:bg-white/5'
+                  }`}
+                >
+                  {option.label}
+                  <span className="ml-1 opacity-70">{counts[option.id] ?? 0}</span>
+                </button>
+              ))}
             </div>
+
+            <TaskFilters
+              filters={{
+                search: query,
+                status: filter,
+                priority: priorityFilter,
+                sort: sortBy,
+              }}
+              onFilterChange={(next) => {
+                setQuery(next.search);
+                setFilter(next.status);
+                setPriorityFilter(next.priority);
+                setSortBy(next.sort);
+              }}
+            />
 
             {/* List */}
             {loading && visibleTasks.length === 0 ? (

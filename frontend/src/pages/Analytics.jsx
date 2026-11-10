@@ -18,6 +18,8 @@ import Card from '@components/ui/Card';
 import StatCard from '@components/ui/StatCard';
 import ProductivityChart from '@components/analytics/ProductivityChart';
 import TimeTracking from '@components/analytics/TimeTracking';
+import DistractionTracker from '@components/analytics/DistractionTracker';
+import EnergyTracker from '@components/analytics/EnergyTracker';
 
 const Analytics = () => {
   const { tasks, loading } = useTasks();
@@ -197,6 +199,13 @@ const Analytics = () => {
             </li>
           </ul>
         </Card>
+      </div>
+
+      {/* Self-tracking: the app cannot observe your focus or energy, so these
+          let you record it yourself. Their entries persist locally. */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <DistractionTracker />
+        <EnergyTracker />
       </div>
 
       {loading && <p className="text-center text-xs text-content-subtle">Refreshing data…</p>}
