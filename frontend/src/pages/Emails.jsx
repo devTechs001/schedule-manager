@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FaPlus, FaSyncAlt, FaInbox } from 'react-icons/fa';
+import { FaPlus, FaSyncAlt, FaInbox, FaMagic, FaFileAlt } from 'react-icons/fa';
 import { useEmails } from '@hooks/useEmails';
 import EmailInbox from '@components/emails/EmailInbox';
 import EmailThread from '@components/emails/EmailThread';
@@ -7,6 +7,8 @@ import EmailComposer from '@components/emails/EmailComposer';
 import EmailFilters from '@components/emails/EmailFilters';
 import Modal from '@components/ui/Modal';
 import EmptyState from '@components/ui/EmptyState';
+import SmartReplies from '@components/communication/SmartReplies';
+import DocumentIntelligence from '@components/ai/DocumentIntelligence';
 
 const Emails = () => {
   const { emails, loading, sendEmail, markAsRead, toggleStar, deleteEmail, refreshEmails } = useEmails();
@@ -14,6 +16,7 @@ const Emails = () => {
   const [showComposer, setShowComposer] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
   const [activeFilter, setActiveFilter] = useState('inbox');
+  const [showTools, setShowTools] = useState(null); // 'replies' | 'document' | null
 
   useEffect(() => {
     document.title = 'Inbox — SchedAI';
@@ -59,6 +62,12 @@ const Emails = () => {
     setReplyTo(null);
   };
 
+  const handleUseDraft = (text) => {
+    setReplyTo((current) => (current ? { ...current, draftBody: text } : current));
+    setShowTools(null);
+    setShowComposer(true);
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm('Move this email to trash?')) {
       await deleteEmail(id);
@@ -81,11 +90,54 @@ const Emails = () => {
           <button type="button" onClick={() => refreshEmails()} className="btn btn-outline btn-sm" aria-label="Refresh inbox">
             <FaSyncAlt size={9} className={loading ? 'animate-spin' : ''} />
           </button>
+          <button
+            type="button"
+            onClick={() => setShowTools(showTools === 'replies' ? null : 'replies')}
+            className="btn btn-outline btn-sm"
+            disabled={!selectedEmail}
+            title={selectedEmail ? 'Draft a reply to the selected message' : 'Select a message first'}
+          >
+            <FaMagic size={9} /> Draft reply
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowTools(showTools === 'document' ? null : 'document')}
+            className="btn btn-outline btn-sm"
+          >
+            <FaFileAlt size={9} /> Analyse document
+          </button>
           <button type="button" onClick={() => setShowComposer(true)} className="btn btn-primary btn-sm">
             <FaPlus size={9} /> Compose
           </button>
         </div>
       </div>
+
+      {showTools === 'replies' && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <SmartReplies
+            originalMessage={selectedEmail ? `${selectedEmail.subject || ''}\n\n${selectedEmail.body || ''}` : ''}
+            onSend={(text) => handleUseDraft(text)}
+            onEdit={(text) => handleUseDraft(text)}
+          />
+          <div className="card p-6 text-sm text-content-muted">
+            <p className="font-semibold text-content">Drafting from the selected message</p>
+            {selectedEmail ? (
+              <>
+                <p className="mt-2 text-xs uppercase tracking-wide text-content-subtle">Subject</p>
+                <p className="mb-3 text-content">{selectedEmail.subject || '(no subject)'}</p>
+                <p className="text-xs uppercase tracking-wide text-content-subtle">Message</p>
+                <p className="mt-1 whitespace-pre-wrap">{selectedEmail.body || '(empty)'}</p>
+              </>
+            ) : (
+              <p className="mt-2">Select a message in the list first — drafts are written against its contents.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showTools === 'document' && (
+        <DocumentIntelligence />
+      )}
 
       <div className="grid gap-4 lg:grid-cols-[13rem_1fr_1.3fr]">
         <div className="lg:sticky lg:top-24 lg:self-start">

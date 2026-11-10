@@ -4,22 +4,28 @@ import Button from '@components/ui/Button';
 import { FaPaperPlane, FaTimes, FaPaperclip } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
-const EmailComposer = ({ onSend, onClose, replyTo }) => {
+const EmailComposer = ({ onSend, onClose, onSubmit, onCancel, replyTo }) => {
+  // Callers pass this component under two different prop names historically;
+  // accept both so a submission is never silently dropped.
+  const submit = onSend || onSubmit;
+  const close = onClose || onCancel;
+
   const [formData, setFormData] = useState({
     to: replyTo?.from || '',
     subject: replyTo ? `Re: ${replyTo.subject}` : '',
-    body: '',
+    // A draft picked from Smart replies arrives ready to edit rather than blank.
+    body: replyTo?.draftBody || '',
   });
   const [attachments, setAttachments] = useState([]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await onSend({ ...formData, attachments });
-      toast.success('Email sent successfully!');
-      onClose();
+      await submit({ ...formData, attachments });
+      toast.success('Email sent');
+      close?.();
     } catch (error) {
-      toast.error('Failed to send email');
+      toast.error(error?.message || 'Failed to send email');
     }
   };
 
@@ -37,7 +43,7 @@ const EmailComposer = ({ onSend, onClose, replyTo }) => {
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           {replyTo ? 'Reply to Email' : 'New Email'}
         </h3>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+        <button type="button" onClick={close} className="text-gray-400 hover:text-gray-600">
           <FaTimes />
         </button>
       </div>

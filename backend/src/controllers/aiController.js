@@ -4,6 +4,7 @@ import { asyncHandler } from '../utils/helpers.js';
 import { getChatCompletion } from '../services/ai/openAIService.js';
 import { calculateTaskPriority } from '../services/ai/priorityCalculator.js';
 import { generateSuggestions } from '../services/ai/suggestionEngine.js';
+import { analyzeDocument, draftReplies } from '../services/ai/documentService.js';
 
 // @desc    AI Chat
 // @route   POST /api/ai/chat
@@ -129,4 +130,48 @@ export const getInsights = asyncHandler(async (req, res) => {
     success: true,
     data: insights,
   });
+});
+// @desc    Analyse pasted/uploaded document text
+// @route   POST /api/ai/document
+// @access  Private
+export const analyzeDocumentText = asyncHandler(async (req, res) => {
+  const { text, fileName } = req.body || {};
+
+  if (typeof text !== 'string' || !text.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'No document text supplied',
+    });
+  }
+
+  // Guard the request size — 200k chars is far beyond any real document we
+  // want to push through the model in one shot.
+  if (text.length > 200_000) {
+    return res.status(413).json({
+      success: false,
+      message: 'Document is too large to analyse (limit 200,000 characters)',
+    });
+  }
+
+  const data = await analyzeDocument(text, { fileName });
+
+  res.json({ success: true, data });
+});
+
+// @desc    Draft alternative replies to an incoming message
+// @route   POST /api/ai/replies
+// @access  Private
+export const draftRepliesToMessage = asyncHandler(async (req, res) => {
+  const { message, tone, count } = req.body || {};
+
+  if (typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'No message supplied',
+    });
+  }
+
+  const data = await draftReplies(message, { tone, count });
+
+  res.json({ success: true, data });
 });

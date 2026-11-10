@@ -4,6 +4,8 @@ import {
   getSuggestions,
   calculatePriority,
   getInsights,
+  analyzeDocumentText,
+  draftRepliesToMessage,
 } from '../controllers/aiController.js';
 import { protect } from '../middleware/auth.js';
 
@@ -18,5 +20,7 @@ router.post('/chat', chat);
 router.post('/suggestions', getSuggestions);
 router.post('/priority', calculatePriority);
 router.get('/insights', getInsights);
+router.post('/document', analyzeDocumentText);
+router.post('/replies', draftRepliesToMessage);
 
 export default router;
