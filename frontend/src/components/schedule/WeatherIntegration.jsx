@@ -120,7 +120,7 @@ const WeatherIntegration = ({ events = [], onSuggestReschedule, unit = 'c', auto
         </dl>
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-4 gap-1 sm:grid-cols-7">
         {weather.forecast.map((day) => {
           const Icon = CONDITION_ICON[day.condition] || FaCloud;
           return (

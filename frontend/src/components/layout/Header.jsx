@@ -65,7 +65,7 @@ const NotificationsPanel = ({ open, onClose }) => {
   return (
     <>
       <div className="fixed inset-0 z-[85]" onClick={onClose} aria-hidden="true" />
-      <div className="absolute right-0 top-full z-[86] mt-2 w-80 overflow-hidden rounded-2xl border border-line bg-surface-raised shadow-lift animate-fade-in">
+      <div className="absolute right-0 top-full z-[86] mt-2 w-[min(20rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-line bg-surface-raised shadow-lift animate-fade-in">
         <div className="flex items-center justify-between border-b border-line px-4 py-3">
           <p className="text-sm font-semibold text-content">Needs attention</p>
           <span className={`badge ${summary.urgent > 0 ? 'badge-danger' : 'badge-success'}`}>

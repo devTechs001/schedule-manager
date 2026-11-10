@@ -62,7 +62,7 @@ const DistractionTracker = ({ onLog }) => {
         </h3>
       </div>
 
-      <div className="grid grid-cols-5 gap-2 mb-4">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {categories.map(cat => (
           <div key={cat.value} className="text-center p-2 bg-surface-sunken rounded">
             <p className={`text-xl font-bold text-content-muted`}>

@@ -65,7 +65,7 @@ const ThemeMenu = ({ align = 'right', compact = false, className = '' }) => {
 
       {open && (
         <div
-          className={`absolute z-[90] mt-2 w-72 origin-top overflow-hidden rounded-2xl border border-line bg-surface-raised p-4 shadow-lift animate-fade-in ${
+          className={`absolute z-[90] mt-2 w-[min(18rem,calc(100vw-1.5rem))] origin-top overflow-hidden rounded-2xl border border-line bg-surface-raised p-4 shadow-lift animate-fade-in ${
             align === 'right' ? 'right-0' : 'left-0'
           }`}
           role="menu"
