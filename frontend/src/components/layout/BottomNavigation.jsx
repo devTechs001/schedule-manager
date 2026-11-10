@@ -1,15 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { FaEllipsisH, FaTimes } from 'react-icons/fa';
 import { MOBILE_PRIMARY, MOBILE_SECONDARY } from './navConfig';
 
+/**
+ * The "More" sheet closes whenever the route changes.
+ *
+ * This used to be an effect that called setMoreOpen(false) on every pathname
+ * change — a setState inside an effect, which React flags because it forces a
+ * second render pass on every navigation. Tracking which route the sheet was
+ * opened on is equivalent and needs no effect: if the path no longer matches,
+ * the sheet is closed.
+ */
 const BottomNavigation = () => {
-  const [moreOpen, setMoreOpen] = useState(false);
   const location = useLocation();
+  const [openedOn, setOpenedOn] = useState(null);
+  const moreOpen = openedOn === location.pathname;
 
-  useEffect(() => {
-    setMoreOpen(false);
-  }, [location.pathname]);
+  const setMoreOpen = (open) => setOpenedOn(open ? location.pathname : null);
 
   const secondaryActive = MOBILE_SECONDARY.some((item) => location.pathname.startsWith(item.to));
 
