@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { FaFolder, FaSync, FaCog, FaCheck, FaCloud, FaFile } from 'react-icons/fa';
+import { FaFolder, FaSync, FaCog, FaCheck, FaCloud } from 'react-icons/fa';
 import { SiGoogledrive, SiDropbox, SiOnedrive } from 'react-icons/si';
+import toast from 'react-hot-toast';
+import { connectProvider, syncProvider } from './syncConnect';
 
 const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
   // Nothing is connected until the user actually connects it. This used to
   // default to ['gdrive'], so the UI reported a live integration that
   // did not exist.
   const [connectedStorages, setConnectedStorages] = useState([]);
-  const [syncing, setSyncing] = useState(null);
   const [selectedFolders, setSelectedFolders] = useState(['Documents', 'Projects']);
 
   const storageProviders = [
@@ -20,12 +21,14 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
 
   const folders = ['Documents', 'Projects', 'Shared', 'Archives', 'Templates'];
 
-  const handleConnect = async (storageId) => {
-    setSyncing(storageId);
-    await new Promise(r => setTimeout(r, 2000));
+  const handleConnect = (storageId) => {
+    const storage = storageProviders.find(s => s.id === storageId);
+    const result = connectProvider(storage.name, onConnect ? () => onConnect(storageId) : undefined);
+    if (!result.ok) {
+      toast(result.message);
+      return;
+    }
     setConnectedStorages([...connectedStorages, storageId]);
-    setSyncing(null);
-    onConnect?.(storageId);
   };
 
   const handleDisconnect = (storageId) => {
@@ -33,11 +36,12 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
     onDisconnect?.(storageId);
   };
 
-  const handleSync = async (storageId) => {
-    setSyncing(storageId);
-    await new Promise(r => setTimeout(r, 2000));
-    setSyncing(null);
-    onSync?.(storageId);
+  const handleSync = (storageId) => {
+    const storage = storageProviders.find(s => s.id === storageId);
+    const result = syncProvider(storage.name, onSync ? () => onSync(storageId) : undefined);
+    if (!result.ok) {
+      toast(result.message);
+    }
   };
 
   const toggleFolder = (folder) => {
@@ -62,7 +66,6 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
       <div className="space-y-4 mb-6">
         {storageProviders.map((storage) => {
           const connected = isConnected(storage.id);
-          const isSyncing = syncing === storage.id;
           
           return (
             <div
@@ -81,13 +84,9 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
                   <div>
                     <h4 className="font-medium text-content">{storage.name}</h4>
                     {connected ? (
-                      <div className="flex items-center gap-3 text-sm text-content-muted">
-                        <span className="flex items-center gap-1">
-                          <FaFile className="text-xs" /> {storage.files} files
-                        </span>
-                        <span>•</span>
-                        <span>{storage.used} synced</span>
-                      </div>
+                      <span className="flex items-center gap-1 text-sm text-green-600">
+                        <FaCheck /> Connected
+                      </span>
                     ) : (
                       <span className="text-sm text-content-muted">Not connected</span>
                     )}
@@ -99,10 +98,9 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
                     <>
                       <button
                         onClick={() => handleSync(storage.id)}
-                        disabled={isSyncing}
                         className="p-2 text-content-muted hover:text-primary-600"
                       >
-                        <FaSync className={isSyncing ? 'animate-spin' : ''} />
+                        <FaSync />
                       </button>
                       <button className="p-2 text-content-muted hover:text-content">
                         <FaCog />
@@ -111,14 +109,13 @@ const DocumentSync = ({ onConnect, onDisconnect, onSync }) => {
                   )}
                   <button
                     onClick={() => connected ? handleDisconnect(storage.id) : handleConnect(storage.id)}
-                    disabled={isSyncing}
                     className={`px-4 py-2 rounded-lg text-sm ${
                       connected
                         ? 'bg-red-100 text-red-600 hover:bg-red-200'
                         : 'bg-primary-600 text-white hover:bg-primary-700'
                     }`}
                   >
-                    {isSyncing ? 'Connecting...' : connected ? 'Disconnect' : 'Connect'}
+                    {connected ? 'Disconnect' : 'Connect'}
                   </button>
                 </div>
               </div>

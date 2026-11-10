@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { FaUsers, FaSync, FaCheck, FaCog, FaLink, FaUnlink } from 'react-icons/fa';
 import { SiSalesforce, SiHubspot } from 'react-icons/si';
+import toast from 'react-hot-toast';
+import { connectProvider, syncProvider } from './syncConnect';
 
 const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
   const [connectedCRMs, setConnectedCRMs] = useState([]);
-  const [syncing, setSyncing] = useState(null);
   const [mappings, setMappings] = useState({
     contacts: true,
     deals: true,
@@ -13,16 +14,21 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
   });
 
   const crmProviders = [
-    { id: 'salesforce', name: 'Salesforce', icon: SiSalesforce, color: 'blue', contacts: 0, deals: 0 },
-    { id: 'hubspot', name: 'HubSpot', icon: SiHubspot, color: 'orange', contacts: 0, deals: 0 },
+    // No contact/deal counts. The render below used to fall back to
+    // `crm.contacts || 156`, which printed "156 contacts • 23 deals" for an
+    // account with nothing in it — and even for a genuinely empty CRM.
+    { id: 'salesforce', name: 'Salesforce', icon: SiSalesforce, color: 'blue' },
+    { id: 'hubspot', name: 'HubSpot', icon: SiHubspot, color: 'orange' },
   ];
 
-  const handleConnect = async (crmId) => {
-    setSyncing(crmId);
-    await new Promise(r => setTimeout(r, 2000));
+  const handleConnect = (crmId) => {
+    const crm = crmProviders.find(c => c.id === crmId);
+    const result = connectProvider(crm.name, onConnect ? () => onConnect(crmId) : undefined);
+    if (!result.ok) {
+      toast(result.message);
+      return;
+    }
     setConnectedCRMs([...connectedCRMs, crmId]);
-    setSyncing(null);
-    onConnect?.(crmId);
   };
 
   const handleDisconnect = (crmId) => {
@@ -30,11 +36,12 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
     onDisconnect?.(crmId);
   };
 
-  const handleSync = async (crmId) => {
-    setSyncing(crmId);
-    await new Promise(r => setTimeout(r, 3000));
-    setSyncing(null);
-    onSync?.(crmId);
+  const handleSync = (crmId) => {
+    const crm = crmProviders.find(c => c.id === crmId);
+    const result = syncProvider(crm.name, onSync ? () => onSync(crmId) : undefined);
+    if (!result.ok) {
+      toast(result.message);
+    }
   };
 
   const isConnected = (id) => connectedCRMs.includes(id);
@@ -51,7 +58,6 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
       <div className="space-y-4 mb-6">
         {crmProviders.map((crm) => {
           const connected = isConnected(crm.id);
-          const isSyncing = syncing === crm.id;
           
           return (
             <div
@@ -70,11 +76,9 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
                   <div>
                     <h4 className="font-medium text-content">{crm.name}</h4>
                     {connected ? (
-                      <div className="flex items-center gap-3 text-sm text-content-muted">
-                        <span>{crm.contacts || 156} contacts</span>
-                        <span>•</span>
-                        <span>{crm.deals || 23} deals</span>
-                      </div>
+                      <span className="flex items-center gap-1 text-sm text-green-600">
+                        <FaCheck /> Connected
+                      </span>
                     ) : (
                       <span className="text-sm text-content-muted">Connect to sync contacts & deals</span>
                     )}
@@ -86,10 +90,9 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
                     <>
                       <button
                         onClick={() => handleSync(crm.id)}
-                        disabled={isSyncing}
                         className="p-2 text-content-muted hover:text-primary-600"
                       >
-                        <FaSync className={isSyncing ? 'animate-spin' : ''} />
+                        <FaSync />
                       </button>
                       <button className="p-2 text-content-muted hover:text-content">
                         <FaCog />
@@ -98,7 +101,6 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
                   )}
                   <button
                     onClick={() => connected ? handleDisconnect(crm.id) : handleConnect(crm.id)}
-                    disabled={isSyncing}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm ${
                       connected
                         ? 'bg-red-100 text-red-600 hover:bg-red-200'
@@ -106,7 +108,7 @@ const CRMSync = ({ onConnect, onDisconnect, onSync }) => {
                     }`}
                   >
                     {connected ? <FaUnlink /> : <FaLink />}
-                    {isSyncing ? 'Connecting...' : connected ? 'Disconnect' : 'Connect'}
+                    {connected ? 'Disconnect' : 'Connect'}
                   </button>
                 </div>
               </div>

@@ -1,24 +1,31 @@
 import React, { useState } from 'react';
 import { FaEnvelope, FaGoogle, FaMicrosoft, FaSync, FaCheck, FaCog, FaFolder } from 'react-icons/fa';
+import toast from 'react-hot-toast';
+import { connectProvider, syncProvider } from './syncConnect';
 
 const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
-  const [connectedAccounts, setConnectedAccounts] = useState(['gmail']);
-  const [syncing, setSyncing] = useState(null);
+  // Nothing is connected until the user actually connects it. This used to
+  // default to ['gmail'] and report "234 emails, 12 unread" for a mailbox
+  // that had never been authorised.
+  const [connectedAccounts, setConnectedAccounts] = useState([]);
   const [syncFolders, setSyncFolders] = useState(['inbox', 'sent']);
 
   const emailProviders = [
-    { id: 'gmail', name: 'Gmail', icon: FaGoogle, color: 'red', emails: 234, unread: 12 },
-    { id: 'outlook', name: 'Outlook', icon: FaMicrosoft, color: 'blue', emails: 0, unread: 0 },
+    // No message or unread counts — those came from nowhere.
+    { id: 'gmail', name: 'Gmail', icon: FaGoogle, color: 'red' },
+    { id: 'outlook', name: 'Outlook', icon: FaMicrosoft, color: 'blue' },
   ];
 
   const folders = ['inbox', 'sent', 'drafts', 'starred', 'archive'];
 
-  const handleConnect = async (providerId) => {
-    setSyncing(providerId);
-    await new Promise(r => setTimeout(r, 2000));
+  const handleConnect = (providerId) => {
+    const provider = emailProviders.find(p => p.id === providerId);
+    const result = connectProvider(provider.name, onConnect ? () => onConnect(providerId) : undefined);
+    if (!result.ok) {
+      toast(result.message);
+      return;
+    }
     setConnectedAccounts([...connectedAccounts, providerId]);
-    setSyncing(null);
-    onConnect?.(providerId);
   };
 
   const handleDisconnect = (providerId) => {
@@ -26,11 +33,12 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
     onDisconnect?.(providerId);
   };
 
-  const handleSync = async (providerId) => {
-    setSyncing(providerId);
-    await new Promise(r => setTimeout(r, 2000));
-    setSyncing(null);
-    onSync?.(providerId);
+  const handleSync = (providerId) => {
+    const provider = emailProviders.find(p => p.id === providerId);
+    const result = syncProvider(provider.name, onSync ? () => onSync(providerId) : undefined);
+    if (!result.ok) {
+      toast(result.message);
+    }
   };
 
   const toggleFolder = (folder) => {
@@ -55,7 +63,6 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
       <div className="space-y-4 mb-6">
         {emailProviders.map((provider) => {
           const connected = isConnected(provider.id);
-          const isSyncing = syncing === provider.id;
           
           return (
             <div
@@ -74,14 +81,9 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
                   <div>
                     <h4 className="font-medium text-content">{provider.name}</h4>
                     {connected ? (
-                      <div className="flex items-center gap-3 text-sm">
-                        <span className="text-content-muted">{provider.emails} emails</span>
-                        {provider.unread > 0 && (
-                          <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs">
-                            {provider.unread} unread
-                          </span>
-                        )}
-                      </div>
+                      <span className="flex items-center gap-1 text-sm text-green-600">
+                        <FaCheck /> Connected
+                      </span>
                     ) : (
                       <span className="text-sm text-content-muted">Not connected</span>
                     )}
@@ -93,10 +95,9 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
                     <>
                       <button
                         onClick={() => handleSync(provider.id)}
-                        disabled={isSyncing}
                         className="p-2 text-content-muted hover:text-primary-600"
                       >
-                        <FaSync className={isSyncing ? 'animate-spin' : ''} />
+                        <FaSync />
                       </button>
                       <button className="p-2 text-content-muted hover:text-content">
                         <FaCog />
@@ -105,14 +106,13 @@ const EmailSync = ({ onConnect, onDisconnect, onSync }) => {
                   )}
                   <button
                     onClick={() => connected ? handleDisconnect(provider.id) : handleConnect(provider.id)}
-                    disabled={isSyncing}
                     className={`px-4 py-2 rounded-lg text-sm ${
                       connected
                         ? 'bg-red-100 text-red-600 hover:bg-red-200'
                         : 'bg-primary-600 text-white hover:bg-primary-700'
                     }`}
                   >
-                    {isSyncing ? 'Connecting...' : connected ? 'Disconnect' : 'Connect'}
+                    {connected ? 'Disconnect' : 'Connect'}
                   </button>
                 </div>
               </div>

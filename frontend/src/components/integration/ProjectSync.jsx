@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { FaProjectDiagram, FaSync, FaCog, FaCheck, FaLink, FaUnlink } from 'react-icons/fa';
 import { SiAsana, SiJira, SiTrello, SiNotion } from 'react-icons/si';
+import toast from 'react-hot-toast';
+import { connectProvider, syncProvider } from './syncConnect';
 
 const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
   // Nothing is connected until the user actually connects it. This used to
   // default to ['asana'], so the UI reported a live integration that
   // did not exist.
   const [connectedTools, setConnectedTools] = useState([]);
-  const [syncing, setSyncing] = useState(null);
 
   const projectTools = [
     // Counts removed: "5 projects, 127 tasks" was shown for an unconnected
@@ -18,12 +19,14 @@ const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
     { id: 'notion', name: 'Notion', icon: SiNotion, color: 'gray' },
   ];
 
-  const handleConnect = async (toolId) => {
-    setSyncing(toolId);
-    await new Promise(r => setTimeout(r, 2000));
+  const handleConnect = (toolId) => {
+    const tool = projectTools.find(t => t.id === toolId);
+    const result = connectProvider(tool.name, onConnect ? () => onConnect(toolId) : undefined);
+    if (!result.ok) {
+      toast(result.message);
+      return;
+    }
     setConnectedTools([...connectedTools, toolId]);
-    setSyncing(null);
-    onConnect?.(toolId);
   };
 
   const handleDisconnect = (toolId) => {
@@ -31,11 +34,12 @@ const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
     onDisconnect?.(toolId);
   };
 
-  const handleSync = async (toolId) => {
-    setSyncing(toolId);
-    await new Promise(r => setTimeout(r, 2000));
-    setSyncing(null);
-    onSync?.(toolId);
+  const handleSync = (toolId) => {
+    const tool = projectTools.find(t => t.id === toolId);
+    const result = syncProvider(tool.name, onSync ? () => onSync(toolId) : undefined);
+    if (!result.ok) {
+      toast(result.message);
+    }
   };
 
   const isConnected = (id) => connectedTools.includes(id);
@@ -52,7 +56,6 @@ const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
       <div className="grid grid-cols-2 gap-4 mb-6">
         {projectTools.map((tool) => {
           const connected = isConnected(tool.id);
-          const isSyncing = syncing === tool.id;
           
           return (
             <div
@@ -77,23 +80,15 @@ const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
                 </div>
               </div>
 
-              {connected && (
-                <div className="flex gap-4 text-sm text-content-muted mb-3">
-                  <span>{tool.projects} projects</span>
-                  <span>{tool.tasks} tasks</span>
-                </div>
-              )}
-
               <div className="flex gap-2">
                 {connected ? (
                   <>
                     <button
                       onClick={() => handleSync(tool.id)}
-                      disabled={isSyncing}
                       className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-surface-sunken hover:bg-surface-sunken rounded-lg text-sm"
                     >
-                      <FaSync className={isSyncing ? 'animate-spin' : ''} />
-                      {isSyncing ? 'Syncing...' : 'Sync'}
+                      <FaSync />
+                      Sync
                     </button>
                     <button
                       onClick={() => handleDisconnect(tool.id)}
@@ -105,11 +100,10 @@ const ProjectSync = ({ onConnect, onDisconnect, onSync }) => {
                 ) : (
                   <button
                     onClick={() => handleConnect(tool.id)}
-                    disabled={isSyncing}
                     className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm"
                   >
                     <FaLink />
-                    {isSyncing ? 'Connecting...' : 'Connect'}
+                    Connect
                   </button>
                 )}
               </div>

@@ -1,23 +1,31 @@
 import React, { useState } from 'react';
 import { FaGoogle, FaMicrosoft, FaApple, FaSync, FaCheck, FaExclamationTriangle, FaCog } from 'react-icons/fa';
+import toast from 'react-hot-toast';
+import { connectProvider, syncProvider } from './syncConnect';
 
 const CalendarSync = ({ onConnect, onDisconnect, onSync }) => {
-  const [connectedCalendars, setConnectedCalendars] = useState(['google']);
-  const [syncing, setSyncing] = useState(null);
-  const [lastSync, setLastSync] = useState(new Date(Date.now() - 300000));
+  // Nothing is connected until the user actually connects it. This used to
+  // default to ['google'], so the panel claimed a live Google Calendar
+  // integration — with "45 events synced" — that had never been authorised.
+  const [connectedCalendars, setConnectedCalendars] = useState([]);
+  // null until a sync actually happens; it used to start five minutes ago.
+  const [lastSync, setLastSync] = useState(null);
 
   const calendars = [
-    { id: 'google', name: 'Google Calendar', icon: FaGoogle, color: 'red', status: 'connected', events: 45 },
+    // No "45 events synced": that figure belonged to no real calendar account.
+    { id: 'google', name: 'Google Calendar', icon: FaGoogle, color: 'red' },
     { id: 'outlook', name: 'Outlook Calendar', icon: FaMicrosoft, color: 'blue', status: 'disconnected' },
     { id: 'apple', name: 'Apple Calendar', icon: FaApple, color: 'gray', status: 'disconnected' },
   ];
 
-  const handleConnect = async (calendarId) => {
-    setSyncing(calendarId);
-    await new Promise(r => setTimeout(r, 2000));
+  const handleConnect = (calendarId) => {
+    const calendar = calendars.find(c => c.id === calendarId);
+    const result = connectProvider(calendar.name, onConnect ? () => onConnect(calendarId) : undefined);
+    if (!result.ok) {
+      toast(result.message);
+      return;
+    }
     setConnectedCalendars([...connectedCalendars, calendarId]);
-    setSyncing(null);
-    onConnect?.(calendarId);
   };
 
   const handleDisconnect = (calendarId) => {
@@ -25,12 +33,14 @@ const CalendarSync = ({ onConnect, onDisconnect, onSync }) => {
     onDisconnect?.(calendarId);
   };
 
-  const handleSync = async (calendarId) => {
-    setSyncing(calendarId);
-    await new Promise(r => setTimeout(r, 2000));
+  const handleSync = (calendarId) => {
+    const calendar = calendars.find(c => c.id === calendarId);
+    const result = syncProvider(calendar.name, onSync ? () => onSync(calendarId) : undefined);
+    if (!result.ok) {
+      toast(result.message);
+      return;
+    }
     setLastSync(new Date());
-    setSyncing(null);
-    onSync?.(calendarId);
   };
 
   const isConnected = (id) => connectedCalendars.includes(id);
@@ -40,14 +50,13 @@ const CalendarSync = ({ onConnect, onDisconnect, onSync }) => {
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-content">Calendar Sync</h3>
         <span className="text-sm text-content-muted">
-          Last sync: {lastSync.toLocaleTimeString()}
+          {lastSync ? `Last sync: ${lastSync.toLocaleTimeString()}` : 'Not synced yet'}
         </span>
       </div>
 
       <div className="space-y-4">
         {calendars.map((calendar) => {
           const connected = isConnected(calendar.id);
-          const isSyncing = syncing === calendar.id;
           
           return (
             <div
@@ -69,7 +78,7 @@ const CalendarSync = ({ onConnect, onDisconnect, onSync }) => {
                       {connected ? (
                         <>
                           <FaCheck className="text-green-500" />
-                          <span className="text-green-600">{calendar.events} events synced</span>
+                          <span className="text-green-600">Connected</span>
                         </>
                       ) : (
                         <span className="text-content-muted">Not connected</span>
@@ -83,10 +92,9 @@ const CalendarSync = ({ onConnect, onDisconnect, onSync }) => {
                     <>
                       <button
                         onClick={() => handleSync(calendar.id)}
-                        disabled={isSyncing}
                         className="p-2 text-content-muted hover:text-primary-600 transition-colors"
                       >
-                        <FaSync className={isSyncing ? 'animate-spin' : ''} />
+                        <FaSync />
                       </button>
                       <button className="p-2 text-content-muted hover:text-content">
                         <FaCog />
@@ -95,14 +103,13 @@ const CalendarSync = ({ onConnect, onDisconnect, onSync }) => {
                   )}
                   <button
                     onClick={() => connected ? handleDisconnect(calendar.id) : handleConnect(calendar.id)}
-                    disabled={isSyncing}
                     className={`px-4 py-2 rounded-lg text-sm ${
                       connected
                         ? 'bg-red-100 text-red-600 hover:bg-red-200'
                         : 'bg-primary-600 text-white hover:bg-primary-700'
                     }`}
                   >
-                    {isSyncing ? 'Connecting...' : connected ? 'Disconnect' : 'Connect'}
+                    {connected ? 'Disconnect' : 'Connect'}
                   </button>
                 </div>
               </div>
