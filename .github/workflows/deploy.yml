@@ -70,6 +70,47 @@ jobs:
           JWT_SECRET: ci-only-not-a-real-secret-0123456789abcdefghijklmn
           NODE_ENV: test
 
+      # The image Render builds is a *production* install with no
+      # devDependencies and no hoisted transitive packages. Every Render deploy
+      # was dying on `Cannot find package 'mongodb'` while CI stayed green,
+      # because nothing here ever started the server. Boot it from a pruned
+      # copy so a bare import of an undeclared or dev-only package fails here
+      # instead of in production.
+      - name: Boot from a production-only install
+        working-directory: ./backend
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/prod-boot && mkdir -p /tmp/prod-boot
+          cp package.json pnpm-lock.yaml /tmp/prod-boot/
+          cp -r src /tmp/prod-boot/src
+          cd /tmp/prod-boot
+          pnpm install --prod --frozen-lockfile
+          # Prove every import resolves in this pruned tree, then boot for real.
+          node --test "$GITHUB_WORKSPACE/backend/scripts/test-dependency-hygiene.mjs" --prod-tree=/tmp/prod-boot
+          NODE_ENV=development PORT=5098 DB_RETRY=false \
+            MONGODB_URI=mongodb://127.0.0.1:27099/ci \
+            JWT_SECRET=ci-only-not-a-real-secret-0123456789abcdefghijklmn \
+            CLIENT_URL=http://localhost:5173 \
+            node src/server.js > boot.log 2>&1 &
+          SERVER_PID=$!
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:5098/health > /dev/null 2>&1; then
+              echo "✓ Server booted from a production install and served /health"
+              kill $SERVER_PID 2>/dev/null || true
+              exit 0
+            fi
+            if ! kill -0 $SERVER_PID 2>/dev/null; then
+              echo "✗ Server exited during boot:"
+              cat boot.log
+              exit 1
+            fi
+            sleep 1
+          done
+          echo "✗ Server did not answer /health within 30s:"
+          cat boot.log
+          kill $SERVER_PID 2>/dev/null || true
+          exit 1
+
   # Frontend Tests
   frontend-test:
     runs-on: ubuntu-latest
