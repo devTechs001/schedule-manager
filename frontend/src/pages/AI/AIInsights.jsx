@@ -11,6 +11,7 @@ import {
 import aiAPI from '@services/api/aiAPI';
 import EmptyState from '@components/ui/EmptyState';
 import Skeleton from '@components/ui/Skeleton';
+import AISuggestions from '@components/ai/AISuggestions';
 
 /**
  * AI insights.
@@ -32,6 +33,35 @@ const AIInsightsPage = () => {
   const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [suggestionsError, setSuggestionsError] = useState(null);
+
+  /*
+   * Suggestions are a separate endpoint (/ai/suggestions) that reasons about
+   * open tasks. It is loaded lazily — if the AI provider is not configured it
+   * returns [] and we simply do not render the section, rather than blocking
+   * the page on an optional feature.
+   */
+  const loadSuggestions = React.useCallback(async () => {
+    setSuggestionsLoading(true);
+    try {
+      const data = await aiAPI.getSuggestions('Improve focus this week');
+      const list = Array.isArray(data) ? data : [];
+      setSuggestions(list.map((item, index) => ({ ...item, _id: item._id || `suggestion-${index}` })));
+      setSuggestionsError(null);
+    } catch (err) {
+      setSuggestions([]);
+      setSuggestionsError(
+        err?.status === 503
+          ? 'Suggestion drafting needs an AI provider — the insights above do not.'
+          : err?.message || 'Could not load suggestions.'
+      );
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  }, []);
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -55,7 +85,8 @@ const AIInsightsPage = () => {
   useEffect(() => {
     document.title = 'AI insights — SchedAI';
     load();
-  }, [load]);
+    loadSuggestions();
+  }, [load, loadSuggestions]);
 
   return (
     <div className="space-y-5">
@@ -85,6 +116,7 @@ const AIInsightsPage = () => {
           ))}
         </div>
       )}
+
 
       {!loading && error && (
         <div className="card flex flex-col items-center gap-3 px-4 py-12 text-center">
@@ -138,6 +170,36 @@ const AIInsightsPage = () => {
           })}
         </div>
       )}
+
+      <section className="space-y-3">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-sm font-semibold text-content">Suggested next steps</h2>
+          <button
+            type="button"
+            onClick={loadSuggestions}
+            disabled={suggestionsLoading}
+            className="text-xs font-semibold text-primary-600 hover:underline disabled:opacity-50 dark:text-primary-300"
+          >
+            {suggestionsLoading ? 'Drafting…' : 'Refresh suggestions'}
+          </button>
+        </div>
+
+        {suggestionsError ? (
+          <p className="rounded-xl border border-line bg-surface-raised p-4 text-xs text-content-muted">
+            {suggestionsError}
+          </p>
+        ) : (
+          <AISuggestions
+            suggestions={suggestions}
+            onAccept={(suggestion) => {
+              setSuggestions((current) => current.filter((item) => item._id !== suggestion._id));
+            }}
+            onReject={(id) => {
+              setSuggestions((current) => current.filter((item) => item._id !== id));
+            }}
+          />
+        )}
+      </section>
     </div>
   );
 };
