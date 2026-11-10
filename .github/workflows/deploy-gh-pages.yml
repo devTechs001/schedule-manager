@@ -9,6 +9,8 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  # Needed so the guard step can ask whether a Pages site exists yet.
+  administration: read
 
 concurrency:
   group: "pages"
@@ -61,14 +63,44 @@ jobs:
         VITE_SOCKET_URL: ${{ vars.VITE_SOCKET_URL || 'http://localhost:5000' }}
         VITE_SOCKET_TIMEOUT: ${{ vars.VITE_SOCKET_TIMEOUT || '30000' }}
 
+    # GitHub Pages has to be switched on for the repository once, by an admin,
+    # before any of the steps below can work. Previously this job failed on
+    # every push with "Get Pages site failed"; now it reports that clearly and
+    # skips the deploy instead of turning the build red. Once Pages is enabled
+    # (Settings → Pages → Source: GitHub Actions) the next push deploys
+    # automatically with no further changes.
+    - name: Check whether GitHub Pages is enabled
+      id: pages_check
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        if gh api "repos/${{ github.repository }}/pages" >/dev/null 2>&1; then
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+          echo "Pages site found — proceeding with deploy."
+        else
+          echo "enabled=false" >> "$GITHUB_OUTPUT"
+          {
+            echo "### GitHub Pages is not enabled"
+            echo ""
+            echo "The frontend built successfully, but there is no Pages site for this repository,"
+            echo "so the deploy was skipped."
+            echo ""
+            echo "To publish the app: **Settings → Pages → Source: GitHub Actions**, then re-run this workflow."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=Pages deploy skipped::GitHub Pages is not enabled for this repository. Enable it under Settings → Pages (Source: GitHub Actions) to publish the frontend."
+        fi
+
     - name: Setup Pages
+      if: steps.pages_check.outputs.enabled == 'true'
       uses: actions/configure-pages@v4
 
     - name: Upload artifact
+      if: steps.pages_check.outputs.enabled == 'true'
       uses: actions/upload-pages-artifact@v3
       with:
         path: './frontend/dist'
 
     - name: Deploy to GitHub Pages
+      if: steps.pages_check.outputs.enabled == 'true'
       id: deployment
       uses: actions/deploy-pages@v4
