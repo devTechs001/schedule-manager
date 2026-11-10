@@ -65,7 +65,9 @@ jobs:
         env:
           MONGODB_URI: mongodb://localhost:27017/test
           REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test-secret
+          # 48 chars, so this still passes config/jwtSecret.js if the job is ever
+          # run with NODE_ENV=production. A short value here would fail closed.
+          JWT_SECRET: ci-only-not-a-real-secret-0123456789abcdefghijklmn
           NODE_ENV: test
 
   # Frontend Tests
