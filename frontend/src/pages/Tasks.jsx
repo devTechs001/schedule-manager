@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 import {
   FaCalendarAlt,
   FaCheckCircle,
@@ -16,6 +17,7 @@ import TaskForm from '@components/tasks/TaskForm';
 import TaskCalendar from '@components/tasks/TaskCalendar';
 import TaskFilters from '@components/tasks/TaskFilters';
 import AIPriority from '@components/ai/AIPriority';
+import { DraggableItem, DroppableZone } from '@components/ui/DragDrop';
 import QuickAddTask from '@components/tasks/QuickAddTask';
 import Modal from '@components/ui/Modal';
 import EmptyState from '@components/ui/EmptyState';
@@ -108,6 +110,25 @@ const Tasks = () => {
 
     return list;
   }, [tasks, filter, query, sortBy, priorityFilter]);
+
+  /**
+   * Move a task to a new status from the board. `completedAt` is set or
+   * cleared alongside the status so the streak and completion-rate figures
+   * stay consistent with what the board shows.
+   */
+  const moveTaskToStatus = async (taskId, status) => {
+    const task = (Array.isArray(tasks) ? tasks : []).find((item) => item._id === taskId);
+    if (!task || task.status === status) return;
+
+    try {
+      await updateTask(taskId, {
+        status,
+        completedAt: status === 'completed' ? new Date().toISOString() : null,
+      });
+    } catch (error) {
+      toast.error(error?.message || 'Could not move that task');
+    }
+  };
 
   const openCreate = () => {
     setSelectedTask(null);
@@ -246,19 +267,39 @@ const Tasks = () => {
                   </span>
                 </header>
 
-                <div className="flex-1 space-y-2 p-2.5">
-                  {items.length === 0 ? (
-                    <p className="px-1 py-6 text-center text-[0.7rem] text-content-subtle">
-                      Nothing here
-                    </p>
-                  ) : (
-                    items.map((task) => (
-                      <button
+                <DroppableZone
+                  id={column.id}
+                  accept={['task']}
+                  className="flex-1 border-0 p-2.5"
+                  emptyMessage="Drop a task here"
+                  onDrop={(data) => {
+                    /*
+                     * Moving a card between columns writes the new status
+                     * through updateTask. There is no local shadow copy of the
+                     * boards: the server (or the offline queue) is the source of
+                     * truth, so a failed write leaves the card where it was.
+                     * moveTaskToStatus ignores a drop onto the task's current
+                     * status, so no redundant write happens.
+                     */
+                    if (!data?.id) return;
+                    moveTaskToStatus(data.id, column.id);
+                  }}
+                >
+                  {items.length > 0 && (
+                    <div className="space-y-2">
+                    {items.map((task) => (
+                      <DraggableItem
                         key={task._id}
-                        type="button"
-                        onClick={() => openEdit(task)}
-                        className="w-full rounded-xl border border-line bg-surface-raised p-2.5 text-left transition-colors hover:border-primary-300"
+                        id={task._id}
+                        type="task"
+                        showHandle={false}
+                        className="rounded-xl border border-line bg-surface-raised hover:border-primary-300"
                       >
+                        <button
+                          type="button"
+                          onClick={() => openEdit(task)}
+                          className="w-full p-2.5 text-left"
+                        >
                         <span className="block text-xs font-semibold leading-snug text-content">
                           {task.title}
                         </span>
@@ -289,10 +330,12 @@ const Tasks = () => {
                             </span>
                           )}
                         </span>
-                      </button>
-                    ))
+                        </button>
+                      </DraggableItem>
+                    ))}
+                    </div>
                   )}
-                </div>
+                </DroppableZone>
               </section>
             );
           })}

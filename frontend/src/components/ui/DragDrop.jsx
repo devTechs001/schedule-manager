@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { FaGripVertical, FaArrowsAlt } from 'react-icons/fa';
 
 // Draggable Item Component
@@ -6,6 +6,7 @@ export const DraggableItem = ({
   children,
   id,
   index,
+  type,
   onDragStart,
   onDragEnd,
   onDragOver,
@@ -19,7 +20,7 @@ export const DraggableItem = ({
   const handleDragStart = (e) => {
     setIsDragging(true);
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', JSON.stringify({ id, index }));
+    e.dataTransfer.setData('text/plain', JSON.stringify({ id, index, type }));
     onDragStart?.(id, index);
   };
 
@@ -134,13 +135,20 @@ export const DroppableZone = ({
 
 // Sortable List Component
 const DragDropList = ({ items = [], renderItem, onReorder, className = '' }) => {
-  const [localItems, setLocalItems] = useState(items);
+  /*
+   * This used to keep a private copy seeded once from `items`. `useState(items)`
+   * only reads the prop on the first render, so any list that changed
+   * afterwards (added, deleted, refetched) kept showing the original order.
+   * The prop is the source of truth; the drag is only a proposed reordering
+   * handed to onReorder.
+   */
+  const localItems = Array.isArray(items) ? items : [];
 
   const handleDrop = (fromId, fromIndex, toId, toIndex) => {
+    if (fromIndex === toIndex) return;
     const newItems = [...localItems];
     const [removed] = newItems.splice(fromIndex, 1);
     newItems.splice(toIndex, 0, removed);
-    setLocalItems(newItems);
     onReorder?.(newItems);
   };
 
