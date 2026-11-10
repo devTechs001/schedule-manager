@@ -12,27 +12,21 @@ const TrafficWidget = ({
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [incidents, setIncidents] = useState([]);
 
+  /*
+   * No invented routes. This previously slept a second and then produced three
+   * named routes ("Fastest Route via Highway 101, 12.5 km, 18 min") plus two
+   * incidents ("accident, Highway 101 Mile 5") — specific, checkable claims
+   * about places the user never mentioned, for an origin/destination pair that
+   * defaults to 'Home'/'Office'.
+   *
+   * Live traffic requires a paid routing provider that is not integrated here,
+   * so the widget reports that instead of making journeys up.
+   */
   useEffect(() => {
-    const fetchTraffic = async () => {
-      setLoading(true);
-      await new Promise(r => setTimeout(r, 1000));
-
-      setRoutes([
-        { id: 1, name: 'Fastest Route', via: 'Highway 101', distance: '12.5 km', duration: 18, delay: 3, traffic: 'moderate' },
-        { id: 2, name: 'Alternative', via: 'Downtown', distance: '10.2 km', duration: 25, delay: 8, traffic: 'heavy' },
-        { id: 3, name: 'Scenic Route', via: 'Coastal Road', distance: '15.8 km', duration: 22, delay: 0, traffic: 'light' },
-      ]);
-
-      setIncidents([
-        { id: 1, type: 'accident', location: 'Highway 101, Mile 5', severity: 'moderate' },
-        { id: 2, type: 'construction', location: 'Main St & 5th Ave', severity: 'low' },
-      ]);
-
-      setSelectedRoute(1);
-      setLoading(false);
-    };
-
-    fetchTraffic();
+    setRoutes([]);
+    setIncidents([]);
+    setSelectedRoute(null);
+    setLoading(false);
   }, [origin, destination]);
 
   const getTrafficColor = (traffic) => {
@@ -48,6 +42,22 @@ const TrafficWidget = ({
     return (
       <div className="bg-surface rounded-lg shadow-lg p-4 animate-pulse">
         <div className="h-32 bg-surface-sunken rounded-lg" />
+      </div>
+    );
+  }
+
+  if (routes.length === 0) {
+    return (
+      <div className="bg-surface rounded-lg shadow-lg p-4">
+        <div className="flex items-start gap-3">
+          <FaCar className="mt-0.5 shrink-0 text-content-subtle" />
+          <div>
+            <p className="text-sm font-medium text-content">Live traffic is not connected</p>
+            <p className="mt-1 text-xs text-content-muted">
+              Journey times need a routing provider, which this build does not include.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
