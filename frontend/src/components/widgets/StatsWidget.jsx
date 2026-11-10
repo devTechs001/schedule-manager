@@ -1,8 +1,9 @@
 import React from 'react';
 import { FaArrowUp, FaArrowDown, FaTasks, FaCalendarCheck, FaClock, FaChartLine, FaUsers, FaEnvelope } from 'react-icons/fa';
 
-const StatsWidget = ({ 
+const StatsWidget = ({
   stats: customStats = null,
+  series = [],
   period = 'week',
   compact = false,
 }) => {
@@ -12,6 +13,7 @@ const StatsWidget = ({
    * workspace is indistinguishable from a bug.
    */
   const stats = Array.isArray(customStats) ? customStats : [];
+  const points = Array.isArray(series) ? series : [];
 
   const colorClasses = {
     primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600',
@@ -55,8 +57,8 @@ const StatsWidget = ({
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {stats.map((stat) => {
-          const Icon = stat.icon;
           const isPositive = stat.changeType === 'increase';
+          const Icon = stat.icon || FaChartLine;
           
           return (
             <div
@@ -71,7 +73,7 @@ const StatsWidget = ({
                   isPositive ? 'text-green-500' : 'text-red-500'
                 }`}>
                   {isPositive ? <FaArrowUp /> : <FaArrowDown />}
-                  {Math.abs(stat.change)}%
+                  {Math.abs(stat.change ?? 0)}%
                 </span>
               </div>
               <p className="text-2xl font-bold text-content mb-1">
@@ -83,27 +85,30 @@ const StatsWidget = ({
         })}
       </div>
 
-      {/* Mini Chart Placeholder */}
+      {/*
+        * A real series, or nothing. This block used to render seven bars of
+        * fixed heights ([40, 65, 45, 80, 55, 90, 70]) labelled Mon-Sun, which
+        * looked like a weekly trend for every account regardless of activity.
+        */}
+      {points.length > 0 && (
       <div className="mt-6 p-4 bg-surface-sunken/50 rounded-lg">
         <div className="flex items-end justify-between h-20 gap-1">
-          {[40, 65, 45, 80, 55, 90, 70].map((height, i) => (
+          {points.map((point) => (
             <div
-              key={i}
+              key={point.label}
               className="flex-1 bg-primary-500 rounded-t-sm hover:bg-primary-600 transition-colors"
-              style={{ height: `${height}%` }}
+              style={{ height: `${Math.max(3, point.value)}%` }}
+              title={`${point.label}: ${point.value}`}
             />
           ))}
         </div>
         <div className="flex justify-between mt-2 text-xs text-content-muted">
-          <span>Mon</span>
-          <span>Tue</span>
-          <span>Wed</span>
-          <span>Thu</span>
-          <span>Fri</span>
-          <span>Sat</span>
-          <span>Sun</span>
+          {points.map((point) => (
+            <span key={point.label}>{point.label}</span>
+          ))}
         </div>
       </div>
+      )}
     </div>
   );
 };

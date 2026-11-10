@@ -20,6 +20,7 @@ import ProductivityChart from '@components/analytics/ProductivityChart';
 import TimeTracking from '@components/analytics/TimeTracking';
 import DistractionTracker from '@components/analytics/DistractionTracker';
 import EnergyTracker from '@components/analytics/EnergyTracker';
+import StatsWidget from '@components/widgets/StatsWidget';
 
 const Analytics = () => {
   const { tasks, loading } = useTasks();
@@ -94,6 +95,31 @@ const Analytics = () => {
         metrics.events,
       ],
     }),
+    [metrics]
+  );
+
+  /*
+   * Weekly completion counts, normalised to the tallest bar so the widget's
+   * chart is proportional. The series is the last seven days of real
+   * completedAt values — previously StatsWidget drew fixed heights here.
+   */
+  const weeklySeries = useMemo(() => {
+    const labels = chartData.labels.slice(-7);
+    const values = chartData.completed.slice(-7);
+    const max = Math.max(1, ...values);
+    return labels.map((label, index) => ({
+      label: label.split(' ')[0],
+      value: Math.round((values[index] / max) * 100),
+      count: values[index],
+    }));
+  }, [chartData]);
+
+  const widgetStats = useMemo(
+    () => [
+      { id: 'completed', name: 'Completed', value: metrics.completed, icon: FaCheckCircle, color: 'green' },
+      { id: 'open', name: 'Open', value: metrics.total - metrics.completed, icon: FaTasks, color: 'blue' },
+      { id: 'rate', name: 'Completion', value: metrics.completionRate, suffix: '%', icon: FaChartLine, color: 'purple' },
+    ],
     [metrics]
   );
 
@@ -207,6 +233,8 @@ const Analytics = () => {
         <DistractionTracker />
         <EnergyTracker />
       </div>
+
+      <StatsWidget stats={widgetStats} series={weeklySeries} />
 
       {loading && <p className="text-center text-xs text-content-subtle">Refreshing data…</p>}
     </div>
