@@ -1,24 +1,34 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { FaLock, FaSpinner } from 'react-icons/fa';
+import { useAuth } from '@contexts/AuthContext';
 
 /**
- * AuthGuard - Route protection component
- * Wraps protected routes and redirects unauthenticated users
+ * Route protection for a subtree.
+ *
+ * Props default to the live auth context, so `<AuthGuard>` works on its own
+ * and `<AuthGuard requiredRoles={['admin']}>` adds a role check. Pass
+ * `isAuthenticated` / `isLoading` explicitly only when guarding against
+ * something other than the signed-in user.
  */
 const AuthGuard = ({
   children,
-  isAuthenticated = false,
-  isLoading = false,
+  isAuthenticated,
+  isLoading,
   requiredRoles = [],
-  userRoles = [],
+  userRoles,
   redirectTo = '/login',
   fallback = null,
 }) => {
   const location = useLocation();
+  const auth = useAuth();
+
+  const authenticated = isAuthenticated ?? Boolean(auth?.user);
+  const loading = isLoading ?? Boolean(auth?.loading);
+  const roles = userRoles ?? (auth?.user?.role ? [auth.user.role] : []);
 
   // Show loading state
-  if (isLoading) {
+  if (loading) {
     return (
       fallback || (
         <div className="min-h-screen flex items-center justify-center bg-surface-sunken">
@@ -32,13 +42,13 @@ const AuthGuard = ({
   }
 
   // Check authentication
-  if (!isAuthenticated) {
+  if (!authenticated) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
   // Check role-based access
   if (requiredRoles.length > 0) {
-    const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
+    const hasRequiredRole = requiredRoles.some((role) => roles.includes(role));
     if (!hasRequiredRole) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-surface-sunken">
@@ -80,21 +90,23 @@ export const withAuthGuard = (Component, options = {}) => {
 };
 
 /**
- * useAuthGuard - Hook for checking auth status in components
+ * Read the current auth status and evaluate a role requirement.
+ *
+ * This used to return `isAuthenticated: true` unconditionally with a
+ * placeholder `['user']` role list. Any caller that trusted it would have
+ * treated a signed-out visitor as authorised, so it now reads the real
+ * context and fails closed.
  */
 export const useAuthGuard = (requiredRoles = []) => {
-  // This would typically use a context or store
-  const isAuthenticated = true; // Replace with actual auth check
-  const userRoles = ['user']; // Replace with actual user roles
-  
-  const hasAccess = requiredRoles.length === 0 || 
-    requiredRoles.some(role => userRoles.includes(role));
+  const { user, loading } = useAuth();
+  const userRoles = user?.role ? [user.role] : [];
 
-  return {
-    isAuthenticated,
-    hasAccess,
-    userRoles,
-  };
+  const isAuthenticated = Boolean(user);
+  const hasAccess =
+    isAuthenticated &&
+    (requiredRoles.length === 0 || requiredRoles.some((role) => userRoles.includes(role)));
+
+  return { isAuthenticated, hasAccess, userRoles, loading };
 };
 
 export default AuthGuard;
